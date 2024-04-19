@@ -1,8 +1,8 @@
 package online.poulastaa.domain.repository
 
 import io.ktor.server.sessions.*
-import online.poulastaa.data.model.table.SessionStorageTable
-import online.poulastaa.domain.dao.SessionStorageDB
+import online.poulastaa.data.model.table.session.SessionStorageTable
+import online.poulastaa.domain.dao.session.SessionStorageDB
 import online.poulastaa.plugins.dbQuery
 
 class SessionStorageImpl: SessionStorage {
