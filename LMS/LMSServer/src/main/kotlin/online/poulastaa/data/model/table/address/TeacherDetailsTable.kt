@@ -19,6 +19,7 @@ object TeacherDetailsTable : Table() {
     val designationId = reference("designationId", DesignationTable.id, onDelete = ReferenceOption.CASCADE)
     val departmentId = reference("departmentId", DepartmentTable.id, onDelete = ReferenceOption.CASCADE)
     val joinDate = date("joinDate")
+    val experience = varchar("experience", 50)
     val qualificationId = reference("qualificationId", QualificationTable.id, onDelete = ReferenceOption.CASCADE)
 
     override val primaryKey = PrimaryKey(teacherId)

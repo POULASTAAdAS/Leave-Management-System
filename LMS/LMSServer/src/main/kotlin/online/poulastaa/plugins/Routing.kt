@@ -5,12 +5,14 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import online.poulastaa.data.repository.UserServiceRepository
 import online.poulastaa.routes.auth
+import online.poulastaa.routes.saveTeacherDetails
 import org.koin.ktor.ext.inject
 
 fun Application.configureRouting() {
-     val service: UserServiceRepository by inject()
+    val service: UserServiceRepository by inject()
 
     routing {
-        auth(service = service)
+        auth(service)
+        saveTeacherDetails(service)
     }
 }
