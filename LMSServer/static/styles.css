@@ -1,0 +1,32 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #020000;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.message {
+    background-color: #4CAF50;
+    color: white;
+    padding: 20px;
+    border-radius: 5px;
+}
+
+.success {
+    background-color: #4CAF50;
+}
+
+.success h2 {
+    margin-top: 0;
+}
+
+.success p {
+    margin-bottom: 0;
+}
