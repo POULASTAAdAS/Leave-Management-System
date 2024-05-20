@@ -9,6 +9,5 @@ class Teacher(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<Teacher>(TeacherTable)
 
     val email by TeacherTable.email
-    val teacherTypeId by TeacherTable.teacherTypeId
     var emailVerified by TeacherTable.emailVerified
 }

@@ -12,6 +12,7 @@ object Constants {
 
     const val DEFAULT_SESSION_MAX_AGE = 7L * 24 * 3600 // 7 days
 
-    const val VERIFICATION_MAIL_TOKEN_CLAIM_KEY = "emailVerify"
+    const val SIGNUP_VERIFICATION_MAIL_TOKEN_CLAIM_KEY = "signUpEmailVerify"
+    const val LOGIN_VERIFICATION_MAIL_TOKEN_CLAIM_KEY = "logInEmailVerify"
     const val VERIFICATION_MAIL_TOKEN_TIME = 240000L // 4 minute
 }

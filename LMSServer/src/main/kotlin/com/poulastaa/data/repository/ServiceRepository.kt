@@ -10,9 +10,11 @@ import com.poulastaa.data.model.auth.res.VerifiedMailStatus
 interface ServiceRepository {
     suspend fun auth(email: String): AuthRes
 
-    suspend fun updateVerificationStatus(token: String): VerifiedMailStatus
+    suspend fun updateSignUpVerificationStatus(token: String): VerifiedMailStatus
+    suspend fun updateLogInVerificationStatus(token: String): VerifiedMailStatus
 
-    suspend fun emailVerificationCheck(email: String): EmailVerificationRes
+    suspend fun signUpEmailVerificationCheck(email: String): EmailVerificationRes
+    suspend fun loginEmailVerificationCheck(email: String): EmailVerificationRes
 
     suspend fun saveTeacherDetails(req: SetDetailsReq): SetDetailsRes
 }

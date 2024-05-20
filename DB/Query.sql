@@ -25,6 +25,34 @@ select * from teacher;
 select * from TeacherDetails;
 
 
+update teacher set emailVerified = false where id = 2;
+
+
+select * from loginemail;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

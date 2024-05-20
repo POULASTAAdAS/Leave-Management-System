@@ -9,39 +9,60 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import java.io.File
 
-fun Route.verifyEmail(
+fun Route.verifySignUpEmail(
     service: ServiceRepository
 ) {
-    route(EndPoints.VerifyEmail.route) {
+    route(EndPoints.VerifySignUpEmail.route) {
         get {
             val token = call.parameters["token"] ?: return@get call.respondRedirect(EndPoints.UnAuthorised.route)
 
-            val status = service.updateVerificationStatus(token)
+            val status = service.updateSignUpVerificationStatus(token)
 
-            when (status) {
-                VerifiedMailStatus.VERIFIED -> call.respondText(emailVerifiedRes(), ContentType.Text.Html)
+            res(status, call)
+        }
+    }
+}
 
-                VerifiedMailStatus.TOKEN_USED -> {
-                    val html = File("static/AuthTokenUsed.html").readText()
-                    val css = File("static/errStyles.css").readText()
+fun Route.verifyLogInEmail(
+    service: ServiceRepository
+) {
+    route(EndPoints.VerifyLogInEmail.route) {
+        get {
+            val token = call.parameters["token"] ?: return@get call.respondRedirect(EndPoints.UnAuthorised.route)
 
-                    call.respondText(otherResponse(html, css), ContentType.Text.Html)
-                }
+            val status = service.updateLogInVerificationStatus(token)
 
-                VerifiedMailStatus.USER_NOT_FOUND -> {
-                    val html = File("static/AuthUserNotFound.html").readText()
-                    val css = File("static/errStyles.css").readText()
+            res(status, call)
+        }
+    }
+}
 
-                    call.respondText(otherResponse(html, css), ContentType.Text.Html)
-                }
+private suspend fun res(
+    status: VerifiedMailStatus,
+    call: ApplicationCall
+) {
+    when (status) {
+        VerifiedMailStatus.VERIFIED -> call.respondText(emailVerifiedRes(), ContentType.Text.Html)
 
-                else -> {
-                    val html = File("static/AuthInternalErr.html").readText()
-                    val css = File("static/errStyles.css").readText()
+        VerifiedMailStatus.TOKEN_USED -> {
+            val html = File("static/AuthTokenUsed.html").readText()
+            val css = File("static/errStyles.css").readText()
 
-                    call.respondText(otherResponse(html, css), ContentType.Text.Html)
-                }
-            }
+            call.respondText(otherResponse(html, css), ContentType.Text.Html)
+        }
+
+        VerifiedMailStatus.USER_NOT_FOUND -> {
+            val html = File("static/AuthUserNotFound.html").readText()
+            val css = File("static/errStyles.css").readText()
+
+            call.respondText(otherResponse(html, css), ContentType.Text.Html)
+        }
+
+        else -> {
+            val html = File("static/AuthInternalErr.html").readText()
+            val css = File("static/errStyles.css").readText()
+
+            call.respondText(otherResponse(html, css), ContentType.Text.Html)
         }
     }
 }

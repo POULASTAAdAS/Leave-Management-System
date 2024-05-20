@@ -24,7 +24,7 @@ class JWTRepositoryImpl(
     private val keySpecPKCS8 = PKCS8EncodedKeySpec(Base64.getDecoder().decode(privateKeyString))
     private val privateKey = KeyFactory.getInstance("RSA").generatePrivate(keySpecPKCS8)
 
-    override fun generateVerificationMailToken(
+    override fun generateSignUpVerificationMailToken(
         sub: String,
         email: String,
         claimName: String,
@@ -36,6 +36,17 @@ class JWTRepositoryImpl(
         validationTime = validationTime
     )
 
+    override fun generateLogInVerificationMailToken(
+        sub: String,
+        email: String,
+        claimName: String,
+        validationTime: Long
+    ): String = generateJWTToken(
+        sub = sub,
+        claimName = claimName,
+        email = email,
+        validationTime = validationTime
+    )
 
     override fun verifyJWTToken(
         token: String,

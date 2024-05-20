@@ -17,8 +17,13 @@ fun Application.configureRouting() {
         interceptor()
 
         authenUser(service)
-        verifyEmail(service)
-        checkVerificationMailStatus(service)
+
+        verifySignUpEmail(service)
+        verifyLogInEmail(service)
+
+        checkSignUpVerificationMailStatus(service)
+        checkLoginVerificationMailStatus(service)
+
         setDetailsReq(service)
 
         unAuth()

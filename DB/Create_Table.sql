@@ -1,4 +1,6 @@
-create database LMSCopy;
+create database LMS;
+use lms;
+
 
 create table Department(
 id Int primary key auto_increment,
@@ -25,7 +27,6 @@ id Int primary key auto_increment,
 Create Table Teacher(
 id Int primary key auto_increment,
 email varchar(255) not null unique,
-teacherTypeId Int references TeacherType(id) on delete cascade,
 emailVerified bool default(false)
 );
 
@@ -80,17 +81,20 @@ id Int primary key auto_increment,
 
 
 Create Table TeacherDetails( -- map with thercahrId with email from req
-teacherId Int primary key references Teacher(id) on delete cascade,
-hrmsId varchar(40) not null unique,
-`name` text not null,
-phone_1 varchar(10) not null,
+teacherId Int references Teacher(id) on delete cascade,
+teacherTypeId Int references TeacherType(id) on delete cascade,
+hrmsId varchar(20) not null unique,
+`name` varchar(100) not null,
+phone_1 varchar(10) unique not null,
 phone_2 varchar(10) default(null),
 bDate Date not null,
 gender varchar(1) not null ,
 designationId Int references Designation(id) on delete cascade,
 departmentId Int references Department(id) on delete cascade,
 joiningDate Date not null,
-qualificationId Int references Qualification(id) on delete cascade
+qualificationId Int references Qualification(id) on delete cascade,
+
+primary key (teacherId , teacherTypeId)
 );
 
 Create Table TeacherAddress(

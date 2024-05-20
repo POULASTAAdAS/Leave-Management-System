@@ -2,6 +2,7 @@ package com.poulastaa.data.model.table.address
 
 import com.poulastaa.data.model.table.department.DepartmentTable
 import com.poulastaa.data.model.table.teacher.TeacherTable
+import com.poulastaa.data.model.table.teacher.TeacherTypeTable
 import com.poulastaa.data.model.table.utils.DesignationTable
 import com.poulastaa.data.model.table.utils.QualificationTable
 import org.jetbrains.exposed.sql.ReferenceOption
@@ -10,6 +11,7 @@ import org.jetbrains.exposed.sql.javatime.date
 
 object TeacherDetailsTable : Table() {
     val teacherId = reference("teacherId", TeacherTable.id, onDelete = ReferenceOption.CASCADE)
+    val teacherTypeId = reference("teacherTypeId", TeacherTypeTable.id, onDelete = ReferenceOption.CASCADE)
     val hrmsId = varchar("hrmsId", 20).uniqueIndex()
     val name = varchar("name", 100)
     val phone_1 = varchar("phone_1", 10).uniqueIndex()
@@ -20,6 +22,6 @@ object TeacherDetailsTable : Table() {
     val departmentId = reference("departmentId", DepartmentTable.id, onDelete = ReferenceOption.CASCADE)
     val joiningDate = date("joiningDate")
     val qualificationId = reference("qualificationId", QualificationTable.id, onDelete = ReferenceOption.CASCADE)
-    
-    override val primaryKey = PrimaryKey(teacherId)
+
+    override val primaryKey = PrimaryKey(teacherId, teacherTypeId)
 }
