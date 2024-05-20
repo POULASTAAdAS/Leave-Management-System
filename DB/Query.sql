@@ -26,10 +26,5 @@ select * from TeacherDetails;
 
 
 
-DESCRIBE teacherdetails;
-
-
-
-
 
 

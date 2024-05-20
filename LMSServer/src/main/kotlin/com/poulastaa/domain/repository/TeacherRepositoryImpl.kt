@@ -22,6 +22,7 @@ import com.poulastaa.utils.Qualification
 import com.poulastaa.utils.toLocalDate
 import kotlinx.coroutines.*
 import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.insertIgnore
 import org.jetbrains.exposed.sql.select
 
@@ -29,7 +30,7 @@ class TeacherRepositoryImpl : TeacherRepository {
     private suspend fun findTeacher(email: String) = dbQuery {
         Teacher.find {
             TeacherTable.email eq email
-        }.firstOrNull()
+        }.singleOrNull()
     }
 
 
@@ -41,7 +42,7 @@ class TeacherRepositoryImpl : TeacherRepository {
         val response = dbQuery {
             TeacherDetailsTable.select {
                 TeacherDetailsTable.teacherId eq teacher.id
-            }.limit(1).firstOrNull()
+            }.singleOrNull()
         }
 
         val authStatus = if (response == null) AuthStatus.SIGNUP else AuthStatus.LOGIN
@@ -65,7 +66,7 @@ class TeacherRepositoryImpl : TeacherRepository {
     override suspend fun emailVerificationCheck(email: String): Boolean = dbQuery {
         Teacher.find {
             TeacherTable.email eq email
-        }.firstOrNull()?.emailVerified ?: false
+        }.singleOrNull()?.emailVerified ?: false
     }
 
     override suspend fun saveTeacherDetails(req: SetDetailsReq): SetDetailsRes = withContext(Dispatchers.IO) {
@@ -73,12 +74,12 @@ class TeacherRepositoryImpl : TeacherRepository {
 
 
         val dataDef = async { req.toDetailsEntry(teacher.id) }
-        val entryDef = async { checkIfDetailsAlreadyFilled(teacher.id) }
+        val isEntryEmptyDef = async { checkIfDetailsAlreadyFilled(teacher.id.value) }
 
         val data = dataDef.await() ?: return@withContext SetDetailsRes()
-        val entry = entryDef.await() != null
+        val isEmpty = isEntryEmptyDef.await()
 
-        if (entry) return@withContext SetDetailsRes(
+        if (!isEmpty) return@withContext SetDetailsRes(
             status = TeacherDetailsSaveStatus.ALREADY_SAVED
         )
 
@@ -91,10 +92,10 @@ class TeacherRepositoryImpl : TeacherRepository {
         )
     }
 
-    private suspend fun checkIfDetailsAlreadyFilled(id: EntityID<Int>) = dbQuery {
+    private suspend fun checkIfDetailsAlreadyFilled(id: Int) = dbQuery {
         TeacherDetailsTable.select {
-            TeacherDetailsTable.teacherId eq id.value
-        }.singleOrNull()
+            TeacherDetailsTable.teacherId eq id
+        }.empty()
     }
 
     private suspend fun SetDetailsReq.toDetailsEntry(teacherId: EntityID<Int>): SetDetailsEntry? = coroutineScope {
@@ -102,7 +103,7 @@ class TeacherRepositoryImpl : TeacherRepository {
             dbQuery {
                 Designation.find {
                     DesignationTable.id eq this@toDetailsEntry.designationId
-                }.firstOrNull()?.id
+                }.singleOrNull()?.id
             }
         }
 
@@ -110,7 +111,7 @@ class TeacherRepositoryImpl : TeacherRepository {
             dbQuery {
                 Department.find {
                     DepartmentTable.id eq this@toDetailsEntry.departmentId
-                }.firstOrNull()?.id
+                }.singleOrNull()?.id
             }
         }
 
@@ -118,7 +119,7 @@ class TeacherRepositoryImpl : TeacherRepository {
             dbQuery {
                 Qualification.find {
                     QualificationTable.id eq this@toDetailsEntry.qualificationId
-                }.firstOrNull()?.id
+                }.singleOrNull()?.id
             }
         }
 
@@ -194,9 +195,18 @@ class TeacherRepositoryImpl : TeacherRepository {
     }
 
     private suspend fun TeacherDetailsEntry.setDetails() = dbQuery {
-        TeacherDetailsTable.insertIgnore {
+        TeacherDetailsTable.insert {
             it[this.teacherId] = this@setDetails.teacherId
-            // todo add other
+            it[this.hrmsId] = this@setDetails.hrmsId
+            it[this.name] = this@setDetails.name
+            it[this.phone_1] = this@setDetails.phone_1
+            it[this.phone_2] = this@setDetails.phone_2
+            it[this.bDate] = this@setDetails.bDate
+            it[this.gender] = this@setDetails.gender
+            it[this.designationId] = this@setDetails.designationId
+            it[this.departmentId] = this@setDetails.departmentId
+            it[this.joiningDate] = this@setDetails.joiningDate
+            it[this.qualificationId] = this@setDetails.qualificationID
         }
     }
 

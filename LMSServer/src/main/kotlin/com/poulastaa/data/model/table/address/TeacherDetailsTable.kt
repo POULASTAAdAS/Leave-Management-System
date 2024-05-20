@@ -10,7 +10,7 @@ import org.jetbrains.exposed.sql.javatime.date
 
 object TeacherDetailsTable : Table() {
     val teacherId = reference("teacherId", TeacherTable.id, onDelete = ReferenceOption.CASCADE)
-    val hrmsId = varchar("hrmsId", 30).uniqueIndex()
+    val hrmsId = varchar("hrmsId", 20).uniqueIndex()
     val name = varchar("name", 100)
     val phone_1 = varchar("phone_1", 10).uniqueIndex()
     val phone_2 = varchar("phone_2", 10).nullable().default(null)

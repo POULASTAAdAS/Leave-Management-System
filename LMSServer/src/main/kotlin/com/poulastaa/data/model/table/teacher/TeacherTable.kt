@@ -8,5 +8,5 @@ import org.jetbrains.exposed.sql.ReferenceOption
 object TeacherTable : IntIdTable() {
     val email = varchar("email", 255).uniqueIndex()
     val teacherTypeId = reference("teacherTypeId", TeacherTypeTable.id, onDelete = ReferenceOption.CASCADE)
-    val emailVerified = TeacherDetailsTable.bool("emailVerified").default(false)
+    val emailVerified = bool("emailVerified").default(false)
 }
