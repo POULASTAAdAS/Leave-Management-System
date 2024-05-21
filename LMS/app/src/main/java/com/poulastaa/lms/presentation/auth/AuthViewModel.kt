@@ -1,7 +1,5 @@
 package com.poulastaa.lms.presentation.auth
 
-import android.util.Log
-import android.util.Patterns
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -17,8 +15,9 @@ import com.poulastaa.lms.data.model.auth.EndPoints
 import com.poulastaa.lms.data.model.auth.LocalUser
 import com.poulastaa.lms.data.remote.authGet
 import com.poulastaa.lms.data.remote.authPost
-import com.poulastaa.lms.data.repository.utils.ConnectivityObserver
-import com.poulastaa.lms.data.repository.utils.DataStoreRepository
+import com.poulastaa.lms.domain.repository.auth.PatternValidator
+import com.poulastaa.lms.domain.repository.utils.ConnectivityObserver
+import com.poulastaa.lms.domain.repository.utils.DataStoreRepository
 import com.poulastaa.lms.domain.utils.DataError
 import com.poulastaa.lms.domain.utils.Result
 import com.poulastaa.lms.navigation.Screens
@@ -43,6 +42,7 @@ class AuthViewModel @Inject constructor(
     private val cookieManager: CookieManager,
     private val ds: DataStoreRepository,
     private val gson: Gson,
+    private val emailValidator: PatternValidator,
     private val client: OkHttpClient
 ) : ViewModel() {
     var state by mutableStateOf(AuthUiState())
@@ -73,7 +73,7 @@ class AuthViewModel @Inject constructor(
                     email = event.value,
                     isEmailErr = false,
                     emailErr = UiText.DynamicString(""),
-                    isValidEmail = isValidEmail(event.value),
+                    isValidEmail = emailValidator.matches(event.value),
                     isEmailHintVisible = false
                 )
             }
@@ -230,9 +230,6 @@ class AuthViewModel @Inject constructor(
             )
         }
     }
-
-    private fun isValidEmail(value: String): Boolean =
-        Patterns.EMAIL_ADDRESS.matcher(value).matches()
 
     private fun emailVerificationCheck(
         email: String,

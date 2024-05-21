@@ -11,6 +11,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.poulastaa.lms.presentation.auth.AuthRootScreen
+import com.poulastaa.lms.presentation.store_details.StoreDetailsRootScreen
 
 @Composable
 fun Navigation(
@@ -26,12 +27,9 @@ fun Navigation(
         }
 
         composable(route = Screens.StoreDetails.route) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(text = "Store Details")
+            StoreDetailsRootScreen {
+                navController.popBackStack()
+                navController.navigate(Screens.Home.route)
             }
         }
 

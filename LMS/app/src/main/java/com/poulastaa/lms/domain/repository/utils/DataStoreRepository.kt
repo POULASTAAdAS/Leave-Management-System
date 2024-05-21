@@ -1,4 +1,4 @@
-package com.poulastaa.lms.data.repository.utils
+package com.poulastaa.lms.domain.repository.utils
 
 import com.poulastaa.lms.data.model.auth.LocalUser
 import com.poulastaa.lms.navigation.Screens

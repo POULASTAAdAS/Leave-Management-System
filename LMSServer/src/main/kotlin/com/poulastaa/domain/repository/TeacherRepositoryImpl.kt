@@ -165,7 +165,7 @@ class TeacherRepositoryImpl : TeacherRepository {
             email = this@toDetailsEntry.email,
             teacherId = teacherId,
             teacherTypeId = teacherTypeId,
-            hrmsId = this@toDetailsEntry.htmsId.toString(),
+            hrmsId = this@toDetailsEntry.hrmsId.toString(),
             name = this@toDetailsEntry.name,
             phone_1 = this@toDetailsEntry.phone_1.toString(),
             phone_2 = this@toDetailsEntry.phone_2.toString(),

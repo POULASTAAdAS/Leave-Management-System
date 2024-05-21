@@ -22,9 +22,12 @@ import com.poulastaa.lms.ui.theme.dimens
 fun ScreenWrapper(
     verticalArrangement: Arrangement.Vertical = Arrangement.Center,
     horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
+    floatingActionButton: @Composable () -> Unit = {},
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Scaffold {
+    Scaffold(
+        floatingActionButton = floatingActionButton
+    ) {
         Column(
             modifier = Modifier
                 .background(

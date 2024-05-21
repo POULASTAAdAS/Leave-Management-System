@@ -2,7 +2,7 @@ package com.poulastaa.lms
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.poulastaa.lms.data.repository.utils.DataStoreRepository
+import com.poulastaa.lms.domain.repository.utils.DataStoreRepository
 import com.poulastaa.lms.navigation.Screens
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

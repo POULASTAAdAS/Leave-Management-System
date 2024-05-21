@@ -1,4 +1,4 @@
-package com.poulastaa.lms.domain.repository.utils
+package com.poulastaa.lms.data.repository.utils
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -7,7 +7,7 @@ import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.google.gson.Gson
 import com.poulastaa.lms.data.model.auth.LocalUser
-import com.poulastaa.lms.data.repository.utils.DataStoreRepository
+import com.poulastaa.lms.domain.repository.utils.DataStoreRepository
 import com.poulastaa.lms.navigation.Screens
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch

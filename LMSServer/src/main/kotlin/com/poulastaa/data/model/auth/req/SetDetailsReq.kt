@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 data class SetDetailsReq(
     val email: String = "",
     val name: String = "",
-    val htmsId: Long = -1,
+    val hrmsId: Long = -1,
     val phone_1: Long = -1,
     val phone_2: Long = -1,
     val dbo: String = "",

@@ -23,6 +23,32 @@
     <string name="error_email_not_valid">Please enter a valid email</string>
     <string name="error_making_api_call">please wait one request is in session</string>
     <string name="auth_mail_sent">An authetication mail is sent to you please conform it to continue.</string>
+    <string name="fill_up_header">Fill Up Details</string>
+    <string name="hrms">HRMS ID</string>
+    <string name="username">Name</string>
+    <string name="phone_1">Phone 1</string>
+    <string name="phone_2">Phone 2</string>
+    <string name="date_of_birth">DBO</string>
+    <string name="bdate">Set B\'day</string>
+    <string name="gender">Gender</string>
+    <string name="designation">Designation</string>
+    <string name="department">Department</string>
+    <string name="date_of_joining">Joining Date</string>
+    <string name="experience">Experience</string>
+    <string name="qualification">Qualification(Highest)</string>
+    <string name="present_address_header">Present Address</string>
+    <string name="home_address_header">Home Address</string>
+    <string name="hour_number">House Number</string>
+    <string name="street">Street</string>
+    <string name="city">City</string>
+    <string name="zip_code">Zipcode</string>
+    <string name="state">State</string>
+    <string name="country">Country</string>
+    <string name="same_as_present_address">Same as present address</string>
+    <string name="error_cant_contain_underscore">can\'t contain underscore</string>
+    <string name="error_empty">Field can\'t be empty</string>
+    <string name="err_cant_contain_blank_sapce">Can\'t contain blank space</string>
+    <string name="error_phone_number_not_valid">Please enter a valid phone number</string>
 
     <array name="com_google_android_gms_fonts_certs">
         <item>@array/com_google_android_gms_fonts_certs_dev</item>

@@ -30,8 +30,13 @@ update teacher set emailVerified = false where id = 2;
 
 select * from loginemail;
 
+select * from designation;
 
+select * from department;
 
+SELECT CONCAT('"', type, '",') AS type FROM qualification;
+
+select * from qualification;
 
 
 

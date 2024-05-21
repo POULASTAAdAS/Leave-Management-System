@@ -1,9 +1,9 @@
-package com.poulastaa.lms.domain.repository.utils
+package com.poulastaa.lms.data.repository.utils
 
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
-import com.poulastaa.lms.data.repository.utils.ConnectivityObserver
+import com.poulastaa.lms.domain.repository.utils.ConnectivityObserver
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.channels.awaitClose

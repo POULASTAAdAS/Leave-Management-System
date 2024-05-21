@@ -6,10 +6,10 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import com.google.gson.Gson
-import com.poulastaa.lms.data.repository.utils.ConnectivityObserver
-import com.poulastaa.lms.domain.repository.utils.DataStoreRepositoryImpl
-import com.poulastaa.lms.data.repository.utils.DataStoreRepository
-import com.poulastaa.lms.domain.repository.utils.NetworkConnectivityObserver
+import com.poulastaa.lms.domain.repository.utils.ConnectivityObserver
+import com.poulastaa.lms.data.repository.utils.DataStoreRepositoryImpl
+import com.poulastaa.lms.domain.repository.utils.DataStoreRepository
+import com.poulastaa.lms.data.repository.utils.NetworkConnectivityObserver
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

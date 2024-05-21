@@ -1,4 +1,4 @@
-package com.poulastaa.lms.data.repository.utils
+package com.poulastaa.lms.domain.repository.utils
 
 import kotlinx.coroutines.flow.Flow
 
