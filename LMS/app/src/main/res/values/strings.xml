@@ -49,6 +49,7 @@
     <string name="error_empty">Field can\'t be empty</string>
     <string name="err_cant_contain_blank_sapce">Can\'t contain blank space</string>
     <string name="error_phone_number_not_valid">Please enter a valid phone number</string>
+    <string name="error_field_are_empty_or_invalid">Please fill all the fields appropriately.</string>
 
     <array name="com_google_android_gms_fonts_certs">
         <item>@array/com_google_android_gms_fonts_certs_dev</item>

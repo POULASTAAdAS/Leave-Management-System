@@ -3,6 +3,7 @@ package com.poulastaa.routes.auth
 import com.poulastaa.data.model.EndPoints
 import com.poulastaa.data.model.auth.res.VerifiedMailStatus
 import com.poulastaa.data.repository.ServiceRepository
+import com.poulastaa.routes.utils.setCookie
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
@@ -32,7 +33,9 @@ fun Route.verifyLogInEmail(
 
             val status = service.updateLogInVerificationStatus(token)
 
-            res(status, call)
+            if (status.first == VerifiedMailStatus.VERIFIED) setCookie(status.second.first, status.second.second)
+
+            res(status.first, call)
         }
     }
 }

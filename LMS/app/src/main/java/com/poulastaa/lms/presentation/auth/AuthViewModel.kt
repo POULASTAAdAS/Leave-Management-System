@@ -13,8 +13,10 @@ import com.poulastaa.lms.data.model.auth.AuthStatus
 import com.poulastaa.lms.data.model.auth.EmailVerificationRes
 import com.poulastaa.lms.data.model.auth.EndPoints
 import com.poulastaa.lms.data.model.auth.LocalUser
+import com.poulastaa.lms.data.model.home.UserType
 import com.poulastaa.lms.data.remote.authGet
 import com.poulastaa.lms.data.remote.authPost
+import com.poulastaa.lms.data.remote.extractCookie
 import com.poulastaa.lms.domain.repository.auth.PatternValidator
 import com.poulastaa.lms.domain.repository.utils.ConnectivityObserver
 import com.poulastaa.lms.domain.repository.utils.DataStoreRepository
@@ -22,8 +24,10 @@ import com.poulastaa.lms.domain.utils.DataError
 import com.poulastaa.lms.domain.utils.Result
 import com.poulastaa.lms.navigation.Screens
 import com.poulastaa.lms.ui.utils.UiText
+import com.poulastaa.lms.ui.utils.storeCookie
 import com.poulastaa.lms.ui.utils.storeSignInState
 import com.poulastaa.lms.ui.utils.storeUser
+import com.poulastaa.lms.ui.utils.toLocalUser
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -190,12 +194,32 @@ class AuthViewModel @Inject constructor(
                     }
 
                     when (response.data.authStatus) {
+                        AuthStatus.PRINCIPLE_FOUND -> {
+                            emailVerificationJob = emailVerificationCheck(
+                                email,
+                                EndPoints.LogInEmailVerificationCheck.route,
+                                isLogIn = true,
+                                user = response.data.user.let {
+                                    LocalUser(
+                                        name = it.name,
+                                        email = it.email,
+                                        profilePicUrl = it.profilePicUrl,
+                                        userType = UserType.PRINCIPLE
+                                    )
+                                }
+                            )
+
+                            state = state.copy(
+                                route = EndPoints.LogInEmailVerificationCheck.route
+                            )
+                        }
+
                         AuthStatus.LOGIN -> {
                             emailVerificationJob = emailVerificationCheck(
                                 email,
                                 EndPoints.LogInEmailVerificationCheck.route,
                                 isLogIn = true,
-                                user = LocalUser() // todo send from response
+                                user = response.data.user.toLocalUser()
                             )
 
                             state = state.copy(
@@ -268,8 +292,24 @@ class AuthViewModel @Inject constructor(
                 is Result.Success -> {
                     if (response.data.status) {
                         if (isLogIn) {
+                            val cookie = extractCookie(cookieManager)?.let { storeCookie(it, ds) }
+
+                            if (cookie == null) {
+                                _uiEvent.send(
+                                    AuthUiAction.SendToast(
+                                        UiText.StringResource(R.string.error_something_went_wrong)
+                                    )
+                                )
+
+                                emailVerificationJob?.cancel()
+                                resendVerificationMailJob?.cancel()
+
+                                return@launch
+                            }
+
                             storeSignInState(Screens.Home, ds)
                             storeUser(ds, user)
+
 
                             _uiEvent.send(
                                 AuthUiAction.OnSuccess(

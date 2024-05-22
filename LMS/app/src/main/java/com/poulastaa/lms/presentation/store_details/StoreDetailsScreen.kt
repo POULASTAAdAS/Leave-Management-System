@@ -37,6 +37,7 @@ import com.poulastaa.lms.R
 import com.poulastaa.lms.presentation.store_details.components.StoreDetailsActionButton
 import com.poulastaa.lms.presentation.store_details.components.StoreDetailsClickableTextField
 import com.poulastaa.lms.presentation.store_details.components.StoreDetailsDateDialog
+import com.poulastaa.lms.presentation.store_details.components.StoreDetailsFloatingActionButton
 import com.poulastaa.lms.presentation.store_details.components.StoreDetailsListSelector
 import com.poulastaa.lms.presentation.store_details.components.StoreDetailsTextFiled
 import com.poulastaa.lms.presentation.utils.ScreenWrapper
@@ -103,7 +104,12 @@ private fun StoreDetailsScreen(
     )
 
     ScreenWrapper(
-        verticalArrangement = Arrangement.spacedBy(MaterialTheme.dimens.small3)
+        verticalArrangement = Arrangement.spacedBy(MaterialTheme.dimens.small3),
+        floatingActionButton = {
+            StoreDetailsFloatingActionButton {
+                onEvent(StoreDetailsUiEvent.OnContinueClick)
+            }
+        }
     ) {
         Row(
             modifier = Modifier
@@ -458,7 +464,7 @@ private fun PresentAddress(
             isErr = presetAddress.city.isErr,
             errText = presetAddress.city.errText.asString(),
             onDone = {
-                focusManager.moveFocus(FocusDirection.Down)
+                focusManager.moveFocus(FocusDirection.Left)
             }
         )
 
@@ -601,7 +607,7 @@ private fun HomeAddress(
             isErr = homeAddress.city.isErr,
             errText = homeAddress.city.errText.asString(),
             onDone = {
-                focusManager.moveFocus(FocusDirection.Down)
+                focusManager.moveFocus(FocusDirection.Left)
             }
         )
 

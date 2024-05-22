@@ -1,4 +1,4 @@
-package com.poulastaa.data.model.table.utils
+package com.poulastaa.data.model.table.designation
 
 import org.jetbrains.exposed.dao.id.IntIdTable
 

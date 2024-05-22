@@ -5,18 +5,18 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SetDetailsReq(
-    val email: String = "",
-    val name: String = "",
-    val hrmsId: Long = -1,
-    val phone_1: Long = -1,
-    val phone_2: Long = -1,
-    val dbo: String = "",
-    val sex: Char = ' ',
-    val designationId: Int = -1,
-    val departmentId: Int = -1,
-    val joiningDate: String = "",
-    val exp: String = "",
-    val qualificationId: Int = -1,
+    val email: String,
+    val name: String,
+    val hrmsId: String,
+    val phone_1: String,
+    val phone_2: String,
+    val dbo: String,
+    val sex: Char,
+    val designation: String,
+    val department: String,
+    val joiningDate: String,
+    val exp: String,
+    val qualification: String,
     val address: List<Pair<AddressType, Address>> = emptyList()
 )
 

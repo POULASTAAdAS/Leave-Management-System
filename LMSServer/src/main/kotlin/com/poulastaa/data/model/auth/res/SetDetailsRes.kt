@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class SetDetailsRes(
     val status: TeacherDetailsSaveStatus = TeacherDetailsSaveStatus.INVALID_REQ,
-    // todo add response
+    val isDepartmentHead: Boolean = false
 )

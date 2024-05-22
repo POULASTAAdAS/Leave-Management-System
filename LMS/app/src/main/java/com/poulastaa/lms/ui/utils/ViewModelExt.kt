@@ -13,7 +13,7 @@ fun ViewModel.storeUser(
     localUser: LocalUser
 ) {
     viewModelScope.launch(Dispatchers.IO) {
-
+        ds.storeLocalUser(localUser)
     }
 }
 
@@ -25,7 +25,7 @@ fun ViewModel.storeSignInState(state: Screens, ds: DataStoreRepository) {
 
 fun ViewModel.storeCookie(cookie: String, ds: DataStoreRepository) {
     viewModelScope.launch(Dispatchers.IO) {
-
+        ds.storeCookie(cookie)
     }
 }
 

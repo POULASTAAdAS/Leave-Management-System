@@ -1,5 +1,8 @@
 package com.poulastaa.lms.ui.utils
 
+import com.poulastaa.lms.data.model.auth.LocalUser
+import com.poulastaa.lms.data.model.auth.ResponseUser
+import com.poulastaa.lms.data.model.home.UserType
 import com.poulastaa.lms.data.model.stoe_details.AddressReq
 import com.poulastaa.lms.data.model.stoe_details.AddressType
 import com.poulastaa.lms.data.model.stoe_details.StoreDetailsReq
@@ -12,11 +15,11 @@ fun StoreDetailsUiState.toStoreDetailsReq() = StoreDetailsReq(
     hrmsId = this.hrmsId.data.trim(),
     phone_1 = this.phoneOne.data.trim(),
     phone_2 = this.phoneTwo.data.trim(),
-    dbo = this.bDay.data.trim(),
+    dbo = this.bDay.data.trim().replace("/", "."),
     sex = this.gender.selected.trim().toCharArray().first(),
     designation = this.designation.selected.trim(),
     department = this.department.selected.trim(),
-    joiningDate = this.joiningDate.data.trim(),
+    joiningDate = this.joiningDate.data.trim().replace("/", "."),
     exp = this.experience.trim(),
     qualification = this.qualification.selected.trim(),
     address = listOf(
@@ -38,4 +41,16 @@ fun HolderAddress.toAddressReq() = AddressReq(
     zipcode = this.zipCode.data.trim(),
     state = this.state.data.trim(),
     country = this.country.data.trim()
+)
+
+fun ResponseUser.toLocalUser() = LocalUser(
+    name = this.name,
+    email = this.email,
+    phone = this.phone,
+    profilePicUrl = this.profilePicUrl,
+    designation = this.designation,
+    department = this.department,
+    isDepartmentInCharge = this.isDepartmentInCharge,
+    userType = if (this.designation.startsWith("S")) UserType.SACT
+    else UserType.PERMANENT
 )

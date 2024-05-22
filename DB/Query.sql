@@ -24,8 +24,9 @@ select * from qualification;
 select * from teacher;
 select * from TeacherDetails;
 
+delete from teacherdetails;
 
-update teacher set emailVerified = false where id = 2;
+update teacher set emailVerified = false where id = 21;
 
 
 select * from loginemail;
@@ -38,12 +39,12 @@ SELECT CONCAT('"', type, '",') AS type FROM qualification;
 
 select * from qualification;
 
+select * from departmenthead;
 
 
+drop table TeacherDetails;
 
-
-
-
+select * from loginEmail;
 
 
 

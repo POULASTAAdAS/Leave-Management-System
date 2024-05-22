@@ -6,5 +6,4 @@ import kotlinx.serialization.Serializable
 enum class TeacherType {
     SACT,
     PERMANENT,
-    NON
 }

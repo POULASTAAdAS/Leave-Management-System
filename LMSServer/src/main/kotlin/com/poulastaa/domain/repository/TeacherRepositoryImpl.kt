@@ -7,26 +7,31 @@ import com.poulastaa.data.model.convertors.AddressEntry
 import com.poulastaa.data.model.convertors.SetDetailsEntry
 import com.poulastaa.data.model.convertors.TeacherDetailsEntry
 import com.poulastaa.data.model.table.address.TeacherDetailsTable
+import com.poulastaa.data.model.table.department.DepartmentHeadTable
 import com.poulastaa.data.model.table.department.DepartmentTable
 import com.poulastaa.data.model.table.teacher.TeacherAddressTable
 import com.poulastaa.data.model.table.teacher.TeacherTable
-import com.poulastaa.data.model.table.utils.DesignationTable
+import com.poulastaa.data.model.table.designation.DesignationTable
+import com.poulastaa.data.model.table.designation.DesignationTeacherTypeRelation
+import com.poulastaa.data.model.table.teacher.TeacherTypeTable
 import com.poulastaa.data.model.table.utils.LogInEmailTable
+import com.poulastaa.data.model.table.utils.PrincipalTable
 import com.poulastaa.data.model.table.utils.QualificationTable
 import com.poulastaa.data.repository.TeacherRepository
 import com.poulastaa.domain.dao.department.Department
+import com.poulastaa.domain.dao.department.DepartmentHead
 import com.poulastaa.domain.dao.teacher.Teacher
+import com.poulastaa.domain.dao.teacher.TeacherType
 import com.poulastaa.plugins.dbQuery
 import com.poulastaa.domain.dao.utils.Designation
 import com.poulastaa.domain.dao.utils.LogInEmail
+import com.poulastaa.domain.dao.utils.Principal
 import com.poulastaa.domain.dao.utils.Qualification
 import com.poulastaa.utils.Constants.VERIFICATION_MAIL_TOKEN_TIME
 import com.poulastaa.utils.toLocalDate
 import kotlinx.coroutines.*
 import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.insertIgnore
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.*
 
 class TeacherRepositoryImpl : TeacherRepository {
     private suspend fun findTeacher(email: String) = dbQuery {
@@ -35,9 +40,24 @@ class TeacherRepositoryImpl : TeacherRepository {
         }.singleOrNull()
     }
 
+    private suspend fun findPrinciple(email: String) = dbQuery {
+        Principal.find {
+            PrincipalTable.email eq email
+        }.firstOrNull()
+    }
 
-    override suspend fun getTeacherDetailsStatus(email: String): AuthStatus {
-        val teacher = findTeacher(email) ?: return AuthStatus.EMAIL_NOT_REGISTERED
+    override suspend fun getTeacherDetailsStatus(email: String): Pair<AuthStatus, Any> = coroutineScope {
+        val teacherDef = async { findTeacher(email) }
+        val principleDef = async { findPrinciple(email) }
+
+        val teacher = teacherDef.await()
+        val principal = principleDef.await()
+
+        if (principal != null) {
+            handleLoginEntry(email) // using loginIn entry to verify principle
+            return@coroutineScope AuthStatus.PRINCIPLE_FOUND to principal
+        }
+        if (teacher == null) return@coroutineScope AuthStatus.EMAIL_NOT_REGISTERED to Unit
 
         val response = dbQuery {
             TeacherDetailsTable.select {
@@ -51,7 +71,67 @@ class TeacherRepositoryImpl : TeacherRepository {
             handleLoginEntry(email)
         }
 
-        return authStatus
+        authStatus to Unit
+    }
+
+    override suspend fun getTeacher(email: String): User = withContext(Dispatchers.IO) {
+        val teacher = findTeacher(email) ?: return@withContext User()
+
+        val (designationId,  departmentId) = dbQuery {
+            TeacherDetailsTable.select {
+                TeacherDetailsTable.teacherId eq teacher.id
+            }.singleOrNull()?.let {
+                Pair(
+                    first = it[TeacherDetailsTable.designationId].value,
+                    second = it[TeacherDetailsTable.departmentId].value
+                )
+            }
+        } ?: return@withContext User()
+
+
+        val departmentDef = async {
+            dbQuery {
+                Department.find {
+                    DepartmentTable.id eq departmentId
+                }.singleOrNull()?.name
+            }
+        }
+
+        val designationDef = async {
+            dbQuery {
+                Designation.find {
+                    DesignationTable.id eq designationId
+                }.singleOrNull()
+            }
+        }
+
+        val isDepartmentInChargeDef = async {
+            dbQuery {
+                DepartmentHead.find {
+                    DepartmentHeadTable.teacherId eq teacher.id
+                }.empty()
+            }
+        }
+
+
+        val department = departmentDef.await() ?: return@withContext User()
+        val designation = designationDef.await() ?: return@withContext User()
+        val isDepartmentHead = !isDepartmentInChargeDef.await()
+
+        dbQuery {
+            TeacherDetailsTable.select {
+                TeacherDetailsTable.teacherId eq teacher.id
+            }.singleOrNull()?.let {
+                User(
+                    name = it[TeacherDetailsTable.name],
+                    email = email,
+                    profilePicUrl = it[TeacherDetailsTable.profilePic],
+                    department = department,
+                    designation = designation.type,
+                    isDepartmentInCharge = isDepartmentHead
+                )
+            }
+        } ?: User()
     }
 
     override suspend fun updateSignUpVerificationStatus(email: String): VerifiedMailStatus {
@@ -67,21 +147,35 @@ class TeacherRepositoryImpl : TeacherRepository {
         }
     }
 
-    override suspend fun updateLogInVerificationStatus(email: String): VerifiedMailStatus {
+    override suspend fun updateLogInVerificationStatus(email: String): Pair<VerifiedMailStatus, Pair<String, String>> {
         return try {
             val user = dbQuery {
                 LogInEmail.find {
                     LogInEmailTable.email eq email
                 }.singleOrNull()
-            } ?: return VerifiedMailStatus.USER_NOT_FOUND
+            } ?: return VerifiedMailStatus.USER_NOT_FOUND to Pair("", "")
 
             if (!user.emailVerified) dbQuery {
                 user.emailVerified = true
             }
 
-            VerifiedMailStatus.VERIFIED
+            val teacher = findTeacher(email) ?: return VerifiedMailStatus.USER_NOT_FOUND to Pair("", "")
+
+            val entry = dbQuery {
+                TeacherDetailsTable.select {
+                    TeacherDetailsTable.teacherId eq teacher.id
+                }.singleOrNull()?.let {
+                    Pair(
+                        first = it[TeacherDetailsTable.name],
+                        second = email
+                    )
+                }
+            } ?: return VerifiedMailStatus.USER_NOT_FOUND to Pair("", "")
+
+
+            VerifiedMailStatus.VERIFIED to entry
         } catch (_: Exception) {
-            VerifiedMailStatus.SOMETHING_WENT_WRONG
+            VerifiedMailStatus.SOMETHING_WENT_WRONG to Pair("", "")
         }
     }
 
@@ -104,12 +198,16 @@ class TeacherRepositoryImpl : TeacherRepository {
 
         val dataDef = async { req.toDetailsEntry(teacher.id) }
         val isEntryEmptyDef = async { checkIfDetailsAlreadyFilled(teacher.id.value) }
+        val isDepartmentHeadDef = async { getDepartmentHead(teacher.id.value) }
+
 
         val data = dataDef.await() ?: return@withContext SetDetailsRes()
         val isEmpty = isEntryEmptyDef.await()
+        val isDepartmentHead = isDepartmentHeadDef.await()
 
         if (!isEmpty) return@withContext SetDetailsRes(
-            status = TeacherDetailsSaveStatus.ALREADY_SAVED
+            status = TeacherDetailsSaveStatus.ALREADY_SAVED,
+            isDepartmentHead = isDepartmentHead
         )
 
         CoroutineScope(Dispatchers.IO).launch {
@@ -117,7 +215,8 @@ class TeacherRepositoryImpl : TeacherRepository {
         }
 
         SetDetailsRes(
-            status = TeacherDetailsSaveStatus.SAVED
+            status = TeacherDetailsSaveStatus.SAVED,
+            isDepartmentHead = isDepartmentHead
         )
     }
 
@@ -127,11 +226,17 @@ class TeacherRepositoryImpl : TeacherRepository {
         }.empty()
     }
 
+    private suspend fun getDepartmentHead(id: Int) = dbQuery {
+        DepartmentHead.find {
+            DepartmentHeadTable.teacherId eq id
+        }.empty()
+    }
+
     private suspend fun SetDetailsReq.toDetailsEntry(teacherId: EntityID<Int>): SetDetailsEntry? = coroutineScope {
         val designationDef = async {
             dbQuery {
                 Designation.find {
-                    DesignationTable.id eq this@toDetailsEntry.designationId
+                    DesignationTable.type.upperCase() eq this@toDetailsEntry.designation.uppercase()
                 }.singleOrNull()
             }
         }
@@ -139,7 +244,7 @@ class TeacherRepositoryImpl : TeacherRepository {
         val departmentIdDef = async {
             dbQuery {
                 Department.find {
-                    DepartmentTable.id eq this@toDetailsEntry.departmentId
+                    DepartmentTable.name.upperCase() eq this@toDetailsEntry.department.uppercase()
                 }.singleOrNull()?.id
             }
         }
@@ -147,7 +252,7 @@ class TeacherRepositoryImpl : TeacherRepository {
         val qualificationIdDef = async {
             dbQuery {
                 Qualification.find {
-                    QualificationTable.id eq this@toDetailsEntry.qualificationId
+                    QualificationTable.type.upperCase() eq this@toDetailsEntry.qualification.uppercase()
                 }.singleOrNull()?.id
             }
         }
@@ -159,22 +264,31 @@ class TeacherRepositoryImpl : TeacherRepository {
         val dbo = this@toDetailsEntry.dbo.toLocalDate() ?: return@coroutineScope null
         val joiningDate = this@toDetailsEntry.joiningDate.toLocalDate() ?: return@coroutineScope null
 
-        val teacherTypeId = if (designation.type.startsWith("S")) 2 else 1
+        val teacherTypeId = dbQuery {
+            DesignationTeacherTypeRelation
+                .slice(DesignationTeacherTypeRelation.teacherTypeId)
+                .select {
+                    DesignationTeacherTypeRelation.designationId eq designation.id.value
+                }.singleOrNull().let {
+                    it?.get(DesignationTeacherTypeRelation.teacherTypeId)
+                }
+        } ?: return@coroutineScope null
 
         val details = TeacherDetailsEntry(
             email = this@toDetailsEntry.email,
             teacherId = teacherId,
             teacherTypeId = teacherTypeId,
-            hrmsId = this@toDetailsEntry.hrmsId.toString(),
+            hrmsId = this@toDetailsEntry.hrmsId,
             name = this@toDetailsEntry.name,
-            phone_1 = this@toDetailsEntry.phone_1.toString(),
-            phone_2 = this@toDetailsEntry.phone_2.toString(),
+            phone_1 = this@toDetailsEntry.phone_1,
+            phone_2 = this@toDetailsEntry.phone_2,
             bDate = dbo,
             gender = this@toDetailsEntry.sex.toString(),
             designationId = designation.id,
             departmentId = departmentId,
             joiningDate = joiningDate,
-            qualificationID = qualificationId
+            qualificationId = qualificationId,
+            exp = this@toDetailsEntry.exp
         )
 
         val address = this@toDetailsEntry.address.map {
@@ -227,8 +341,9 @@ class TeacherRepositoryImpl : TeacherRepository {
     }
 
     private suspend fun TeacherDetailsEntry.setDetails() = dbQuery {
-        TeacherDetailsTable.insert {
+        TeacherDetailsTable.insert { // todo store exp
             it[this.teacherId] = this@setDetails.teacherId
+            it[this.teacherTypeId] = this@setDetails.teacherTypeId
             it[this.hrmsId] = this@setDetails.hrmsId
             it[this.name] = this@setDetails.name
             it[this.phone_1] = this@setDetails.phone_1
@@ -238,7 +353,8 @@ class TeacherRepositoryImpl : TeacherRepository {
             it[this.designationId] = this@setDetails.designationId
             it[this.departmentId] = this@setDetails.departmentId
             it[this.joiningDate] = this@setDetails.joiningDate
-            it[this.qualificationId] = this@setDetails.qualificationID
+            it[this.qualificationId] = this@setDetails.qualificationId
+            it[this.exp] = this@setDetails.exp
         }
     }
 

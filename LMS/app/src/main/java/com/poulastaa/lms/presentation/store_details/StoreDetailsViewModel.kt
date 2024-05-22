@@ -8,16 +8,24 @@ import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.poulastaa.lms.R
 import com.poulastaa.lms.data.model.auth.EndPoints
+import com.poulastaa.lms.data.model.auth.LocalUser
+import com.poulastaa.lms.data.model.home.UserType
 import com.poulastaa.lms.data.model.stoe_details.SetDetailsRes
 import com.poulastaa.lms.data.model.stoe_details.StoreDetailsReq
+import com.poulastaa.lms.data.model.stoe_details.TeacherDetailsSaveStatus
 import com.poulastaa.lms.data.remote.authPost
+import com.poulastaa.lms.data.remote.extractCookie
 import com.poulastaa.lms.data.repository.auth.UserDataValidator
 import com.poulastaa.lms.domain.repository.utils.ConnectivityObserver
 import com.poulastaa.lms.domain.repository.utils.DataStoreRepository
 import com.poulastaa.lms.domain.utils.DataError
 import com.poulastaa.lms.domain.utils.Result
+import com.poulastaa.lms.navigation.Screens
 import com.poulastaa.lms.ui.utils.DateUtils
 import com.poulastaa.lms.ui.utils.UiText
+import com.poulastaa.lms.ui.utils.storeCookie
+import com.poulastaa.lms.ui.utils.storeSignInState
+import com.poulastaa.lms.ui.utils.storeUser
 import com.poulastaa.lms.ui.utils.toStoreDetailsReq
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -312,7 +320,100 @@ class StoreDetailsViewModel @Inject constructor(
             }
 
             StoreDetailsUiEvent.OnSameAsPresentAddressClick -> {
+                var isErr = false
 
+                if (state.presentAddress.houseNumber.data.isEmpty()) {
+                    state = state.copy(
+                        presentAddress = state.presentAddress.copy(
+                            houseNumber = state.presentAddress.houseNumber.copy(
+                                isErr = true,
+                                errText = UiText.StringResource(R.string.error_empty)
+                            )
+                        )
+                    )
+
+                    isErr = true
+                }
+
+                if (state.presentAddress.street.data.isEmpty()) {
+                    state = state.copy(
+                        presentAddress = state.presentAddress.copy(
+                            street = state.presentAddress.street.copy(
+                                isErr = true,
+                                errText = UiText.StringResource(R.string.error_empty)
+                            )
+                        )
+                    )
+
+                    isErr = true
+                }
+
+
+                if (state.presentAddress.city.data.isEmpty()) {
+                    state = state.copy(
+                        presentAddress = state.presentAddress.copy(
+                            city = state.presentAddress.city.copy(
+                                isErr = true,
+                                errText = UiText.StringResource(R.string.error_empty)
+                            )
+                        )
+                    )
+
+                    isErr = true
+                }
+
+                if (state.presentAddress.zipCode.data.isEmpty()) {
+                    state = state.copy(
+                        presentAddress = state.presentAddress.copy(
+                            zipCode = state.presentAddress.zipCode.copy(
+                                isErr = true,
+                                errText = UiText.StringResource(R.string.error_empty)
+                            )
+                        )
+                    )
+
+                    isErr = true
+                }
+
+                if (state.presentAddress.state.data.isEmpty()) {
+                    state = state.copy(
+                        presentAddress = state.presentAddress.copy(
+                            state = state.presentAddress.state.copy(
+                                isErr = true,
+                                errText = UiText.StringResource(R.string.error_empty)
+                            )
+                        )
+                    )
+
+                    isErr = true
+                }
+
+
+                if (state.presentAddress.country.data.isEmpty()) {
+                    state = state.copy(
+                        presentAddress = state.presentAddress.copy(
+                            country = state.presentAddress.country.copy(
+                                isErr = true,
+                                errText = UiText.StringResource(R.string.error_empty)
+                            )
+                        )
+                    )
+
+                    isErr = true
+                }
+
+
+                if (isErr) {
+                    viewModelScope.launch(Dispatchers.IO) {
+                        _uiEvent.send(StoreDetailsUiAction.ShowToast(UiText.StringResource(R.string.error_field_are_empty_or_invalid)))
+                    }
+
+                    return
+                }
+
+                state = state.copy(
+                    homeAddress = state.presentAddress
+                )
             }
 
             is StoreDetailsUiEvent.HomeAddress -> {
@@ -394,12 +495,11 @@ class StoreDetailsViewModel @Inject constructor(
             StoreDetailsUiEvent.OnContinueClick -> {
                 if (state.isMakingApiCall) return
 
-
                 state = state.copy(
                     isMakingApiCall = true
                 )
 
-                if (!isValid()) {
+                if (isErr()) {
                     state = state.copy(
                         isMakingApiCall = false
                     )
@@ -417,7 +517,13 @@ class StoreDetailsViewModel @Inject constructor(
                     when (response) {
                         is Result.Error -> {
                             when (response.error) {
-                                DataError.Network.NO_INTERNET -> TODO()
+                                DataError.Network.NO_INTERNET -> {
+                                    _uiEvent.send(
+                                        StoreDetailsUiAction.ShowToast(
+                                            UiText.StringResource(R.string.error_internet)
+                                        )
+                                    )
+                                }
 
                                 else -> {
                                     _uiEvent.send(
@@ -430,7 +536,64 @@ class StoreDetailsViewModel @Inject constructor(
                         }
 
                         is Result.Success -> {
+                            when (response.data.status) {
+                                TeacherDetailsSaveStatus.INVALID_REQ -> {
+                                    _uiEvent.send(
+                                        StoreDetailsUiAction.ShowToast(
+                                            UiText.StringResource(R.string.error_something_went_wrong)
+                                        )
+                                    )
+                                }
 
+                                TeacherDetailsSaveStatus.NOT_REGISTERED -> {
+                                    _uiEvent.send(
+                                        StoreDetailsUiAction.ShowToast(
+                                            UiText.StringResource(R.string.error_email_not_found)
+                                        )
+                                    )
+
+                                    state = state.copy(
+                                        email = state.email.copy(
+                                            isErr = true,
+                                            errText = UiText.StringResource(R.string.error_email_not_found)
+                                        )
+                                    )
+                                }
+
+                                else -> {
+                                    val cookie =
+                                        extractCookie(cookieManager)?.let { storeCookie(it, ds) }
+
+                                    if (cookie == null) {
+                                        _uiEvent.send(
+                                            StoreDetailsUiAction.ShowToast(
+                                                UiText.StringResource(R.string.error_something_went_wrong)
+                                            )
+                                        )
+                                        state = state.copy(
+                                            isMakingApiCall = false
+                                        )
+
+                                        return@launch
+                                    }
+
+                                    val localUser = LocalUser(
+                                        name = state.userName.data.trim(),
+                                        email = state.email.data.trim(),
+                                        phone = state.phoneOne.data.trim(),
+                                        department = state.department.selected.trim(),
+                                        designation = state.designation.selected.trim(),
+                                        isDepartmentInCharge = response.data.isDepartmentInCharge,
+                                        userType = if (state.designation.selected.startsWith("S")) UserType.SACT
+                                        else UserType.PERMANENT
+                                    )
+
+                                    storeUser(ds, localUser)
+                                    storeSignInState(Screens.Home, ds)
+
+                                    _uiEvent.send(StoreDetailsUiAction.OnSuccess)
+                                }
+                            }
                         }
                     }
 
@@ -442,7 +605,7 @@ class StoreDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun isValid(): Boolean {
+    private fun isErr(): Boolean {
         var isErr = false
 
         if (!validator.isValidEmail(state.email.data.trim())) {
@@ -583,6 +746,8 @@ class StoreDetailsViewModel @Inject constructor(
             isErr = true
         }
 
+
+        // present address
         if (state.presentAddress.houseNumber.data.isEmpty()) {
             state = state.copy(
                 presentAddress = state.presentAddress.copy(
@@ -743,6 +908,16 @@ class StoreDetailsViewModel @Inject constructor(
             )
 
             isErr = true
+        }
+
+        if (isErr) {
+            viewModelScope.launch {
+                _uiEvent.send(
+                    StoreDetailsUiAction.ShowToast(
+                        UiText.StringResource(R.string.error_field_are_empty_or_invalid)
+                    )
+                )
+            }
         }
 
         return isErr

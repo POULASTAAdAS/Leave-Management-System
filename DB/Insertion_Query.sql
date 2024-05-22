@@ -1,4 +1,4 @@
-insert into principal value (1 , 'Principal' , 'principalbgc56@gmail.com');
+insert into principal value (1 , 'Principal' , 'principalbgc56@gmail.com' , null);
 insert into headclark value (1 ,'Head Clark' , 'headclerkbgc56@gmail.com');
 
 insert into Department values
@@ -48,6 +48,15 @@ insert ignore into Designation (`type`) values
 ('Associate Professor'),
 ('SCAT-I'),
 ('SCAT-II');
+
+
+insert ignore into DesignationTeacherTypeRelation values
+(1,1),
+(2,1),
+(3,1),
+(4,1),
+(5,2),
+(6,2);
 
 
 insert ignore into Qualification (`type`) values

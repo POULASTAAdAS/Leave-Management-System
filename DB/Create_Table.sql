@@ -10,7 +10,8 @@ name varchar(200)	not null unique
 create Table Principal(
 id Int primary key auto_increment,
 `name` text not null,
-email varchar(255) not null unique
+email varchar(255) not null unique,
+profilePic varchar(300) default(null)
 );
 
 Create Table HeadClark(
@@ -40,6 +41,12 @@ departmentId Int references Department(id) on delete cascade
 Create Table Designation(
 id Int primary key auto_increment,
 `type` varchar(400) not null unique
+);
+
+Create Table DesignationTeacherTypeRelation(
+designationId int references designation(id) on delete cascade,
+teacherTypeId int references teachertype(id) on delete cascade,
+primary key (designationId , teacherTypeId)
 );
 
 Create Table Qualification(
@@ -77,12 +84,10 @@ id Int primary key auto_increment,
 `type` varchar(400) not null unique
 );
 
-
-
-
 Create Table TeacherDetails( -- map with thercahrId with email from req
 teacherId Int references Teacher(id) on delete cascade,
 teacherTypeId Int references TeacherType(id) on delete cascade,
+profilePic varchar(300) default(null),
 hrmsId varchar(20) not null unique,
 `name` varchar(100) not null,
 phone_1 varchar(10) unique not null,
@@ -93,7 +98,7 @@ designationId Int references Designation(id) on delete cascade,
 departmentId Int references Department(id) on delete cascade,
 joiningDate Date not null,
 qualificationId Int references Qualification(id) on delete cascade,
-
+exp varchar(20) default("0"),
 primary key (teacherId , teacherTypeId)
 );
 

@@ -21,7 +21,8 @@ data class TeacherDetailsEntry(
     val designationId: EntityID<Int>,
     val departmentId: EntityID<Int>,
     val joiningDate: LocalDate,
-    val qualificationID: EntityID<Int>
+    val qualificationId: EntityID<Int>,
+    val exp: String
 )
 
 data class AddressEntry(

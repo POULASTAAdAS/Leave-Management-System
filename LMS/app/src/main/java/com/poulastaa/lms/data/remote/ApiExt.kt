@@ -14,6 +14,7 @@ import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
+import java.net.CookieManager
 import java.nio.channels.UnresolvedAddressException
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.resume
@@ -31,7 +32,9 @@ suspend inline fun <reified Request : Any, reified Response : Any> OkHttpClient.
 ): Result<Response, DataError.Network> {
     val url = constructRoute(route)
 
-    val reqBody = gson.toJson(body).toRequestBody(mediaType)
+    val json = gson.toJson(body)
+
+    val reqBody = json.toRequestBody(mediaType)
     val req = Req.Builder().url(url).post(reqBody).build()
 
     return try {
@@ -119,3 +122,9 @@ fun handleOtherException(exception: Exception): Result<Nothing, DataError.Networ
 
 
 fun constructRoute(route: String) = "http://kyoku.poulastaa.online:8083$route"
+
+fun extractCookie(cookieManager: CookieManager) = try {
+    cookieManager.cookieStore.cookies[0].toString()
+} catch (e: Exception) {
+    null
+}
