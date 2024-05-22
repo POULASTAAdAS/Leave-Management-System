@@ -50,6 +50,12 @@
     <string name="err_cant_contain_blank_sapce">Can\'t contain blank space</string>
     <string name="error_phone_number_not_valid">Please enter a valid phone number</string>
     <string name="error_field_are_empty_or_invalid">Please fill all the fields appropriately.</string>
+    <string name="home_headline_part_1">Welcome to</string>
+    <string name="home_headline_part_2">Bhirab Ganguly College\'s</string>
+    <string name="home_headline_part_3">Leave Management System.</string>
+    <string name="apply_leave">Apply Leave</string>
+    <string name="leave_status">Approved,\nPending,\nRejected Leave</string>
+    <string name="leave_history">Leave Status</string>
 
     <array name="com_google_android_gms_fonts_certs">
         <item>@array/com_google_android_gms_fonts_certs_dev</item>

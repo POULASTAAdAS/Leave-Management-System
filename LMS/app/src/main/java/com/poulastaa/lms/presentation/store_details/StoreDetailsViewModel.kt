@@ -585,7 +585,8 @@ class StoreDetailsViewModel @Inject constructor(
                                         designation = state.designation.selected.trim(),
                                         isDepartmentInCharge = response.data.isDepartmentInCharge,
                                         userType = if (state.designation.selected.startsWith("S")) UserType.SACT
-                                        else UserType.PERMANENT
+                                        else UserType.PERMANENT,
+                                        sex = state.gender.selected.trim()
                                     )
 
                                     storeUser(ds, localUser)

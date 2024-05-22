@@ -48,3 +48,23 @@ val CakeIcon: ImageVector
 val ArrowDropDownIcon: ImageVector
     @Composable
     get() = Icons.Rounded.ArrowDropDown
+
+val ProfileMaleIcon: ImageVector
+    @Composable
+    get() = ImageVector.vectorResource(id = R.drawable.ic_profile_male)
+
+val ProfileFemaleIcon: ImageVector
+    @Composable
+    get() = ImageVector.vectorResource(id = R.drawable.ic_profile_female)
+
+val ApplyLeaveIcon: ImageVector
+    @Composable
+    get() = ImageVector.vectorResource(id = R.drawable.ic_apply_leave)
+
+val LeaveStatusIcon: ImageVector
+    @Composable
+    get() = ImageVector.vectorResource(id = R.drawable.ic_leave_status)
+
+val LeaveHistoryIcon: ImageVector
+    @Composable
+    get() = ImageVector.vectorResource(id = R.drawable.ic_leave_history)

@@ -1,5 +1,6 @@
 package com.poulastaa.lms.presentation.home.type
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,8 +13,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.poulastaa.lms.R
 import com.poulastaa.lms.data.model.home.UserType
 import com.poulastaa.lms.navigation.Screens
+import com.poulastaa.lms.presentation.home.sact.HomeSACTRoot
+import com.poulastaa.lms.ui.utils.ObserveAsEvent
+import com.poulastaa.lms.ui.utils.UiText
 
 @Composable
 fun HomeRootScreenType(
@@ -22,33 +27,39 @@ fun HomeRootScreenType(
 ) {
     val context = LocalContext.current
 
-//    ObserveAsEvent(flow = viewModel.uiEvent) {
-//        when (it) {
-//            HomeScreenTypeUiAction.Err -> {
-//                navigate(Screens.Auth)
-//
-//                Toast.makeText(
-//                    context,
-//                    UiText.StringResource(R.string.error_something_went_wrong).asString(context),
-//                    Toast.LENGTH_LONG
-//                ).show()
-//            }
-//        }
-//    }
+    ObserveAsEvent(flow = viewModel.uiEvent) {
+        when (it) {
+            HomeScreenTypeUiAction.Err -> {
+                navigate(Screens.Auth)
+
+                Toast.makeText(
+                    context,
+                    UiText.StringResource(R.string.error_something_went_wrong).asString(context),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
 
 
     HomeScreenType(
-        type = viewModel.userType
+        state = viewModel.state,
+        navigate = navigate
     )
 }
 
 @Composable
 private fun HomeScreenType(
-    type: UserType
+    state: HomeScreenTypeUiState,
+    navigate: (Screens) -> Unit
 ) {
-    when (type) {
+    when (state.userType) {
         UserType.SACT -> {
-
+            HomeSACTRoot(
+                time = state.time,
+                user = state.user,
+                navigate = navigate
+            )
         }
 
         UserType.PERMANENT -> {

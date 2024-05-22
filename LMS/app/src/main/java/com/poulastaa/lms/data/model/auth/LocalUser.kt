@@ -9,6 +9,7 @@ data class LocalUser(
     val phone: String = "",
     val department: String = "",
     val designation: String = "",
+    val sex: String = "M",
     val isDepartmentInCharge: Boolean = false,
     val userType: UserType = UserType.NON
 )

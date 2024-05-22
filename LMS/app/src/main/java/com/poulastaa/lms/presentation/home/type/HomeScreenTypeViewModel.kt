@@ -1,6 +1,6 @@
 package com.poulastaa.lms.presentation.home.type
 
-import android.util.Log
+import android.os.Build
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -8,19 +8,22 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.poulastaa.lms.data.model.home.UserType
 import com.poulastaa.lms.domain.repository.utils.DataStoreRepository
+import com.poulastaa.lms.navigation.Screens
+import com.poulastaa.lms.ui.utils.storeSignInState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeScreenTypeViewModel @Inject constructor(
     private val ds: DataStoreRepository
 ) : ViewModel() {
-    var userType by mutableStateOf(UserType.NON)
+    var state by mutableStateOf(HomeScreenTypeUiState())
         private set
 
 
@@ -30,26 +33,73 @@ class HomeScreenTypeViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             val user = ds.readUser()
-            val cookie = ds.readCookie().first()
 
-            Log.d("user", "user: $user , cookie: $cookie")
+            state = state.copy(
+                user = user
+            )
 
-            userType = when (user.userType) {
-                UserType.PRINCIPLE -> UserType.PRINCIPLE
+            state = state.copy(
+                userType = when (user.userType) {
+                    UserType.PRINCIPLE -> UserType.PRINCIPLE
 
-                UserType.PERMANENT -> UserType.PERMANENT
+                    UserType.PERMANENT -> UserType.PERMANENT
 
-                UserType.SACT -> UserType.SACT
+                    UserType.SACT -> UserType.SACT
 
-                UserType.NON -> {
-                    viewModelScope.launch(Dispatchers.IO) {
-//                        storeSignInState(Screens.Auth, ds)
+                    UserType.NON -> {
+                        viewModelScope.launch(Dispatchers.IO) {
+                            storeSignInState(Screens.Auth, ds)
 
-                        _uiEvent.send(HomeScreenTypeUiAction.Err)
+                            _uiEvent.send(HomeScreenTypeUiAction.Err)
+                        }
+
+                        return@launch
                     }
-
-                    return@launch
                 }
+            )
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val localTime = LocalDateTime.now().toLocalTime()
+                val currentTime = localTime.format(DateTimeFormatter.ofPattern("hh")).toInt()
+                val status = localTime.format(DateTimeFormatter.ofPattern("a"))
+
+                if (status.uppercase() == "AM") {
+                    state = if (currentTime == 12) {
+                        state.copy(
+                            time = "Mid Night"
+                        )
+                    } else if (currentTime >= 4) {
+                        state.copy(
+                            time = "Good Morning"
+                        )
+                    } else {
+                        state.copy(
+                            time = "Night Owl"
+                        )
+                    }
+                } else {
+                    state = if (currentTime <= 5 || currentTime == 12) {
+                        state.copy(
+                            time = "Good Afternoon"
+                        )
+                    } else if (currentTime in 6..10) {
+                        state.copy(
+                            time = "Good Evening"
+                        )
+                    } else if (currentTime in 10..11) {
+                        state.copy(
+                            time = "Good Night"
+                        )
+                    } else {
+                        state.copy(
+                            time = "Night Owl"
+                        )
+                    }
+                }
+            } else {
+                state = state.copy(
+                    time = "Hello ${user.name}"
+                )
             }
         }
     }
