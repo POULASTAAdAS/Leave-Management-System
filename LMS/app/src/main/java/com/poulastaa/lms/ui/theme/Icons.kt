@@ -2,8 +2,13 @@ package com.poulastaa.lms.ui.theme
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.outlined.DateRange
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.DateRange
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Phone
 import androidx.compose.runtime.Composable
@@ -88,3 +93,41 @@ val DepartmentInChargeIcon: ImageVector
 val AddIcon: ImageVector
     @Composable
     get() = ImageVector.vectorResource(id = R.drawable.ic_add)
+
+val EditIcon: ImageVector
+    @Composable
+    get() = Icons.Rounded.Edit
+
+val OutlineEmailIcon: ImageVector
+    @Composable
+    get() = Icons.Outlined.Email
+
+
+val OutlinePhoneIcon: ImageVector
+    @Composable
+    get() = Icons.Outlined.Phone
+
+
+val OutlineQualificationIcon: ImageVector
+    @Composable
+    get() = ImageVector.vectorResource(id = R.drawable.ic_outline_qualification)
+
+
+val OutlineHouseIcon: ImageVector
+    @Composable
+    get() = Icons.Outlined.Home
+
+
+val OutlineDepartmentIcon: ImageVector
+    @Composable
+    get() = ImageVector.vectorResource(id = R.drawable.ic_outline_department)
+
+
+val OutlineJoiningDateIcon: ImageVector
+    @Composable
+    get() = Icons.Outlined.DateRange
+
+
+val OutlineExpIcon: ImageVector
+    @Composable
+    get() = ImageVector.vectorResource(id = R.drawable.ic_outline_exp)

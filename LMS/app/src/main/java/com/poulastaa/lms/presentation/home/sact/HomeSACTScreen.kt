@@ -54,20 +54,16 @@ fun HomeSACTRoot(
     }
 
     HomeSACTScreen(
-        state = viewModel.state,
         time = time,
         user = user,
-        context = context,
         onEvent = viewModel::onEvent
     )
 }
 
 @Composable
 private fun HomeSACTScreen(
-    state: HomeSACTUiState,
     time: String,
     user: LocalUser,
-    context: Context,
     onEvent: (HomeSACTUiEvent) -> Unit,
 ) {
     val hapticFeedback = LocalHapticFeedback.current
@@ -78,7 +74,7 @@ private fun HomeSACTScreen(
         onEvent = {
             hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
 
-            onEvent(HomeSACTUiEvent.OnProfilePicClick(context, it))
+            onEvent(HomeSACTUiEvent.OnProfilePicClick)
         }
     ) {
         Row(
@@ -132,20 +128,12 @@ private fun HomeSACTScreen(
 }
 
 
-@Composable
-fun SinglePhotoPicker() {
-
-}
-
-
 @Preview
 @Composable
 private fun Preview() {
     TestThem {
         HomeSACTScreen(
-            state = HomeSACTUiState(),
             time = "Night Owl",
-            context = LocalContext.current,
             user = LocalUser(
                 name = "Poulastaa Das",
                 designation = "SACT-I",

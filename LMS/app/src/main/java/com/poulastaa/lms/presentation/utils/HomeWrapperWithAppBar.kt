@@ -1,9 +1,5 @@
 package com.poulastaa.lms.presentation.utils
 
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -46,13 +42,17 @@ fun HomeWrapperWithAppBar(
     horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
     floatingActionButton: @Composable () -> Unit = {},
     floatingActionButtonPosition: FabPosition = FabPosition.End,
-    onEvent: (uri: Uri?) -> Unit,
+    onEvent: () -> Unit,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    val photoPicker =
-        rememberLauncherForActivityResult(contract = ActivityResultContracts.PickVisualMedia()) {
-            onEvent(it)
-        }
+//    val photoPicker =
+//        rememberLauncherForActivityResult(contract = ActivityResultContracts.PickVisualMedia()) {
+//            onEvent(it)
+//        }
+
+    //                        photoPicker.launch(
+//                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+//                        )
 
 
     Scaffold(
@@ -93,11 +93,7 @@ fun HomeWrapperWithAppBar(
                 Profile(
                     url = user.profilePicUrl,
                     sex = user.sex,
-                    onClick = {
-                        photoPicker.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                        )
-                    }
+                    onClick = onEvent
                 )
 
                 Column(

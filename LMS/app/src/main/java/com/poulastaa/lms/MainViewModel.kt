@@ -31,6 +31,8 @@ class MainViewModel @Inject constructor(
                 Screens.Home -> _startDestination.value = Screens.Home.route
 
                 Screens.StoreDetails -> _startDestination.value = Screens.StoreDetails.route
+
+                else -> return@launch
             }.let {
                 _keepSplashOn.value = false
             }

@@ -1,6 +1,7 @@
 package com.poulastaa.domain.repository
 
 import com.poulastaa.data.model.EndPoints
+import com.poulastaa.data.model.GetTeacherRes
 import com.poulastaa.data.model.auth.req.SetDetailsReq
 import com.poulastaa.data.model.auth.res.*
 import com.poulastaa.data.repository.JWTRepository
@@ -115,6 +116,8 @@ class ServiceRepositoryImpl(
 
         return teacher.saveTeacherDetails(req)
     }
+
+    override suspend fun getTeacherDetails(email: String): GetTeacherRes? = teacher.getTeacherDetails(email)
 
     private fun sendEmailVerificationMail(
         toEmail: String,

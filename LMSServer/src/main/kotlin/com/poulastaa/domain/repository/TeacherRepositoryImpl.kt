@@ -1,11 +1,14 @@
 package com.poulastaa.domain.repository
 
+import com.poulastaa.data.model.GetTeacherRes
+import com.poulastaa.data.model.auth.req.ReqAddress
 import com.poulastaa.data.model.auth.req.SetDetailsReq
 import com.poulastaa.data.model.auth.res.*
 import com.poulastaa.data.model.constants.AddressType
 import com.poulastaa.data.model.convertors.AddressEntry
 import com.poulastaa.data.model.convertors.SetDetailsEntry
 import com.poulastaa.data.model.convertors.TeacherDetailsEntry
+import com.poulastaa.data.model.table.address.AddressTypeTable
 import com.poulastaa.data.model.table.address.TeacherDetailsTable
 import com.poulastaa.data.model.table.department.DepartmentHeadTable
 import com.poulastaa.data.model.table.department.DepartmentTable
@@ -13,7 +16,6 @@ import com.poulastaa.data.model.table.teacher.TeacherAddressTable
 import com.poulastaa.data.model.table.teacher.TeacherTable
 import com.poulastaa.data.model.table.designation.DesignationTable
 import com.poulastaa.data.model.table.designation.DesignationTeacherTypeRelation
-import com.poulastaa.data.model.table.teacher.TeacherTypeTable
 import com.poulastaa.data.model.table.utils.LogInEmailTable
 import com.poulastaa.data.model.table.utils.PrincipalTable
 import com.poulastaa.data.model.table.utils.QualificationTable
@@ -21,7 +23,6 @@ import com.poulastaa.data.repository.TeacherRepository
 import com.poulastaa.domain.dao.department.Department
 import com.poulastaa.domain.dao.department.DepartmentHead
 import com.poulastaa.domain.dao.teacher.Teacher
-import com.poulastaa.domain.dao.teacher.TeacherType
 import com.poulastaa.plugins.dbQuery
 import com.poulastaa.domain.dao.utils.Designation
 import com.poulastaa.domain.dao.utils.LogInEmail
@@ -222,6 +223,59 @@ class TeacherRepositoryImpl : TeacherRepository {
         )
     }
 
+    override suspend fun getTeacherDetails(email: String): GetTeacherRes? = coroutineScope {
+        val teacher = findTeacher(email) ?: return@coroutineScope null
+
+        val teacherDetails = dbQuery {
+            TeacherDetailsTable.select {
+                TeacherDetailsTable.teacherId eq teacher.id
+            }.singleOrNull()?.let {
+                TeacherDetailsEntry(
+                    email = email,
+                    teacherId = teacher.id,
+                    teacherTypeId = it[TeacherDetailsTable.teacherTypeId].value,
+                    hrmsId = "",
+                    name = it[TeacherDetailsTable.name],
+                    phone_1 = it[TeacherDetailsTable.phone_1],
+                    phone_2 = it[TeacherDetailsTable.phone_2],
+                    bDate = it[TeacherDetailsTable.bDate],
+                    gender = it[TeacherDetailsTable.gender],
+                    designationId = it[TeacherDetailsTable.designationId],
+                    departmentId = it[TeacherDetailsTable.departmentId],
+                    joiningDate = it[TeacherDetailsTable.joiningDate],
+                    qualificationId = it[TeacherDetailsTable.qualificationId],
+                    exp = it[TeacherDetailsTable.exp]
+                )
+            }
+        } ?: return@coroutineScope null
+
+        val departmentDef = async { getDepartmentOnId(teacherDetails.departmentId.value) }
+        val designationDef = async { getDesignationOnId(teacherDetails.designationId.value) }
+        val qualificationDef = async { getQualification(teacherDetails.qualificationId.value) }
+
+        val addressDef = async { getAddressOnTeacherId(teacher.id.value) }
+
+        val department = departmentDef.await()
+        val designation = designationDef.await()
+        val qualification = qualificationDef.await()
+        val address = addressDef.await()
+
+        GetTeacherRes(
+            name = teacherDetails.name,
+            profilePicUrl = teacherDetails.profilePic ?: "",
+            gender = teacherDetails.gender,
+            email = email,
+            phoneOne = teacherDetails.phone_1,
+            phoneTwo = teacherDetails.phone_2 ?: "",
+            qualification = qualification.type,
+            designation = designation.type,
+            department = department.name,
+            exp = teacherDetails.exp,
+            joiningDate = teacherDetails.joiningDate.toString(),
+            address = address
+        )
+    }
+
     private suspend fun checkIfDetailsAlreadyFilled(id: Int) = dbQuery {
         TeacherDetailsTable.select {
             TeacherDetailsTable.teacherId eq id
@@ -398,5 +452,49 @@ class TeacherRepositoryImpl : TeacherRepository {
                 return@launch
             }
         }
+    }
+
+    private suspend fun getDepartmentOnId(id: Int) = dbQuery {
+        Department.find {
+            DepartmentTable.id eq id
+        }.single()
+    }
+
+    private suspend fun getDesignationOnId(id: Int) = dbQuery {
+        Designation.find {
+            DesignationTable.id eq id
+        }.single()
+    }
+
+    private suspend fun getQualification(id: Int) = dbQuery {
+        Qualification.find {
+            QualificationTable.id eq id
+        }.single()
+    }
+
+    private suspend fun getAddressOnTeacherId(id: Int) = dbQuery {
+        TeacherAddressTable.select {
+            TeacherAddressTable.teacherId eq id
+        }.map {
+            val addressType = AddressType.valueOf(
+                getAddressTypeOnId(it[TeacherAddressTable.addressTypeId].value)
+            )
+
+            addressType to ReqAddress(
+                houseNumber = it[TeacherAddressTable.houseNumb],
+                street = it[TeacherAddressTable.street],
+                city = it[TeacherAddressTable.city],
+                zipcode = it[TeacherAddressTable.zip].toString(),
+                state = it[TeacherAddressTable.state],
+                country = it[TeacherAddressTable.country]
+            )
+        }
+    }
+
+    private suspend fun getAddressTypeOnId(id: Int) = dbQuery {
+        com.poulastaa.domain.dao.address.AddressType.find {
+            AddressTypeTable.id eq id
+        }.single().type
+
     }
 }

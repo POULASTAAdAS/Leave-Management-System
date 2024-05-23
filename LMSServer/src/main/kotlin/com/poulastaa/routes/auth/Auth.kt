@@ -15,28 +15,26 @@ import io.ktor.server.routing.*
 fun Route.authenUser(
     service: ServiceRepository
 ) {
-    authenticate(Constants.AUTH) {
-        route(EndPoints.Auth.route) {
-            post {
-                val req =
-                    call.receiveNullable<AuthReq>() ?: return@post call.respondRedirect(EndPoints.UnAuthorised.route)
+    route(EndPoints.Auth.route) {
+        post {
+            val req =
+                call.receiveNullable<AuthReq>() ?: return@post call.respondRedirect(EndPoints.UnAuthorised.route)
 
-                val response = service.auth(req.email)
+            val response = service.auth(req.email)
 
-                when (response.authStatus) {
-                    AuthStatus.EMAIL_NOT_REGISTERED -> {
-                        call.respond(
-                            message = response,
-                            status = HttpStatusCode.NotFound
-                        )
-                    }
+            when (response.authStatus) {
+                AuthStatus.EMAIL_NOT_REGISTERED -> {
+                    call.respond(
+                        message = response,
+                        status = HttpStatusCode.NotFound
+                    )
+                }
 
-                    else -> {
-                        call.respond(
-                            message = response,
-                            status = HttpStatusCode.OK
-                        )
-                    }
+                else -> {
+                    call.respond(
+                        message = response,
+                        status = HttpStatusCode.OK
+                    )
                 }
             }
         }

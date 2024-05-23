@@ -9,10 +9,5 @@ import org.jetbrains.exposed.dao.id.EntityID
 class AddressType(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<AddressType>(AddressTypeTable)
 
-    val type by TeacherTypeTable.type
-
-    enum class TYPE {
-        HOME,
-        PRESENT
-    }
+    val type by AddressTypeTable.type
 }

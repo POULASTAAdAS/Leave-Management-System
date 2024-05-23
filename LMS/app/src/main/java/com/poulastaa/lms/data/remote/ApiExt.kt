@@ -1,5 +1,6 @@
 package com.poulastaa.lms.data.remote
 
+import android.util.Log
 import com.google.gson.Gson
 import com.poulastaa.lms.domain.utils.DataError
 import com.poulastaa.lms.domain.utils.Result
@@ -10,9 +11,13 @@ import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
+import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import java.io.File
 import java.io.IOException
 import java.net.CookieManager
 import java.nio.channels.UnresolvedAddressException
@@ -23,6 +28,32 @@ import kotlin.coroutines.suspendCoroutine
 import okhttp3.Request as Req
 
 val mediaType = "application/json".toMediaType()
+
+suspend inline fun <reified Response : Any> OkHttpClient.uploadFile(
+    route: String,
+    file: File,
+    gson: Gson
+): Result<Response, DataError.Network> {
+    val requestBody = file.asRequestBody("application/octet-stream".toMediaTypeOrNull())
+
+    val url = constructRoute(route)
+
+    val multipartBody = MultipartBody.Builder()
+        .setType(MultipartBody.FORM)
+        .addFormDataPart("file", file.name, requestBody)
+        .build()
+
+    val req = Req.Builder().url(url)
+        .post(multipartBody)
+        .build()
+
+    return try {
+        val response = makeCall(req)
+        responseToResult<Response>(response, gson)
+    } catch (e: Exception) {
+        handleOtherException(e)
+    }
+}
 
 
 suspend inline fun <reified Request : Any, reified Response : Any> OkHttpClient.authPost(
@@ -70,6 +101,31 @@ suspend inline fun <reified Response : Any> OkHttpClient.authGet(
 }
 
 
+suspend inline fun <reified Response : Any> OkHttpClient.get(
+    route: String,
+    params: List<Pair<String, String>>,
+    gson: Gson,
+    cookie: String
+): Result<Response, DataError.Network> {
+    val urlBuilder =
+        constructRoute(route).toHttpUrlOrNull()?.newBuilder()
+            ?: return Result.Error(DataError.Network.UNKNOWN)
+
+    params.forEach {
+        urlBuilder.addQueryParameter(it.first, it.second)
+    }
+
+    val url = urlBuilder.build()
+    val req = Req.Builder().url(url).header("Cookie", cookie).get().build()
+
+    return try {
+        val response = makeCall(req)
+        responseToResult<Response>(response, gson)
+    } catch (e: Exception) {
+        handleOtherException(e)
+    }
+}
+
 suspend fun OkHttpClient.makeCall(request: Req): Response {
     return suspendCoroutine { continuation ->
         try {
@@ -97,6 +153,14 @@ suspend inline fun <reified T> responseToResult(
         in 200..299 -> {
             val body = response.body!!.string()
             val obj = gson.fromJson(body, T::class.java)
+
+            try {
+                val cookie = response.headers["Cookie"]
+
+                Log.d("cookie", cookie.toString())
+            } catch (e: Exception) {
+                null
+            }
 
             Result.Success(obj)
         }

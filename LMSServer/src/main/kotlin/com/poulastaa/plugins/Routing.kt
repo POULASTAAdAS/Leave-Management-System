@@ -3,6 +3,7 @@ package com.poulastaa.plugins
 import com.poulastaa.data.model.auth.UserSession
 import com.poulastaa.data.repository.ServiceRepository
 import com.poulastaa.routes.auth.*
+import com.poulastaa.routes.getDetails
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
 import io.ktor.server.routing.*
@@ -25,6 +26,7 @@ fun Application.configureRouting() {
         checkLoginVerificationMailStatus(service)
 
         setDetailsReq(service)
+        getDetails(service)
 
         unAuth()
 

@@ -1,5 +1,6 @@
 package com.poulastaa.data.repository
 
+import com.poulastaa.data.model.GetTeacherRes
 import com.poulastaa.data.model.auth.req.SetDetailsReq
 import com.poulastaa.data.model.auth.res.AuthRes
 import com.poulastaa.data.model.auth.res.EmailVerificationRes
@@ -17,4 +18,6 @@ interface ServiceRepository {
     suspend fun loginEmailVerificationCheck(email: String): Pair<EmailVerificationRes, String?>
 
     suspend fun saveTeacherDetails(req: SetDetailsReq): SetDetailsRes
+
+    suspend fun getTeacherDetails(email: String): GetTeacherRes?
 }

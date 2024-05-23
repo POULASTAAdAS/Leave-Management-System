@@ -60,7 +60,6 @@ fun HomePrincipleRootScreen(
     }
 
     HomePrincipleScreen(
-        state = viewModel.state,
         time = time,
         user = user,
         onEvent = viewModel::onEvent
@@ -69,7 +68,6 @@ fun HomePrincipleRootScreen(
 
 @Composable
 fun HomePrincipleScreen(
-    state: HomePrincipleUiState,
     time: String,
     user: LocalUser,
     onEvent: (HomePrincipleUiEvent) -> Unit
@@ -231,7 +229,6 @@ fun HomePrincipleScreen(
 private fun Preview() {
     TestThem {
         HomePrincipleScreen(
-            state = HomePrincipleUiState(),
             time = "Good Morning",
             user = LocalUser()
         ) {

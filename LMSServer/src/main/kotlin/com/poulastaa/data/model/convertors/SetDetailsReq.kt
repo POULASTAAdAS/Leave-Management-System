@@ -11,6 +11,7 @@ data class SetDetailsEntry(
 data class TeacherDetailsEntry(
     val email: String,
     val teacherId: EntityID<Int>,
+    val profilePic: String? = null,
     val teacherTypeId: Int,
     val hrmsId: String,
     val name: String,

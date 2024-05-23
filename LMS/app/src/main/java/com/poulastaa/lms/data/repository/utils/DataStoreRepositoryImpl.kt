@@ -28,6 +28,8 @@ class DataStoreRepositoryImpl @Inject constructor(
             Screens.Auth -> Screens.Auth.route
             Screens.Home -> Screens.Home.route
             Screens.StoreDetails -> Screens.StoreDetails.route
+
+            else -> return
         }.let { value ->
             dataStore.edit {
                 it[PreferencesKeys.SIGN_IN_STATE] = value

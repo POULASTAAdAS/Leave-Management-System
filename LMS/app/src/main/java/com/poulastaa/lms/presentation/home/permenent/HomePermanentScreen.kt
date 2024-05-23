@@ -58,7 +58,6 @@ fun HomePermanentRootScreen(
     }
 
     HomePermanentScreen(
-        state = viewModel.state,
         time = time,
         user = user,
         onEvent = viewModel::onEvent
@@ -67,7 +66,6 @@ fun HomePermanentRootScreen(
 
 @Composable
 private fun HomePermanentScreen(
-    state: HomePermanentUiState,
     time: String,
     user: LocalUser,
     onEvent: (HomePermanentUiEvent) -> Unit
@@ -187,7 +185,6 @@ private fun HomePermanentScreen(
 private fun Preview() {
     TestThem {
         HomePermanentScreen(
-            state = HomePermanentUiState(),
             time = "Good Morning",
             user = LocalUser(
                 name = "Poulastaa Das",

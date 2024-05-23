@@ -24,7 +24,6 @@ select * from qualification;
 select * from teacher;
 select * from TeacherDetails;
 
-delete from teacherdetails;
 
 update teacher set emailVerified = false where id = 1;
 
@@ -42,20 +41,16 @@ select * from qualification;
 select * from departmenthead;
 
 
-drop table TeacherDetails;
-
 select * from loginEmail;
 
+delete from loginemail;
+
+select * from teacheraddress where teacherId = 1;
 
 
+select * from addresstype;
 
-
-
-
-
-
-
-
+SELECT addresstype.id, addresstype.`type` FROM addresstype WHERE addresstype.id = 1;
 
 
 
