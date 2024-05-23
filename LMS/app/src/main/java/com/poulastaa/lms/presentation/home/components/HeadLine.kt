@@ -1,4 +1,4 @@
-package com.poulastaa.lms.presentation.home.sact.components
+package com.poulastaa.lms.presentation.home.components
 
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material3.MaterialTheme

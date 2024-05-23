@@ -310,7 +310,6 @@ class AuthViewModel @Inject constructor(
                             storeSignInState(Screens.Home, ds)
                             storeUser(ds, user)
 
-
                             _uiEvent.send(
                                 AuthUiAction.OnSuccess(
                                     route = Screens.Home

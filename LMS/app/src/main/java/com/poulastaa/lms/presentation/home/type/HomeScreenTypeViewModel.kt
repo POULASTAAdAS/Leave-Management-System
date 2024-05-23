@@ -6,13 +6,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.poulastaa.lms.data.model.home.UserType
 import com.poulastaa.lms.domain.repository.utils.DataStoreRepository
-import com.poulastaa.lms.navigation.Screens
-import com.poulastaa.lms.ui.utils.storeSignInState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
@@ -32,32 +29,16 @@ class HomeScreenTypeViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val user = ds.readUser()
+            ds.readUser().collectLatest {
+                state = state.copy(
+                    user = it
+                )
+            }
+        }
+    }
 
-            state = state.copy(
-                user = user
-            )
-
-            state = state.copy(
-                userType = when (user.userType) {
-                    UserType.PRINCIPLE -> UserType.PRINCIPLE
-
-                    UserType.PERMANENT -> UserType.PERMANENT
-
-                    UserType.SACT -> UserType.SACT
-
-                    UserType.NON -> {
-                        viewModelScope.launch(Dispatchers.IO) {
-                            storeSignInState(Screens.Auth, ds)
-
-                            _uiEvent.send(HomeScreenTypeUiAction.Err)
-                        }
-
-                        return@launch
-                    }
-                }
-            )
-
+    init {
+        viewModelScope.launch {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 val localTime = LocalDateTime.now().toLocalTime()
                 val currentTime = localTime.format(DateTimeFormatter.ofPattern("hh")).toInt()
@@ -98,7 +79,7 @@ class HomeScreenTypeViewModel @Inject constructor(
                 }
             } else {
                 state = state.copy(
-                    time = "Hello ${user.name}"
+                    time = "Hello ${state.user.name}"
                 )
             }
         }

@@ -77,7 +77,7 @@ class TeacherRepositoryImpl : TeacherRepository {
     override suspend fun getTeacher(email: String): User = withContext(Dispatchers.IO) {
         val teacher = findTeacher(email) ?: return@withContext User()
 
-        val (designationId,  departmentId) = dbQuery {
+        val (designationId, departmentId) = dbQuery {
             TeacherDetailsTable.select {
                 TeacherDetailsTable.teacherId eq teacher.id
             }.singleOrNull()?.let {
@@ -187,9 +187,11 @@ class TeacherRepositoryImpl : TeacherRepository {
 
 
     override suspend fun loginEmailVerificationCheck(email: String): Boolean = dbQuery {
-        LogInEmail.find {
+        val response = LogInEmail.find {
             LogInEmailTable.email eq email
         }.singleOrNull()?.emailVerified ?: false
+
+        return@dbQuery response
     }
 
     override suspend fun saveTeacherDetails(req: SetDetailsReq): SetDetailsRes = withContext(Dispatchers.IO) {

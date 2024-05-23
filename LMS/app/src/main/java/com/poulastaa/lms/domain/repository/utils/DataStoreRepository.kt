@@ -12,5 +12,5 @@ interface DataStoreRepository {
     fun readCookie(): Flow<String>
 
     suspend fun storeLocalUser(user: LocalUser)
-    suspend fun readUser(): LocalUser
+    suspend fun readUser(): Flow<LocalUser>
 }

@@ -1,4 +1,4 @@
-package com.poulastaa.lms.presentation.home.sact.components
+package com.poulastaa.lms.presentation.home.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -13,7 +13,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.poulastaa.lms.ui.theme.ProfileFemaleIcon
 import com.poulastaa.lms.ui.theme.ProfileMaleIcon
 import com.poulastaa.lms.ui.theme.dimens
@@ -49,5 +52,20 @@ fun Profile(
                 contentDescription = null,
                 contentScale = ContentScale.Fit,
             )
+        else {
+            AsyncImage(
+                model = ImageRequest
+                    .Builder(LocalContext.current)
+                    .data(url)
+                    .crossfade(true)
+                    .build(),
+                modifier = Modifier
+                    .then(if (sex == "F") Modifier.padding(MaterialTheme.dimens.small3) else Modifier)
+                    .clip(RoundedCornerShape(1000f))
+                    .fillMaxSize(),
+                contentScale = ContentScale.Crop,
+                contentDescription = null
+            )
+        }
     }
 }

@@ -68,3 +68,23 @@ val LeaveStatusIcon: ImageVector
 val LeaveHistoryIcon: ImageVector
     @Composable
     get() = ImageVector.vectorResource(id = R.drawable.ic_leave_history)
+
+val ViewLeaveIcon: ImageVector
+    @Composable
+    get() = ImageVector.vectorResource(id = R.drawable.ic_view_leave)
+
+val ApproveLeaveIcon: ImageVector
+    @Composable
+    get() = ImageVector.vectorResource(id = R.drawable.ic_approve_leave)
+
+val LeaveReportIcon: ImageVector
+    @Composable
+    get() = ImageVector.vectorResource(id = R.drawable.ic_leave_report)
+
+val DepartmentInChargeIcon: ImageVector
+    @Composable
+    get() = ImageVector.vectorResource(id = R.drawable.ic_department_in_charge)
+
+val AddIcon: ImageVector
+    @Composable
+    get() = ImageVector.vectorResource(id = R.drawable.ic_add)

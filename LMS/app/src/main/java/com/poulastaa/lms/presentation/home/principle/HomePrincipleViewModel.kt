@@ -1,4 +1,4 @@
-package com.poulastaa.lms.presentation.home.sact
+package com.poulastaa.lms.presentation.home.principle
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -6,9 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.poulastaa.lms.domain.repository.utils.ConnectivityObserver
-import com.poulastaa.lms.domain.repository.utils.DataStoreRepository
 import com.poulastaa.lms.presentation.home.HomeUiAction
-import com.poulastaa.lms.presentation.utils.fileFromUri
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
@@ -17,11 +15,10 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeSACTViewModel @Inject constructor(
+class HomePrincipleViewModel @Inject constructor(
     private val network: ConnectivityObserver,
-    private val ds: DataStoreRepository,
 ) : ViewModel() {
-    var state by mutableStateOf(HomeSACTUiState())
+    var state by mutableStateOf(HomePrincipleUiState())
         private set
 
     init {
@@ -39,27 +36,45 @@ class HomeSACTViewModel @Inject constructor(
     private val _uiEvent = Channel<HomeUiAction>()
     val uiEvent = _uiEvent.receiveAsFlow()
 
-
-    fun onEvent(event: HomeSACTUiEvent) {
+    fun onEvent(event: HomePrincipleUiEvent) {
         when (event) {
-            HomeSACTUiEvent.OnApplyLeaveClick -> {
+            HomePrincipleUiEvent.OnProfilePicClick -> {
 
             }
 
-            HomeSACTUiEvent.OnLeaveHistoryClick -> {
+
+            HomePrincipleUiEvent.OnApplyLeaveClick -> {
 
             }
 
-            HomeSACTUiEvent.OnLeaveStatusClick -> {
+            HomePrincipleUiEvent.OnLeaveStatusClick -> {
 
             }
 
-            is HomeSACTUiEvent.OnProfilePicClick -> {
-                if (event.url == null) return
+            HomePrincipleUiEvent.OnLeaveHistoryClick -> {
 
-                val file = fileFromUri(event.context, event.url)
+            }
 
-                // todo send to backend
+
+            HomePrincipleUiEvent.OnDefineDepartmentInChargeClick -> {
+
+            }
+
+            HomePrincipleUiEvent.OnApproveLeaveClick -> {
+
+            }
+
+            HomePrincipleUiEvent.OnAddClick -> {
+
+            }
+
+
+            HomePrincipleUiEvent.OnViewLeaveClick -> {
+
+            }
+
+            HomePrincipleUiEvent.OnViewReportClick -> {
+
             }
         }
     }

@@ -14,7 +14,7 @@ interface ServiceRepository {
     suspend fun updateLogInVerificationStatus(token: String): Pair<VerifiedMailStatus, Pair<String, String>>
 
     suspend fun signUpEmailVerificationCheck(email: String): EmailVerificationRes
-    suspend fun loginEmailVerificationCheck(email: String): EmailVerificationRes
+    suspend fun loginEmailVerificationCheck(email: String): Pair<EmailVerificationRes, String?>
 
     suspend fun saveTeacherDetails(req: SetDetailsReq): SetDetailsRes
 }

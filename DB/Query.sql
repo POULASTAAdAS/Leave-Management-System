@@ -26,7 +26,7 @@ select * from TeacherDetails;
 
 delete from teacherdetails;
 
-update teacher set emailVerified = false where id = 21;
+update teacher set emailVerified = false where id = 1;
 
 
 select * from loginemail;

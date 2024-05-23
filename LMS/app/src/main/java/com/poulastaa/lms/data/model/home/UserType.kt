@@ -7,5 +7,6 @@ enum class UserType {
     PRINCIPLE,
     PERMANENT,
     SACT,
-    NON
+    NON,
+    LOAD
 }

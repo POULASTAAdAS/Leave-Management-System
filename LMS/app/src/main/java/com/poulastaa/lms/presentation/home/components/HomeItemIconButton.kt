@@ -24,6 +24,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import com.poulastaa.lms.R
 import com.poulastaa.lms.ui.theme.ApplyLeaveIcon
@@ -36,7 +37,8 @@ import com.poulastaa.lms.ui.theme.dimens
 fun HomeItemIconButton(
     modifier: Modifier = Modifier,
     icon: ImageVector,
-    label: String
+    label: String,
+    fontSize: TextUnit = MaterialTheme.typography.bodyMedium.fontSize
 ) {
     Column(
         modifier = modifier
@@ -70,7 +72,7 @@ fun HomeItemIconButton(
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.background,
             fontWeight = FontWeight.SemiBold,
-            fontSize = MaterialTheme.typography.bodyMedium.fontSize
+            fontSize = fontSize
         )
     }
 }

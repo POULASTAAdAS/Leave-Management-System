@@ -100,11 +100,14 @@ class ServiceRepositoryImpl(
         else EmailVerificationRes()
     }
 
-    override suspend fun loginEmailVerificationCheck(email: String): EmailVerificationRes {
+    override suspend fun loginEmailVerificationCheck(email: String): Pair<EmailVerificationRes, String?> {
         val status = teacher.loginEmailVerificationCheck(email)
 
-        return if (status) EmailVerificationRes(status = true)
-        else EmailVerificationRes()
+        return if (status) {
+            val name = teacher.getTeacher(email).name
+
+            EmailVerificationRes(status = true) to name
+        } else EmailVerificationRes() to null
     }
 
     override suspend fun saveTeacherDetails(req: SetDetailsReq): SetDetailsRes {

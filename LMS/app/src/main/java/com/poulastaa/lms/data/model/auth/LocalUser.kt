@@ -11,5 +11,5 @@ data class LocalUser(
     val designation: String = "",
     val sex: String = "M",
     val isDepartmentInCharge: Boolean = false,
-    val userType: UserType = UserType.NON
+    val userType: UserType = UserType.LOAD
 )

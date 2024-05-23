@@ -16,6 +16,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.poulastaa.lms.R
 import com.poulastaa.lms.data.model.home.UserType
 import com.poulastaa.lms.navigation.Screens
+import com.poulastaa.lms.presentation.home.permenent.HomePermanentRootScreen
+import com.poulastaa.lms.presentation.home.principle.HomePrincipleRootScreen
 import com.poulastaa.lms.presentation.home.sact.HomeSACTRoot
 import com.poulastaa.lms.ui.utils.ObserveAsEvent
 import com.poulastaa.lms.ui.utils.UiText
@@ -41,7 +43,6 @@ fun HomeRootScreenType(
         }
     }
 
-
     HomeScreenType(
         state = viewModel.state,
         navigate = navigate
@@ -53,7 +54,7 @@ private fun HomeScreenType(
     state: HomeScreenTypeUiState,
     navigate: (Screens) -> Unit
 ) {
-    when (state.userType) {
+    when (state.user.userType) {
         UserType.SACT -> {
             HomeSACTRoot(
                 time = state.time,
@@ -63,11 +64,19 @@ private fun HomeScreenType(
         }
 
         UserType.PERMANENT -> {
-
+            HomePermanentRootScreen(
+                time = state.time,
+                user = state.user,
+                navigate = navigate
+            )
         }
 
         UserType.PRINCIPLE -> {
-
+            HomePrincipleRootScreen(
+                time = state.time,
+                user = state.user,
+                navigate = navigate
+            )
         }
 
         else -> {

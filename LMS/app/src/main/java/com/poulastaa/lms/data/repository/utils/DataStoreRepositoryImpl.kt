@@ -11,7 +11,6 @@ import com.poulastaa.lms.domain.repository.utils.DataStoreRepository
 import com.poulastaa.lms.navigation.Screens
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -68,17 +67,11 @@ class DataStoreRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun readUser(): LocalUser {
-        val preferences = dataStore.data.catch {
-            emit(emptyPreferences())
-        }.first()
-
-        val response = preferences[PreferencesKeys.USER]?.let {
-            val user = Gson().fromJson(it, LocalUser::class.java)
-
-            user
+    override suspend fun readUser(): Flow<LocalUser> = dataStore.data.catch {
+        emit(emptyPreferences())
+    }.map {
+        it[PreferencesKeys.USER]?.let { user ->
+            Gson().fromJson(user, LocalUser::class.java)
         } ?: LocalUser()
-
-        return response
     }
 }

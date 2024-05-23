@@ -1,11 +1,12 @@
-package com.poulastaa.lms.presentation.home.sact
+package com.poulastaa.lms.presentation.home.permenent
 
-import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -24,17 +25,20 @@ import com.poulastaa.lms.presentation.home.HomeUiAction
 import com.poulastaa.lms.presentation.home.components.HomeItemIconButton
 import com.poulastaa.lms.presentation.utils.HomeWrapperWithAppBar
 import com.poulastaa.lms.ui.theme.ApplyLeaveIcon
+import com.poulastaa.lms.ui.theme.ApproveLeaveIcon
 import com.poulastaa.lms.ui.theme.LeaveHistoryIcon
+import com.poulastaa.lms.ui.theme.LeaveReportIcon
 import com.poulastaa.lms.ui.theme.LeaveStatusIcon
 import com.poulastaa.lms.ui.theme.TestThem
+import com.poulastaa.lms.ui.theme.ViewLeaveIcon
 import com.poulastaa.lms.ui.theme.dimens
 import com.poulastaa.lms.ui.utils.ObserveAsEvent
 
 @Composable
-fun HomeSACTRoot(
+fun HomePermanentRootScreen(
     time: String,
     user: LocalUser,
-    viewModel: HomeSACTViewModel = hiltViewModel(),
+    viewModel: HomePermanentViewModel = hiltViewModel(),
     navigate: (Screens) -> Unit
 ) {
     val context = LocalContext.current
@@ -53,22 +57,20 @@ fun HomeSACTRoot(
         }
     }
 
-    HomeSACTScreen(
+    HomePermanentScreen(
         state = viewModel.state,
         time = time,
         user = user,
-        context = context,
         onEvent = viewModel::onEvent
     )
 }
 
 @Composable
-private fun HomeSACTScreen(
-    state: HomeSACTUiState,
+private fun HomePermanentScreen(
+    state: HomePermanentUiState,
     time: String,
     user: LocalUser,
-    context: Context,
-    onEvent: (HomeSACTUiEvent) -> Unit,
+    onEvent: (HomePermanentUiEvent) -> Unit
 ) {
     val hapticFeedback = LocalHapticFeedback.current
 
@@ -77,8 +79,7 @@ private fun HomeSACTScreen(
         user = user,
         onEvent = {
             hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-
-            onEvent(HomeSACTUiEvent.OnProfilePicClick(context, it))
+            onEvent(HomePermanentUiEvent.OnProfilePicClick)
         }
     ) {
         Row(
@@ -93,7 +94,7 @@ private fun HomeSACTScreen(
                     .clickable(
                         onClick = {
                             hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                            onEvent(HomeSACTUiEvent.OnApplyLeaveClick)
+                            onEvent(HomePermanentUiEvent.OnApplyLeaveClick)
                         }
                     ),
                 icon = ApplyLeaveIcon,
@@ -107,7 +108,7 @@ private fun HomeSACTScreen(
                     .clickable(
                         onClick = {
                             hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                            onEvent(HomeSACTUiEvent.OnLeaveStatusClick)
+                            onEvent(HomePermanentUiEvent.OnLeaveStatusClick)
                         }
                     ),
                 icon = LeaveStatusIcon,
@@ -121,35 +122,78 @@ private fun HomeSACTScreen(
                     .clickable(
                         onClick = {
                             hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                            onEvent(HomeSACTUiEvent.OnLeaveHistoryClick)
+                            onEvent(HomePermanentUiEvent.OnLeaveHistoryClick)
                         }
                     ),
                 icon = LeaveHistoryIcon,
                 label = stringResource(id = R.string.leave_history),
             )
         }
+
+        Spacer(modifier = Modifier.height(MaterialTheme.dimens.large1))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.dimens.large1)
+        ) {
+            HomeItemIconButton(
+                modifier = Modifier
+                    .wrapContentSize()
+                    .weight(1f)
+                    .clickable(
+                        onClick = {
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onEvent(HomePermanentUiEvent.OnApproveLeaveClick)
+                        }
+                    ),
+                icon = ApproveLeaveIcon,
+                label = stringResource(id = R.string.approve_leave)
+            )
+
+            HomeItemIconButton(
+                modifier = Modifier
+                    .wrapContentSize()
+                    .weight(1f)
+                    .clickable(
+                        onClick = {
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onEvent(HomePermanentUiEvent.OnViewLeaveClick)
+                        }
+                    ),
+                icon = ViewLeaveIcon,
+                label = stringResource(id = R.string.view)
+            )
+
+            HomeItemIconButton(
+                modifier = Modifier
+                    .wrapContentSize()
+                    .weight(1f)
+                    .clickable(
+                        onClick = {
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onEvent(HomePermanentUiEvent.OnViewReportClick)
+                        }
+                    ),
+                icon = LeaveReportIcon,
+                label = stringResource(id = R.string.report),
+            )
+        }
     }
 }
-
-
-@Composable
-fun SinglePhotoPicker() {
-
-}
-
 
 @Preview
 @Composable
 private fun Preview() {
     TestThem {
-        HomeSACTScreen(
-            state = HomeSACTUiState(),
-            time = "Night Owl",
-            context = LocalContext.current,
+        HomePermanentScreen(
+            state = HomePermanentUiState(),
+            time = "Good Morning",
             user = LocalUser(
                 name = "Poulastaa Das",
-                designation = "SACT-I",
-                department = "Computer Science"
+                designation = "Assistant Professor",
+                department = "Computer Science",
+                isDepartmentInCharge = true
             )
         ) {
 
