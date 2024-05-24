@@ -34,4 +34,18 @@ sealed class Screens(val route: String) {
         val PARAMS: String =
             "{${Args.NAME.title}}/{${Args.EMAIL.title}}/{${Args.PHONE_ONE.title}}/{${Args.PHONE_TWO.title}}/{${Args.QUALIFICATION.title}}"
     }
+
+    data object EditAddress : Screens("/profile/editAddress") {
+        enum class Args(val title: String) {
+            TYPE("type"),
+            HOUSE_NUM("house_num"),
+            STREET("street"),
+            CITY("city"),
+            ZIP("zip"),
+            STATE("state")
+        }
+
+        val PARAMS: String =
+            "{${Args.TYPE.title}}/{${Args.HOUSE_NUM.title}}/{${Args.STREET.title}}/{${Args.CITY.title}}/{${Args.ZIP.title}}/{${Args.STATE.title}}"
+    }
 }

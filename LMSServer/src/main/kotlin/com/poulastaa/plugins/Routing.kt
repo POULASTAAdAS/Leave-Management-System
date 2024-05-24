@@ -5,6 +5,7 @@ import com.poulastaa.data.repository.ServiceRepository
 import com.poulastaa.routes.auth.*
 import com.poulastaa.routes.details.getDetails
 import com.poulastaa.routes.details.setDetailsReq
+import com.poulastaa.routes.details.updateAddress
 import com.poulastaa.routes.details.updateDetails
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
@@ -29,8 +30,9 @@ fun Application.configureRouting() {
 
         setDetailsReq(service)
         getDetails(service)
-        updateDetails(service)
 
+        updateDetails(service)
+        updateAddress(service)
 
         unAuth()
 

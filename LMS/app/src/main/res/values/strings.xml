@@ -68,6 +68,8 @@
     <string name="other_details">Other Details</string>
     <string name="edit_details">Edit Details</string>
     <string name="success_details_updated">Details Updated.</string>
+    <string name="error_zip_code">Invalid Zip Code</string>
+    <string name="address_updated">Address Updated</string>
 
     <array name="com_google_android_gms_fonts_certs">
         <item>@array/com_google_android_gms_fonts_certs_dev</item>

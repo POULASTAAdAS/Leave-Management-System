@@ -85,11 +85,46 @@ class ProfileViewModel @Inject constructor(
             }
 
             ProfileUiEvent.OnHomeAddressEditClick -> {
-
+                viewModelScope.launch(Dispatchers.IO) {
+                    _uiEvent.send(
+                        ProfileUiAction.OnNavigate(
+                            screen = Screens.EditAddress,
+                            args = mapOf(
+                                Screens.EditAddress.Args.TYPE.title to AddressType.HOME.name,
+                                Screens.EditAddress.Args.HOUSE_NUM.title to state.homeAddress.houseNumber.replace(
+                                    oldChar = '/',
+                                    newChar = '_'
+                                ),
+                                Screens.EditAddress.Args.STREET.title to state.homeAddress.street,
+                                Screens.EditAddress.Args.CITY.title to state.homeAddress.city,
+                                Screens.EditAddress.Args.ZIP.title to state.homeAddress.zipcode,
+                                Screens.EditAddress.Args.STATE.title to state.homeAddress.state
+                            )
+                        )
+                    )
+                }
             }
 
             ProfileUiEvent.OnPresentAddressEditClick -> {
+                viewModelScope.launch(Dispatchers.IO) {
+                    _uiEvent.send(
+                        ProfileUiAction.OnNavigate(
+                            screen = Screens.EditAddress,
+                            args = mapOf(
+                                Screens.EditAddress.Args.TYPE.title to AddressType.PRESENT.name,
+                                Screens.EditAddress.Args.HOUSE_NUM.title to state.presentAddress.houseNumber.replace(
+                                    oldChar = '/',
+                                    newChar = '_'
+                                ),
+                                Screens.EditAddress.Args.STREET.title to state.presentAddress.street,
+                                Screens.EditAddress.Args.CITY.title to state.presentAddress.city,
+                                Screens.EditAddress.Args.ZIP.title to state.presentAddress.zipcode,
+                                Screens.EditAddress.Args.STATE.title to state.presentAddress.state
 
+                            )
+                        )
+                    )
+                }
             }
 
             ProfileUiEvent.OnProfileEditClick -> {

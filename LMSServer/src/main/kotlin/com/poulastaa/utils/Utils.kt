@@ -1,7 +1,9 @@
 package com.poulastaa.utils
 
 import com.poulastaa.data.model.TeacherDetails
+import com.poulastaa.data.model.details.TeacherAddress
 import com.poulastaa.data.model.table.address.TeacherDetailsTable
+import com.poulastaa.data.model.table.teacher.TeacherAddressTable
 import org.jetbrains.exposed.sql.ResultRow
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -29,4 +31,12 @@ fun ResultRow.toTeacherDetails(email: String) = TeacherDetails(
     dob = this[TeacherDetailsTable.bDate].toString(),
     exp = this[TeacherDetailsTable.exp],
     gender = this[TeacherDetailsTable.gender]
+)
+
+fun ResultRow.toTeacherAddress() = TeacherAddress(
+    houseNum = this[TeacherAddressTable.houseNumb],
+    street = this[TeacherAddressTable.street],
+    city = this[TeacherAddressTable.city],
+    zipCode = this[TeacherAddressTable.zip].toString(),
+    state = this[TeacherAddressTable.state]
 )

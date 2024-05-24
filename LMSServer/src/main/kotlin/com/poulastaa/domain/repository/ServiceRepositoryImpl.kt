@@ -4,6 +4,7 @@ import com.poulastaa.data.model.EndPoints
 import com.poulastaa.data.model.GetTeacherRes
 import com.poulastaa.data.model.auth.req.SetDetailsReq
 import com.poulastaa.data.model.auth.res.*
+import com.poulastaa.data.model.details.UpdateAddressReq
 import com.poulastaa.data.model.details.UpdateDetailsReq
 import com.poulastaa.data.repository.JWTRepository
 import com.poulastaa.data.repository.TeacherRepository
@@ -128,6 +129,9 @@ class ServiceRepositoryImpl(
 
         return teacher.updateDetails(email, req)
     }
+
+    override suspend fun updateAddress(email: String, req: UpdateAddressReq): Boolean =
+        teacher.updateAddress(email, req)
 
     private fun sendEmailVerificationMail(
         toEmail: String,

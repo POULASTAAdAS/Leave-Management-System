@@ -6,6 +6,7 @@ import com.poulastaa.data.model.auth.res.AuthRes
 import com.poulastaa.data.model.auth.res.EmailVerificationRes
 import com.poulastaa.data.model.auth.res.SetDetailsRes
 import com.poulastaa.data.model.auth.res.VerifiedMailStatus
+import com.poulastaa.data.model.details.UpdateAddressReq
 import com.poulastaa.data.model.details.UpdateDetailsReq
 
 
@@ -23,4 +24,6 @@ interface ServiceRepository {
     suspend fun getTeacherDetails(email: String): GetTeacherRes?
 
     suspend fun updateDetails(email: String, req: UpdateDetailsReq): Boolean
+
+    suspend fun updateAddress(email: String, req: UpdateAddressReq): Boolean
 }

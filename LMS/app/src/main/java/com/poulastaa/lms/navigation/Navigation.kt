@@ -1,6 +1,8 @@
 package com.poulastaa.lms.navigation
 
+import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -10,6 +12,9 @@ import androidx.navigation.navArgument
 import com.poulastaa.lms.presentation.auth.AuthRootScreen
 import com.poulastaa.lms.presentation.home.type.HomeRootScreenType
 import com.poulastaa.lms.presentation.profile.ProfileRootScreen
+import com.poulastaa.lms.presentation.profile.edit.address_edit.AddressEditRootScreen
+import com.poulastaa.lms.presentation.profile.edit.address_edit.AddressEditUiEvent
+import com.poulastaa.lms.presentation.profile.edit.address_edit.AddressEditViewModel
 import com.poulastaa.lms.presentation.profile.edit.details_edit.DetailsEditUiEvent
 import com.poulastaa.lms.presentation.profile.edit.details_edit.DetailsEditViewModel
 import com.poulastaa.lms.presentation.profile.edit.details_edit.DetailsRootScreen
@@ -48,26 +53,68 @@ fun Navigation(
         composable(route = Screens.Profile.route) {
             ProfileRootScreen(
                 navigate = {
-                    val name =
-                        it.args[Screens.EditDetails.Args.NAME.title] ?: return@ProfileRootScreen
-                    val email =
-                        it.args[Screens.EditDetails.Args.EMAIL.title] ?: return@ProfileRootScreen
-                    val phoneOne = it.args[Screens.EditDetails.Args.PHONE_ONE.title]
-                        ?: return@ProfileRootScreen
-                    val phoneTwo =
-                        it.args[Screens.EditDetails.Args.PHONE_TWO.title].let { phone ->
-                            if (phone.isNullOrEmpty()) "0"
-                            else phone
-                        }
-                    val qualification = it.args[Screens.EditDetails.Args.QUALIFICATION.title]
-                        ?: return@ProfileRootScreen
+                    when (it.screen) {
+                        Screens.EditDetails -> {
+                            val name =
+                                it.args[Screens.EditDetails.Args.NAME.title]
+                                    ?: return@ProfileRootScreen
+                            val email =
+                                it.args[Screens.EditDetails.Args.EMAIL.title]
+                                    ?: return@ProfileRootScreen
+                            val phoneOne = it.args[Screens.EditDetails.Args.PHONE_ONE.title]
+                                ?: return@ProfileRootScreen
+                            val phoneTwo =
+                                it.args[Screens.EditDetails.Args.PHONE_TWO.title].let { phone ->
+                                    if (phone.isNullOrEmpty()) "0"
+                                    else phone
+                                }
+                            val qualification =
+                                it.args[Screens.EditDetails.Args.QUALIFICATION.title]
+                                    ?: return@ProfileRootScreen
 
-                    when {
-                        it.screen == Screens.EditDetails -> {
+                            val route =
+                                Screens.EditDetails.route + "$name/$email/$phoneOne/$phoneTwo/$qualification"
+
                             navController.navigate(
-                                route = it.screen.route + "$name/$email/$phoneOne/$phoneTwo/$qualification"
+                                route = route
                             )
                         }
+
+                        Screens.EditAddress -> {
+                            val city =
+                                it.args[Screens.EditAddress.Args.CITY.title]
+                                    ?: return@ProfileRootScreen
+                            val type =
+                                it.args[Screens.EditAddress.Args.TYPE.title]
+                                    ?: return@ProfileRootScreen
+                            val house = it.args[Screens.EditAddress.Args.HOUSE_NUM.title]
+                                ?: return@ProfileRootScreen
+                            val zip =
+                                it.args[Screens.EditAddress.Args.ZIP.title].let { phone ->
+                                    if (phone.isNullOrEmpty()) "0"
+                                    else phone
+                                }
+                            val street =
+                                it.args[Screens.EditAddress.Args.STREET.title]
+                                    ?: return@ProfileRootScreen
+
+                            val state =
+                                it.args[Screens.EditAddress.Args.STATE.title]
+                                    ?: return@ProfileRootScreen
+
+
+                            val route =
+                                Screens.EditAddress.route + "$type/$house/$street/$city/$zip/$state"
+
+                            Log.d("route", route)
+
+
+                            navController.navigate(
+                                route = route
+                            )
+                        }
+
+                        else -> Unit
                     }
                 },
                 navigateBack = {
@@ -129,6 +176,76 @@ fun Navigation(
             ) {
                 navController.popBackStack()
             }
+        }
+
+        composable(
+            route = Screens.EditAddress.route + Screens.EditAddress.PARAMS,
+            arguments = listOf(
+                navArgument(Screens.EditAddress.Args.HOUSE_NUM.title) {
+                    type = NavType.StringType
+                },
+                navArgument(Screens.EditAddress.Args.STREET.title) {
+                    type = NavType.StringType
+                },
+                navArgument(Screens.EditAddress.Args.CITY.title) {
+                    type = NavType.StringType
+                },
+                navArgument(Screens.EditAddress.Args.ZIP.title) {
+                    type = NavType.StringType
+                },
+                navArgument(Screens.EditAddress.Args.TYPE.title) {
+                    type = NavType.StringType
+                },
+                navArgument(Screens.EditAddress.Args.STATE.title) {
+                    type = NavType.StringType
+                }
+            )
+        ) {
+            val viewModel = hiltViewModel<AddressEditViewModel>()
+
+            val type =
+                it.arguments?.getString(Screens.EditAddress.Args.TYPE.title)
+            val house =
+                it.arguments?.getString(Screens.EditAddress.Args.HOUSE_NUM.title)
+            val street = it.arguments?.getString(Screens.EditAddress.Args.STREET.title)
+            val city = it.arguments?.getString(Screens.EditAddress.Args.CITY.title)
+            val zip =
+                it.arguments?.getString(Screens.EditAddress.Args.ZIP.title)
+            val state =
+                it.arguments?.getString(Screens.EditAddress.Args.STATE.title)
+
+
+            if (type == null ||
+                house == null ||
+                street == null ||
+                city == null ||
+                zip == null ||
+                state == null
+            ) {
+                viewModel.onEvent(AddressEditUiEvent.SomethingWentWrong)
+
+                navController.popBackStack()
+                return@composable
+            }
+
+            LaunchedEffect(key1 = house) {
+                viewModel.populate(
+                    type = type,
+                    houseNo = house,
+                    street = street,
+                    city = city,
+                    zipCode = zip,
+                    state = state
+                )
+            }
+
+
+            AddressEditRootScreen(
+                viewModel = viewModel,
+                navigateBack = {
+                    navController.popBackStack()
+                }
+            )
         }
 
         composable(route = Screens.ApplyLeave.route) {

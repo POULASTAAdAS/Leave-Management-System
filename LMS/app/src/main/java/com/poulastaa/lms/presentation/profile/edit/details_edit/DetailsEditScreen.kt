@@ -59,16 +59,12 @@ fun DetailsRootScreen(
         )
     }
 
-    ObserveAsEvent(flow = viewModel.uiEvent) {
-        when (it) {
-            is DetailsEditUiAction.OnSuccess -> {
-
-            }
-
+    ObserveAsEvent(flow = viewModel.uiEvent) { event ->
+        when (event) {
             is DetailsEditUiAction.ShowToast -> {
                 Toast.makeText(
                     context,
-                    it.message.asString(context),
+                    event.message.asString(context),
                     Toast.LENGTH_LONG
                 ).show()
             }

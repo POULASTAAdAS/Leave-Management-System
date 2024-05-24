@@ -10,7 +10,7 @@ object TeacherAddressTable : Table() {
     val houseNumb = varchar("houseNumb", 100)
     val street = varchar("street", 200)
     val city = varchar("city", 100).default("Kolkata")
-    val zip = integer("zip")
+    val zip = integer("zip") // todo change to string or will break
     val state = varchar("state", 100).default("West Bengal")
     val country = varchar("country", 100).default("India")
 

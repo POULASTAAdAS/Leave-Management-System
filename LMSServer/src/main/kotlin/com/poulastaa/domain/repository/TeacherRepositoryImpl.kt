@@ -8,6 +8,8 @@ import com.poulastaa.data.model.constants.AddressType
 import com.poulastaa.data.model.convertors.AddressEntry
 import com.poulastaa.data.model.convertors.SetDetailsEntry
 import com.poulastaa.data.model.convertors.TeacherDetailsEntry
+import com.poulastaa.data.model.details.TeacherAddress
+import com.poulastaa.data.model.details.UpdateAddressReq
 import com.poulastaa.data.model.details.UpdateDetailsReq
 import com.poulastaa.data.model.table.address.AddressTypeTable
 import com.poulastaa.data.model.table.address.TeacherDetailsTable
@@ -31,10 +33,12 @@ import com.poulastaa.domain.dao.utils.Principal
 import com.poulastaa.domain.dao.utils.Qualification
 import com.poulastaa.utils.Constants.VERIFICATION_MAIL_TOKEN_TIME
 import com.poulastaa.utils.toLocalDate
+import com.poulastaa.utils.toTeacherAddress
 import com.poulastaa.utils.toTeacherDetails
 import kotlinx.coroutines.*
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.statements.UpdateStatement
 
 class TeacherRepositoryImpl : TeacherRepository {
     private suspend fun findTeacher(email: String) = dbQuery {
@@ -324,6 +328,65 @@ class TeacherRepositoryImpl : TeacherRepository {
         }
 
         true
+    }
+
+    override suspend fun updateAddress(email: String, req: UpdateAddressReq): Boolean = coroutineScope {
+        val teacher = findTeacher(email) ?: return@coroutineScope false
+
+
+        val addressType = dbQuery {
+            com.poulastaa.domain.dao.address.AddressType.find {
+                AddressTypeTable.type eq req.type.name
+            }.singleOrNull()
+        } ?: return@coroutineScope false
+
+
+        val oldEntry = dbQuery {
+            TeacherAddressTable.select {
+                TeacherAddressTable.addressTypeId eq addressType.id and (TeacherAddressTable.teacherId eq teacher.id)
+            }.singleOrNull()?.toTeacherAddress()
+        } ?: return@coroutineScope false
+
+        if (req.otherType) updateBothAddress(teacher.id.value, req, oldEntry)
+        else {
+            dbQuery {
+                TeacherAddressTable.update(
+                    where = {
+                        TeacherAddressTable.addressTypeId eq addressType.id and (TeacherAddressTable.teacherId eq teacher.id)
+                    }
+                ) {
+                    updateTeacherEntry(it, req, oldEntry)
+                }
+            }
+        }
+
+        true
+    }
+
+    private suspend fun updateBothAddress(
+        id: Int,
+        req: UpdateAddressReq,
+        oldEntry: TeacherAddress
+    ) = dbQuery {
+        TeacherAddressTable.update(
+            where = {
+                TeacherAddressTable.teacherId eq id
+            }
+        ) {
+            updateTeacherEntry(it, req, oldEntry)
+        }
+    }
+
+    private fun TeacherAddressTable.updateTeacherEntry(
+        it: UpdateStatement,
+        req: UpdateAddressReq,
+        oldEntry: TeacherAddress
+    ) {
+        it[this.houseNumb] = req.houseNo ?: oldEntry.houseNum
+        it[this.street] = req.street ?: oldEntry.street
+        it[this.city] = req.city ?: oldEntry.city
+        it[this.zip] = req.zipCode?.toInt() ?: oldEntry.zipCode.toInt()
+        it[this.state] = req.state ?: oldEntry.state
     }
 
 
