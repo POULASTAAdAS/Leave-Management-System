@@ -8,6 +8,7 @@ import com.poulastaa.data.model.constants.AddressType
 import com.poulastaa.data.model.convertors.AddressEntry
 import com.poulastaa.data.model.convertors.SetDetailsEntry
 import com.poulastaa.data.model.convertors.TeacherDetailsEntry
+import com.poulastaa.data.model.details.UpdateDetailsReq
 import com.poulastaa.data.model.table.address.AddressTypeTable
 import com.poulastaa.data.model.table.address.TeacherDetailsTable
 import com.poulastaa.data.model.table.department.DepartmentHeadTable
@@ -30,6 +31,7 @@ import com.poulastaa.domain.dao.utils.Principal
 import com.poulastaa.domain.dao.utils.Qualification
 import com.poulastaa.utils.Constants.VERIFICATION_MAIL_TOKEN_TIME
 import com.poulastaa.utils.toLocalDate
+import com.poulastaa.utils.toTeacherDetails
 import kotlinx.coroutines.*
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.*
@@ -276,6 +278,56 @@ class TeacherRepositoryImpl : TeacherRepository {
         )
     }
 
+
+    override suspend fun updateDetails(email: String, req: UpdateDetailsReq): Boolean = coroutineScope {
+        val teacher = findTeacher(email) ?: return@coroutineScope false
+
+        val emailDef = async {
+            if (teacher.email.uppercase() != req.email && req.email.isNotEmpty()) dbQuery {
+                teacher.email = req.email
+            }
+        }
+
+        val detailsDef = async { getTeacherDetailsOnTeacherId(teacher.id.value, email) }
+
+
+        val details = detailsDef.await() ?: return@coroutineScope false
+        emailDef.await()
+
+        dbQuery {
+            TeacherDetailsTable.update(
+                where = {
+                    TeacherDetailsTable.teacherId eq teacher.id
+                }
+            ) {
+                if (details.name.uppercase() != req.name && req.name.isNotEmpty()) it[this.name] = req.name
+                if (details.phoneOne != req.phoneOne && req.phoneOne.isNotEmpty()) it[this.phone_1] = req.phoneOne
+                if (details.phoneTwo != req.phoneTwo && req.phoneTwo.isNotEmpty()) it[this.phone_2] = req.phoneTwo
+            }
+        }
+
+        if (req.qualification.isNotBlank()) {
+            val qualificationDef = async { getQualificationOnType(req.qualification) }
+            val qualification = qualificationDef.await() ?: return@coroutineScope false
+
+
+            dbQuery {
+                TeacherDetailsTable.update(
+                    where = {
+                        TeacherDetailsTable.teacherId eq teacher.id
+                    }
+                ) {
+                    if (details.designationId != qualification.id.value) it[this.qualificationId] =
+                        qualification.id.value
+                }
+            }
+        }
+
+        true
+    }
+
+
+    // private fun
     private suspend fun checkIfDetailsAlreadyFilled(id: Int) = dbQuery {
         TeacherDetailsTable.select {
             TeacherDetailsTable.teacherId eq id
@@ -306,11 +358,7 @@ class TeacherRepositoryImpl : TeacherRepository {
         }
 
         val qualificationIdDef = async {
-            dbQuery {
-                Qualification.find {
-                    QualificationTable.type.upperCase() eq this@toDetailsEntry.qualification.uppercase()
-                }.singleOrNull()?.id
-            }
+            getQualificationOnType(this@toDetailsEntry.qualification)
         }
 
         val designation = designationDef.await() ?: return@coroutineScope null
@@ -343,7 +391,7 @@ class TeacherRepositoryImpl : TeacherRepository {
             designationId = designation.id,
             departmentId = departmentId,
             joiningDate = joiningDate,
-            qualificationId = qualificationId,
+            qualificationId = qualificationId.id,
             exp = this@toDetailsEntry.exp
         )
 
@@ -495,6 +543,19 @@ class TeacherRepositoryImpl : TeacherRepository {
         com.poulastaa.domain.dao.address.AddressType.find {
             AddressTypeTable.id eq id
         }.single().type
+    }
 
+    private suspend fun getTeacherDetailsOnTeacherId(id: Int, email: String) = dbQuery {
+        dbQuery {
+            TeacherDetailsTable.select {
+                TeacherDetailsTable.teacherId eq id
+            }.singleOrNull()?.toTeacherDetails(email)
+        }
+    }
+
+    private suspend fun getQualificationOnType(type: String) = dbQuery {
+        Qualification.find {
+            QualificationTable.type.upperCase() eq type.uppercase()
+        }.singleOrNull()
     }
 }

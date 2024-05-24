@@ -8,6 +8,6 @@ import org.jetbrains.exposed.dao.id.EntityID
 class Teacher(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<Teacher>(TeacherTable)
 
-    val email by TeacherTable.email
+    var email by TeacherTable.email
     var emailVerified by TeacherTable.emailVerified
 }

@@ -1,5 +1,8 @@
 package com.poulastaa.lms.presentation.profile
 
+import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -51,12 +54,30 @@ import com.poulastaa.lms.ui.theme.OutlinePhoneIcon
 import com.poulastaa.lms.ui.theme.OutlineQualificationIcon
 import com.poulastaa.lms.ui.theme.TestThem
 import com.poulastaa.lms.ui.theme.dimens
+import com.poulastaa.lms.ui.utils.ObserveAsEvent
 
 @Composable
 fun ProfileRootScreen(
     viewModel: ProfileViewModel = hiltViewModel(),
+    navigate: (ProfileUiAction.OnNavigate) -> Unit,
     navigateBack: () -> Unit
 ) {
+    val context = LocalContext.current
+
+    ObserveAsEvent(flow = viewModel.uiEvent) { event ->
+        when (event) {
+            is ProfileUiAction.OnNavigate -> navigate(event)
+
+            is ProfileUiAction.ShowToast -> {
+                Toast.makeText(
+                    context,
+                    event.message.asString(context),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+
     LaunchedEffect(
         key1 = true,
         viewModel.state.name.isEmpty()
@@ -77,6 +98,11 @@ fun ProfileRootScreen(
             viewModel.cancelJob()
         }
     )
+
+    BackHandler {
+        navigateBack()
+        viewModel.cancelJob()
+    }
 }
 
 @Composable
@@ -152,14 +178,22 @@ private fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(MaterialTheme.dimens.large1))
 
-            Address(address = state.presentAddress) {
+            Address(
+                address = state.presentAddress,
+                label = stringResource(id = R.string.present_address_header)
+            ) {
                 onEvent(ProfileUiEvent.OnPresentAddressEditClick)
             }
 
             Spacer(modifier = Modifier.height(MaterialTheme.dimens.large1))
 
 
-            Address(address = state.homeAddress) {
+            Log.d("home Address ui", state.homeAddress.toString())
+
+            Address(
+                address = state.homeAddress,
+                label = stringResource(id = R.string.home_address_header)
+            ) {
                 onEvent(ProfileUiEvent.OnHomeAddressEditClick)
             }
 
@@ -410,6 +444,7 @@ private fun OtherDetails(
 @Composable
 private fun Address(
     address: ProfileUiAddress,
+    label: String,
     onClick: () -> Unit
 ) {
     Card(
@@ -427,7 +462,7 @@ private fun Address(
                 .fillMaxSize()
                 .padding(MaterialTheme.dimens.small3)
         ) {
-            ProfileItemEditableHeader(label = stringResource(id = R.string.present_address_header)) {
+            ProfileItemEditableHeader(label = label) {
                 onClick()
             }
 

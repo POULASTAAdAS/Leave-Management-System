@@ -6,6 +6,7 @@ import com.poulastaa.data.model.auth.res.AuthStatus
 import com.poulastaa.data.model.auth.res.SetDetailsRes
 import com.poulastaa.data.model.auth.res.User
 import com.poulastaa.data.model.auth.res.VerifiedMailStatus
+import com.poulastaa.data.model.details.UpdateDetailsReq
 
 interface TeacherRepository {
     suspend fun getTeacherDetailsStatus(email: String): Pair<AuthStatus, Any>
@@ -20,4 +21,6 @@ interface TeacherRepository {
     suspend fun saveTeacherDetails(req: SetDetailsReq): SetDetailsRes
 
     suspend fun getTeacherDetails(email: String) : GetTeacherRes?
+
+    suspend fun updateDetails(email: String, req: UpdateDetailsReq): Boolean
 }

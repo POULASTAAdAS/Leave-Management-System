@@ -1,4 +1,4 @@
-package com.poulastaa.routes
+package com.poulastaa.routes.details
 
 import com.poulastaa.data.model.EndPoints
 import com.poulastaa.data.model.GetTeacherRes

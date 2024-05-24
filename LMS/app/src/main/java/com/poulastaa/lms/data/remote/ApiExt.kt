@@ -1,10 +1,12 @@
 package com.poulastaa.lms.data.remote
 
-import android.util.Log
 import com.google.gson.Gson
+import com.poulastaa.lms.domain.repository.utils.DataStoreRepository
 import com.poulastaa.lms.domain.utils.DataError
 import com.poulastaa.lms.domain.utils.Result
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
 import okhttp3.Call
@@ -49,7 +51,7 @@ suspend inline fun <reified Response : Any> OkHttpClient.uploadFile(
 
     return try {
         val response = makeCall(req)
-        responseToResult<Response>(response, gson)
+        responseToResult<Response>(response = response, gson = gson)
     } catch (e: Exception) {
         handleOtherException(e)
     }
@@ -70,7 +72,7 @@ suspend inline fun <reified Request : Any, reified Response : Any> OkHttpClient.
 
     return try {
         val response = makeCall(req)
-        responseToResult<Response>(response, gson)
+        responseToResult<Response>(response = response, gson = gson)
     } catch (e: Exception) {
         handleOtherException(e)
     }
@@ -94,7 +96,7 @@ suspend inline fun <reified Response : Any> OkHttpClient.authGet(
 
     return try {
         val response = makeCall(req)
-        responseToResult<Response>(response, gson)
+        responseToResult<Response>(response = response, gson = gson)
     } catch (e: Exception) {
         handleOtherException(e)
     }
@@ -105,7 +107,9 @@ suspend inline fun <reified Response : Any> OkHttpClient.get(
     route: String,
     params: List<Pair<String, String>>,
     gson: Gson,
-    cookie: String
+    cookie: String,
+    cookieManager: CookieManager,
+    ds: DataStoreRepository
 ): Result<Response, DataError.Network> {
     val urlBuilder =
         constructRoute(route).toHttpUrlOrNull()?.newBuilder()
@@ -116,11 +120,44 @@ suspend inline fun <reified Response : Any> OkHttpClient.get(
     }
 
     val url = urlBuilder.build()
-    val req = Req.Builder().url(url).header("Cookie", cookie).get().build()
+    val req = Req.Builder().url(url).addHeader("Cookie", cookie).get().build()
 
     return try {
         val response = makeCall(req)
-        responseToResult<Response>(response, gson)
+        responseToResult<Response>(
+            response = response,
+            cookieManager = cookieManager,
+            gson = gson,
+            ds = ds
+        )
+    } catch (e: Exception) {
+        handleOtherException(e)
+    }
+}
+
+suspend inline fun <reified Request : Any, reified Response : Any> OkHttpClient.post(
+    route: String,
+    body: Request,
+    gson: Gson,
+    cookie: String,
+    cookieManager: CookieManager,
+    ds: DataStoreRepository
+): Result<Response, DataError.Network> {
+    val url = constructRoute(route)
+
+    val json = gson.toJson(body)
+
+    val reqBody = json.toRequestBody(mediaType)
+    val req = Req.Builder().url(url).addHeader("Cookie", cookie).post(reqBody).build()
+
+    return try {
+        val response = makeCall(req)
+        responseToResult<Response>(
+            response = response,
+            cookieManager = cookieManager,
+            gson = gson,
+            ds = ds
+        )
     } catch (e: Exception) {
         handleOtherException(e)
     }
@@ -147,7 +184,9 @@ suspend fun OkHttpClient.makeCall(request: Req): Response {
 
 suspend inline fun <reified T> responseToResult(
     response: Response,
-    gson: Gson
+    cookieManager: CookieManager? = null,
+    gson: Gson,
+    ds: DataStoreRepository? = null
 ): Result<T, DataError.Network> = withContext(Dispatchers.IO) {
     when (response.code) {
         in 200..299 -> {
@@ -155,11 +194,15 @@ suspend inline fun <reified T> responseToResult(
             val obj = gson.fromJson(body, T::class.java)
 
             try {
-                val cookie = response.headers["Cookie"]
+                val cookie = cookieManager?.let { extractCookie(it) }
 
-                Log.d("cookie", cookie.toString())
+                if (cookie != null)
+                    CoroutineScope(Dispatchers.IO).launch {
+                        ds?.storeCookie(cookie)
+                    }
+
             } catch (e: Exception) {
-                null
+                Unit
             }
 
             Result.Success(obj)

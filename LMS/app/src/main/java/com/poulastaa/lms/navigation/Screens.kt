@@ -21,4 +21,17 @@ sealed class Screens(val route: String) {
     // principle
     data object DefineDepartmentInCharge : Screens("/defineDepartmentInCharge")
     data object Add : Screens("/add")
+
+    data object EditDetails : Screens("/profile/editDetails") {
+        enum class Args(val title: String) {
+            NAME("name"),
+            EMAIL("email"),
+            PHONE_ONE("phoneOne"),
+            PHONE_TWO("phoneTwo"),
+            QUALIFICATION("qualification")
+        }
+
+        val PARAMS: String =
+            "{${Args.NAME.title}}/{${Args.EMAIL.title}}/{${Args.PHONE_ONE.title}}/{${Args.PHONE_TWO.title}}/{${Args.QUALIFICATION.title}}"
+    }
 }
