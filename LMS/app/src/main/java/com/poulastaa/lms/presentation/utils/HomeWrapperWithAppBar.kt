@@ -45,16 +45,6 @@ fun HomeWrapperWithAppBar(
     onEvent: () -> Unit,
     content: @Composable ColumnScope.() -> Unit
 ) {
-//    val photoPicker =
-//        rememberLauncherForActivityResult(contract = ActivityResultContracts.PickVisualMedia()) {
-//            onEvent(it)
-//        }
-
-    //                        photoPicker.launch(
-//                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-//                        )
-
-
     Scaffold(
         topBar = {
             SACTTopBar(title = time)

@@ -48,7 +48,7 @@ delete from loginemail;
 
 select * from teacheraddress where teacherId = 1;
 
-update teacherdetails set 
+update teacherdetails set designationId = 5 where teacherid = 1;
 
 select * from addresstype;
 

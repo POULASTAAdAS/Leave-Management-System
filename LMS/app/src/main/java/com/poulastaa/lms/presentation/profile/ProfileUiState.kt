@@ -4,6 +4,8 @@ data class ProfileUiState(
     val isInternet: Boolean = false,
     val isMakingApiCall: Boolean = true,
 
+    val isProfilePicUpdating: Boolean = false,
+
     val name: String = "",
     val profilePicUrl: String = "",
     val gender: String = "",

@@ -147,8 +147,11 @@ primary key (teacherId ,teacherTypeId, leaveTypeId)
 );
 
 
-
-
+create table TeacherProfilePic(
+	teacherId Int references Teacher(id) on delete cascade,
+    profilePic blob not null,
+    primary key (teacherId)
+);
 
 
 

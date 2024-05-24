@@ -34,7 +34,8 @@ val mediaType = "application/json".toMediaType()
 suspend inline fun <reified Response : Any> OkHttpClient.uploadFile(
     route: String,
     file: File,
-    gson: Gson
+    gson: Gson,
+    cookie: String
 ): Result<Response, DataError.Network> {
     val requestBody = file.asRequestBody("application/octet-stream".toMediaTypeOrNull())
 
@@ -46,12 +47,16 @@ suspend inline fun <reified Response : Any> OkHttpClient.uploadFile(
         .build()
 
     val req = Req.Builder().url(url)
+        .header("Cookie", cookie)
         .post(multipartBody)
         .build()
 
     return try {
         val response = makeCall(req)
-        responseToResult<Response>(response = response, gson = gson)
+        responseToResult<Response>(
+            response = response,
+            gson = gson
+        )
     } catch (e: Exception) {
         handleOtherException(e)
     }

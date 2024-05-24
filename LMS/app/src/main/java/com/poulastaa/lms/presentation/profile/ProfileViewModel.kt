@@ -11,12 +11,14 @@ import com.poulastaa.lms.data.model.auth.EndPoints
 import com.poulastaa.lms.data.model.profile.ProfileRes
 import com.poulastaa.lms.data.model.stoe_details.AddressType
 import com.poulastaa.lms.data.remote.get
+import com.poulastaa.lms.data.remote.uploadFile
 import com.poulastaa.lms.data.repository.utils.NetworkConnectivityObserver
 import com.poulastaa.lms.domain.repository.utils.ConnectivityObserver
 import com.poulastaa.lms.domain.repository.utils.DataStoreRepository
 import com.poulastaa.lms.domain.utils.DataError
 import com.poulastaa.lms.domain.utils.Result
 import com.poulastaa.lms.navigation.Screens
+import com.poulastaa.lms.presentation.utils.fileFromUri
 import com.poulastaa.lms.ui.utils.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -127,8 +129,72 @@ class ProfileViewModel @Inject constructor(
                 }
             }
 
-            ProfileUiEvent.OnProfileEditClick -> {
+            is ProfileUiEvent.OnProfileEditClick -> {
+                val file = event.uri?.let {
+                    fileFromUri(
+                        context = event.context,
+                        uri = it
+                    )
+                } ?: return
 
+                state = state.copy(
+                    isProfilePicUpdating = true
+                )
+
+                viewModelScope.launch(Dispatchers.IO) {
+                    val cookie = ds.readCookie().first()
+
+                    val response = client.uploadFile<String>(
+                        route = EndPoints.UpdateProfilePic.route,
+                        file = file,
+                        gson = gson,
+                        cookie = cookie
+                    )
+
+                    when (response) {
+                        is Result.Error -> {
+                            when (response.error) {
+                                DataError.Network.NO_INTERNET -> {
+                                    _uiEvent.send(
+                                        ProfileUiAction.ShowToast(
+                                            UiText.StringResource(R.string.error_internet)
+                                        )
+                                    )
+                                }
+
+                                else -> {
+                                    _uiEvent.send(
+                                        ProfileUiAction.ShowToast(
+                                            UiText.StringResource(R.string.error_something_went_wrong)
+                                        )
+                                    )
+                                }
+                            }
+                        }
+
+                        is Result.Success -> {
+                            val url = response.data
+
+                            val user = ds.readUser().first()
+
+                            ds.storeLocalUser(
+                                user = user.copy(
+                                    profilePicUrl = url
+                                )
+                            )
+
+                            _uiEvent.send(
+                                ProfileUiAction.ShowToast(
+                                    UiText.StringResource(R.string.profile_pic_updated)
+                                )
+                            )
+                        }
+                    }
+
+                    state = state.copy(
+                        isProfilePicUpdating = false
+                    )
+                }
             }
         }
     }

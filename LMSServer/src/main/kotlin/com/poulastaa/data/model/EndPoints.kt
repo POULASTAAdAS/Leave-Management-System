@@ -10,12 +10,14 @@ sealed class EndPoints(val route: String) {
     data object LogInEmailVerificationCheck : EndPoints(route = "/api/auth/logInEmailVerificationCheck")
 
     data object SetDetails : EndPoints(route = "/api/auth/setDetails")
-
     data object GetDetails : EndPoints(route = "/api/auth/getDetails")
 
     data object UpdateDetails : EndPoints(route = "/api/auth/updateDetails")
-
     data object UpdateAddress : EndPoints(route = "/api/auth/updateAddress")
+
+    data object UpdateProfilePic : EndPoints(route = "/api/updateProfilePic")
+
+    data object GetProfilePic : EndPoints(route = "/api/auth/getProfilePic")
 
     data object UnAuthorised : EndPoints(route = "/api/unauthorised")
 }

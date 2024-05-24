@@ -1,9 +1,11 @@
 package com.poulastaa.utils
 
 import com.poulastaa.data.model.TeacherDetails
+import com.poulastaa.data.model.convertors.TeacherProfileEntry
 import com.poulastaa.data.model.details.TeacherAddress
 import com.poulastaa.data.model.table.address.TeacherDetailsTable
 import com.poulastaa.data.model.table.teacher.TeacherAddressTable
+import com.poulastaa.data.model.table.teacher.TeacherProfilePicTable
 import org.jetbrains.exposed.sql.ResultRow
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -39,4 +41,10 @@ fun ResultRow.toTeacherAddress() = TeacherAddress(
     city = this[TeacherAddressTable.city],
     zipCode = this[TeacherAddressTable.zip].toString(),
     state = this[TeacherAddressTable.state]
+)
+
+fun ResultRow.toTeacherProfilePic() = TeacherProfileEntry(
+    id = this[TeacherProfilePicTable.teacherId].value,
+    name = this[TeacherProfilePicTable.name],
+    profilePic = this[TeacherProfilePicTable.profilePic]
 )

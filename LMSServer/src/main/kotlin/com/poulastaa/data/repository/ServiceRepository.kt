@@ -26,4 +26,6 @@ interface ServiceRepository {
     suspend fun updateDetails(email: String, req: UpdateDetailsReq): Boolean
 
     suspend fun updateAddress(email: String, req: UpdateAddressReq): Boolean
+
+    suspend fun storeProfilePic(email: String, name: String, profilePic: ByteArray): String
 }

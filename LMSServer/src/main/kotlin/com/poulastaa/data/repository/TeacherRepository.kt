@@ -21,9 +21,11 @@ interface TeacherRepository {
     suspend fun loginEmailVerificationCheck(email: String): Boolean
     suspend fun saveTeacherDetails(req: SetDetailsReq): SetDetailsRes
 
-    suspend fun getTeacherDetails(email: String) : GetTeacherRes?
+    suspend fun getTeacherDetails(email: String): GetTeacherRes?
 
     suspend fun updateDetails(email: String, req: UpdateDetailsReq): Boolean
 
-     suspend fun updateAddress(email: String, req: UpdateAddressReq): Boolean
+    suspend fun updateAddress(email: String, req: UpdateAddressReq): Boolean
+
+    suspend fun storeProfilePic(email: String, name: String, profilePic: ByteArray): Boolean
 }

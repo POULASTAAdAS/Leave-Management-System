@@ -1,8 +1,12 @@
 package com.poulastaa.lms.presentation.profile
 
+import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
@@ -93,6 +98,7 @@ fun ProfileRootScreen(
     else ProfileScreen(
         state = viewModel.state,
         onEvent = viewModel::onEvent,
+        context = context,
         navigateBack = {
             navigateBack()
             viewModel.cancelJob()
@@ -145,6 +151,7 @@ fun ProfileLoading() {
 @Composable
 private fun ProfileScreen(
     state: ProfileUiState,
+    context: Context,
     onEvent: (ProfileUiEvent) -> Unit,
     navigateBack: () -> Unit
 ) {
@@ -157,7 +164,9 @@ private fun ProfileScreen(
         ProfileCard(
             profilePicUrl = state.profilePicUrl,
             gender = state.gender,
+            isProfilePicUpdating = state.isProfilePicUpdating,
             name = state.name,
+            context = context,
             onClick = onEvent
         )
 
@@ -227,10 +236,22 @@ private fun Back(
 @Composable
 private fun ProfileCard(
     profilePicUrl: String,
+    isProfilePicUpdating: Boolean,
     gender: String,
+    context: Context,
     name: String,
     onClick: (ProfileUiEvent) -> Unit
 ) {
+    val photoPicker =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.PickVisualMedia()) {
+            onClick(
+                ProfileUiEvent.OnProfileEditClick(
+                    context = context,
+                    uri = it
+                )
+            )
+        }
+
     Card(
         modifier = Modifier
             .padding(MaterialTheme.dimens.large2),
@@ -265,12 +286,27 @@ private fun ProfileCard(
                             color = MaterialTheme.colorScheme.background,
                             shape = RoundedCornerShape(1000f)
                         )
-                        .background(color = MaterialTheme.colorScheme.primary),
+                        .background(color = MaterialTheme.colorScheme.primary)
+                        .alpha(if (isProfilePicUpdating) .5f else 1f),
                     contentScale = ContentScale.Crop
                 )
 
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(60.dp)
+                        .alpha(if (isProfilePicUpdating) 1f else 0f),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    strokeCap = StrokeCap.Round,
+                    strokeWidth = 3.dp
+                )
+
                 IconButton(
-                    onClick = { onClick(ProfileUiEvent.OnProfileEditClick) },
+                    onClick = {
+                        photoPicker.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    },
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(
@@ -486,18 +522,10 @@ private fun Address(
 @Composable
 private fun Preview() {
     TestThem {
-//        ProfileScreen(
-//            state = ProfileUiState(
-//                isInternet = false
-//            ),
-//            onEvent = {
-//
-//            }
-//        ) {
-//
-//        }
-
-        ProfileErr {
+        ProfileScreen(state = ProfileUiState(
+            isProfilePicUpdating = false,
+            gender = "M"
+        ), context = LocalContext.current, onEvent = {}) {
 
         }
     }

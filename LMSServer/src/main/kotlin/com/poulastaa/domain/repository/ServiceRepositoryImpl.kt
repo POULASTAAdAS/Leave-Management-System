@@ -133,6 +133,24 @@ class ServiceRepositoryImpl(
     override suspend fun updateAddress(email: String, req: UpdateAddressReq): Boolean =
         teacher.updateAddress(email, req)
 
+    override suspend fun storeProfilePic(
+        email: String,
+        name: String,
+        profilePic: ByteArray
+    ): String {
+        val response = teacher.storeProfilePic(
+            email = email,
+            name = name,
+            profilePic = profilePic
+        )
+
+        return if (response) {
+            constructProfilePicUrl()
+        } else {
+            ""
+        }
+    }
+
     private fun sendEmailVerificationMail(
         toEmail: String,
         token: String,
@@ -191,4 +209,6 @@ class ServiceRepositoryImpl(
 
         return areAddressesValid
     }
+
+    private fun constructProfilePicUrl() = System.getenv("BASE_URL") + EndPoints.GetProfilePic.route
 }
