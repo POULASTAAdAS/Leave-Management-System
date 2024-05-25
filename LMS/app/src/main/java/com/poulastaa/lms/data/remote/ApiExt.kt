@@ -1,6 +1,7 @@
 package com.poulastaa.lms.data.remote
 
 import com.google.gson.Gson
+import com.poulastaa.lms.BuildConfig
 import com.poulastaa.lms.domain.repository.utils.DataStoreRepository
 import com.poulastaa.lms.domain.utils.DataError
 import com.poulastaa.lms.domain.utils.Result
@@ -233,7 +234,7 @@ fun handleOtherException(exception: Exception): Result<Nothing, DataError.Networ
 }
 
 
-fun constructRoute(route: String) = "http://kyoku.poulastaa.online:8083$route"
+fun constructRoute(route: String) = "${BuildConfig.BASE_URL}$route"
 
 fun extractCookie(cookieManager: CookieManager) = try {
     cookieManager.cookieStore.cookies[0].toString()

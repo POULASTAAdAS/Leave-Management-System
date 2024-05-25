@@ -1,6 +1,6 @@
 package com.poulastaa.lms.presentation.home.sact
 
-import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -34,6 +34,7 @@ import com.poulastaa.lms.ui.utils.ObserveAsEvent
 fun HomeSACTRoot(
     time: String,
     user: LocalUser,
+    cookie: String,
     viewModel: HomeSACTViewModel = hiltViewModel(),
     navigate: (Screens) -> Unit
 ) {
@@ -56,6 +57,7 @@ fun HomeSACTRoot(
     HomeSACTScreen(
         time = time,
         user = user,
+        cookie = cookie,
         onEvent = viewModel::onEvent
     )
 }
@@ -64,6 +66,7 @@ fun HomeSACTRoot(
 private fun HomeSACTScreen(
     time: String,
     user: LocalUser,
+    cookie: String,
     onEvent: (HomeSACTUiEvent) -> Unit,
 ) {
     val hapticFeedback = LocalHapticFeedback.current
@@ -71,6 +74,7 @@ private fun HomeSACTScreen(
     HomeWrapperWithAppBar(
         time = time,
         user = user,
+        cookie = cookie,
         onEvent = {
             hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
 
@@ -134,6 +138,7 @@ private fun Preview() {
     TestThem {
         HomeSACTScreen(
             time = "Night Owl",
+            cookie = "",
             user = LocalUser(
                 name = "Poulastaa Das",
                 designation = "SACT-I",

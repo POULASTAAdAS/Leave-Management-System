@@ -37,6 +37,7 @@ import com.poulastaa.lms.ui.theme.dimens
 fun HomeWrapperWithAppBar(
     time: String,
     user: LocalUser,
+    cookie: String,
     isPrincipal: Boolean = false,
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
@@ -83,6 +84,7 @@ fun HomeWrapperWithAppBar(
                 Profile(
                     url = user.profilePicUrl,
                     sex = user.sex,
+                    cookie = cookie,
                     onClick = onEvent
                 )
 
@@ -159,6 +161,7 @@ private fun Preview() {
                 isDepartmentInCharge = true
             ),
             isPrincipal = true,
+            cookie = "",
             onEvent = { /*TODO*/ }
         ) {
 

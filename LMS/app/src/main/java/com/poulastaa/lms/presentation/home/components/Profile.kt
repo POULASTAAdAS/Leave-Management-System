@@ -22,6 +22,7 @@ import com.poulastaa.lms.R
 fun Profile(
     modifier: Modifier = Modifier,
     url: String? = null,
+    cookie: String,
     sex: String,
     onClick: () -> Unit
 ) {
@@ -42,6 +43,10 @@ fun Profile(
         AsyncImage(
             model = ImageRequest
                 .Builder(LocalContext.current)
+                .addHeader(
+                    name = "Cookie",
+                    value = cookie
+                )
                 .data(url)
                 .crossfade(true)
                 .error(if (sex == "M") R.drawable.ic_profile_male else R.drawable.ic_profile_female)

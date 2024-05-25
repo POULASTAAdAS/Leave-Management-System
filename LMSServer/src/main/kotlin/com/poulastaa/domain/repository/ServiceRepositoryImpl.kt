@@ -17,6 +17,7 @@ import com.poulastaa.utils.sendEmail
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.File
 
 class ServiceRepositoryImpl(
     private val jwtRepo: JWTRepository,
@@ -136,19 +137,16 @@ class ServiceRepositoryImpl(
     override suspend fun storeProfilePic(
         email: String,
         name: String,
-        profilePic: ByteArray
-    ): String {
-        val response = teacher.storeProfilePic(
-            email = email,
-            name = name,
-            profilePic = profilePic
-        )
+    ): Boolean = teacher.storeProfilePic(
+        email = email,
+        fileNameWithPath = name,
+    )
 
-        return if (response) {
-            constructProfilePicUrl()
-        } else {
-            ""
-        }
+
+    override suspend fun getProfilePic(email: String): File? = try {
+        teacher.getProfilePic(email)?.let { File("${System.getenv("profileFolder")}$it") }
+    } catch (e: Exception) {
+        null
     }
 
     private fun sendEmailVerificationMail(

@@ -8,6 +8,7 @@ import com.poulastaa.data.model.auth.res.SetDetailsRes
 import com.poulastaa.data.model.auth.res.VerifiedMailStatus
 import com.poulastaa.data.model.details.UpdateAddressReq
 import com.poulastaa.data.model.details.UpdateDetailsReq
+import java.io.File
 
 
 interface ServiceRepository {
@@ -27,5 +28,6 @@ interface ServiceRepository {
 
     suspend fun updateAddress(email: String, req: UpdateAddressReq): Boolean
 
-    suspend fun storeProfilePic(email: String, name: String, profilePic: ByteArray): String
+    suspend fun storeProfilePic(email: String, name: String): Boolean
+    suspend fun getProfilePic(email: String): File?
 }

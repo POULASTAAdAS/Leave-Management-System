@@ -35,6 +35,14 @@ class HomeScreenTypeViewModel @Inject constructor(
                 )
             }
         }
+
+        viewModelScope.launch {
+            ds.readCookie().collectLatest {
+                state = state.copy(
+                    cookie = it
+                )
+            }
+        }
     }
 
     init {

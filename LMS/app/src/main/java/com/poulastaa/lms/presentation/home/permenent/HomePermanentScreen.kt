@@ -38,6 +38,7 @@ import com.poulastaa.lms.ui.utils.ObserveAsEvent
 fun HomePermanentRootScreen(
     time: String,
     user: LocalUser,
+    cookie: String,
     viewModel: HomePermanentViewModel = hiltViewModel(),
     navigate: (Screens) -> Unit
 ) {
@@ -60,6 +61,7 @@ fun HomePermanentRootScreen(
     HomePermanentScreen(
         time = time,
         user = user,
+        cookie = cookie,
         onEvent = viewModel::onEvent
     )
 }
@@ -68,6 +70,7 @@ fun HomePermanentRootScreen(
 private fun HomePermanentScreen(
     time: String,
     user: LocalUser,
+    cookie:String,
     onEvent: (HomePermanentUiEvent) -> Unit
 ) {
     val hapticFeedback = LocalHapticFeedback.current
@@ -75,6 +78,7 @@ private fun HomePermanentScreen(
     HomeWrapperWithAppBar(
         time = time,
         user = user,
+        cookie= cookie,
         onEvent = {
             hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
             onEvent(HomePermanentUiEvent.OnProfilePicClick)
@@ -186,6 +190,7 @@ private fun Preview() {
     TestThem {
         HomePermanentScreen(
             time = "Good Morning",
+            cookie = "",
             user = LocalUser(
                 name = "Poulastaa Das",
                 designation = "Assistant Professor",

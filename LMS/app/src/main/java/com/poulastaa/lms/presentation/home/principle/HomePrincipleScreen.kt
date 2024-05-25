@@ -40,6 +40,7 @@ import com.poulastaa.lms.ui.utils.ObserveAsEvent
 fun HomePrincipleRootScreen(
     time: String,
     user: LocalUser,
+    cookie: String,
     viewModel: HomePrincipleViewModel = hiltViewModel(),
     navigate: (Screens) -> Unit
 ) {
@@ -62,6 +63,7 @@ fun HomePrincipleRootScreen(
     HomePrincipleScreen(
         time = time,
         user = user,
+        cookie =  cookie,
         onEvent = viewModel::onEvent
     )
 }
@@ -70,6 +72,7 @@ fun HomePrincipleRootScreen(
 fun HomePrincipleScreen(
     time: String,
     user: LocalUser,
+    cookie:String,
     onEvent: (HomePrincipleUiEvent) -> Unit
 ) {
     val hapticFeedback = LocalHapticFeedback.current
@@ -78,6 +81,7 @@ fun HomePrincipleScreen(
         time = time,
         user = user,
         isPrincipal = true,
+        cookie = cookie,
         onEvent = {
             hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
             onEvent(HomePrincipleUiEvent.OnProfilePicClick)
@@ -230,6 +234,7 @@ private fun Preview() {
     TestThem {
         HomePrincipleScreen(
             time = "Good Morning",
+            cookie = "",
             user = LocalUser()
         ) {
 

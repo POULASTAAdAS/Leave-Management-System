@@ -59,6 +59,7 @@ private fun HomeScreenType(
             HomeSACTRoot(
                 time = state.time,
                 user = state.user,
+                cookie = state.cookie,
                 navigate = navigate
             )
         }
@@ -67,6 +68,7 @@ private fun HomeScreenType(
             HomePermanentRootScreen(
                 time = state.time,
                 user = state.user,
+                cookie = state.cookie,
                 navigate = navigate
             )
         }
@@ -75,6 +77,7 @@ private fun HomeScreenType(
             HomePrincipleRootScreen(
                 time = state.time,
                 user = state.user,
+                cookie = state.cookie,
                 navigate = navigate
             )
         }

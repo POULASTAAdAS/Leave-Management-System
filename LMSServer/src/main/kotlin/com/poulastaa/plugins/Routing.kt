@@ -32,6 +32,7 @@ fun Application.configureRouting() {
         updateAddress(service)
 
         updateProfile(service)
+        getProfilePic(service)
 
         unAuth()
 

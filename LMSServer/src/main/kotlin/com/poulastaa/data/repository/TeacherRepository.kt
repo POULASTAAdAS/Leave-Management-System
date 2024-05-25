@@ -8,6 +8,7 @@ import com.poulastaa.data.model.auth.res.User
 import com.poulastaa.data.model.auth.res.VerifiedMailStatus
 import com.poulastaa.data.model.details.UpdateAddressReq
 import com.poulastaa.data.model.details.UpdateDetailsReq
+import java.io.File
 
 interface TeacherRepository {
     suspend fun getTeacherDetailsStatus(email: String): Pair<AuthStatus, Any>
@@ -27,5 +28,6 @@ interface TeacherRepository {
 
     suspend fun updateAddress(email: String, req: UpdateAddressReq): Boolean
 
-    suspend fun storeProfilePic(email: String, name: String, profilePic: ByteArray): Boolean
+    suspend fun storeProfilePic(email: String, fileNameWithPath: String): Boolean
+    suspend fun getProfilePic(email: String): String?
 }

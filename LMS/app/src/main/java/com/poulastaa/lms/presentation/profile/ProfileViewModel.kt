@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
+import com.poulastaa.lms.BuildConfig
 import com.poulastaa.lms.R
 import com.poulastaa.lms.data.model.auth.EndPoints
 import com.poulastaa.lms.data.model.profile.ProfileRes
@@ -50,6 +51,14 @@ class ProfileViewModel @Inject constructor(
                     isInternet = true
                 ) else state.copy(
                     isInternet = false
+                )
+            }
+        }
+
+        viewModelScope.launch {
+            ds.readCookie().collectLatest {
+                state = state.copy(
+                    cookie = it
                 )
             }
         }
@@ -144,7 +153,7 @@ class ProfileViewModel @Inject constructor(
                 viewModelScope.launch(Dispatchers.IO) {
                     val cookie = ds.readCookie().first()
 
-                    val response = client.uploadFile<String>(
+                    val response = client.uploadFile<Boolean>(
                         route = EndPoints.UpdateProfilePic.route,
                         file = file,
                         gson = gson,
@@ -173,21 +182,27 @@ class ProfileViewModel @Inject constructor(
                         }
 
                         is Result.Success -> {
-                            val url = response.data
+                            if (response.data) {
+                                val user = ds.readUser().first()
 
-                            val user = ds.readUser().first()
-
-                            ds.storeLocalUser(
-                                user = user.copy(
-                                    profilePicUrl = url
+                                ds.storeLocalUser(
+                                    user = user.copy(
+                                        profilePicUrl = BuildConfig.BASE_URL + EndPoints.GetProfilePic.route
+                                    )
                                 )
-                            )
 
-                            _uiEvent.send(
-                                ProfileUiAction.ShowToast(
-                                    UiText.StringResource(R.string.profile_pic_updated)
+                                _uiEvent.send(
+                                    ProfileUiAction.ShowToast(
+                                        UiText.StringResource(R.string.profile_pic_updated)
+                                    )
                                 )
-                            )
+                            } else {
+                                _uiEvent.send(
+                                    ProfileUiAction.ShowToast(
+                                        UiText.StringResource(R.string.error_something_went_wrong)
+                                    )
+                                )
+                            }
                         }
                     }
 
@@ -269,7 +284,6 @@ class ProfileViewModel @Inject constructor(
 
                 state = state.copy(
                     name = response.name,
-                    profilePicUrl = response.profilePicUrl,
                     gender = response.gender,
                     personalDetails = state.personalDetails.copy(
                         email = response.email,

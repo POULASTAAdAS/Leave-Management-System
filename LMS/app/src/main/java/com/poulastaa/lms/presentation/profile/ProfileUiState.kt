@@ -1,13 +1,18 @@
 package com.poulastaa.lms.presentation.profile
 
+import com.poulastaa.lms.BuildConfig
+import com.poulastaa.lms.data.model.auth.EndPoints
+
 data class ProfileUiState(
     val isInternet: Boolean = false,
     val isMakingApiCall: Boolean = true,
 
     val isProfilePicUpdating: Boolean = false,
 
+    val cookie: String = "",
+
     val name: String = "",
-    val profilePicUrl: String = "",
+    val profilePicUrl: String = BuildConfig.BASE_URL + EndPoints.GetProfilePic.route,
     val gender: String = "",
     val personalDetails: PersonalDetails = PersonalDetails(),
     val otherDetails: OtherDetails = OtherDetails(),

@@ -44,6 +44,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import coil.imageLoader
 import coil.request.ImageRequest
 import com.poulastaa.lms.R
 import com.poulastaa.lms.presentation.profile.components.ProfileIconItemView
@@ -166,6 +167,7 @@ private fun ProfileScreen(
             gender = state.gender,
             isProfilePicUpdating = state.isProfilePicUpdating,
             name = state.name,
+            cookie = state.cookie,
             context = context,
             onClick = onEvent
         )
@@ -237,13 +239,17 @@ private fun Back(
 private fun ProfileCard(
     profilePicUrl: String,
     isProfilePicUpdating: Boolean,
+    cookie: String,
     gender: String,
     context: Context,
     name: String,
     onClick: (ProfileUiEvent) -> Unit
 ) {
+    context.imageLoader.memoryCache?.clear()
+
     val photoPicker =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.PickVisualMedia()) {
+
             onClick(
                 ProfileUiEvent.OnProfileEditClick(
                     context = context,
@@ -251,6 +257,8 @@ private fun ProfileCard(
                 )
             )
         }
+
+
 
     Card(
         modifier = Modifier
@@ -270,6 +278,10 @@ private fun ProfileCard(
                     model = ImageRequest
                         .Builder(LocalContext.current)
                         .data(profilePicUrl)
+                        .addHeader(
+                            name = "Cookie",
+                            value = cookie
+                        )
                         .crossfade(true)
                         .error(if (gender == "M") R.drawable.ic_profile_male else R.drawable.ic_profile_female)
                         .placeholder(if (gender == "M") R.drawable.ic_profile_male else R.drawable.ic_profile_female)

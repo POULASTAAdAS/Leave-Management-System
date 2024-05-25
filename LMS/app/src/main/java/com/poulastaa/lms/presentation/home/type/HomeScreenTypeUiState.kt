@@ -4,5 +4,6 @@ import com.poulastaa.lms.data.model.auth.LocalUser
 
 data class HomeScreenTypeUiState(
     val time: String = "Hello",
-    val user: LocalUser = LocalUser()
+    val user: LocalUser = LocalUser(),
+    val cookie: String = ""
 )

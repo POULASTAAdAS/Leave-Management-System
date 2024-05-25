@@ -1,6 +1,5 @@
 package com.poulastaa.domain.repository
 
-import com.mysql.cj.jdbc.Blob
 import com.poulastaa.data.model.GetTeacherRes
 import com.poulastaa.data.model.auth.req.ReqAddress
 import com.poulastaa.data.model.auth.req.SetDetailsReq
@@ -20,7 +19,6 @@ import com.poulastaa.data.model.table.teacher.TeacherAddressTable
 import com.poulastaa.data.model.table.teacher.TeacherTable
 import com.poulastaa.data.model.table.designation.DesignationTable
 import com.poulastaa.data.model.table.designation.DesignationTeacherTypeRelation
-import com.poulastaa.data.model.table.teacher.TeacherProfilePicTable
 import com.poulastaa.data.model.table.utils.LogInEmailTable
 import com.poulastaa.data.model.table.utils.PrincipalTable
 import com.poulastaa.data.model.table.utils.QualificationTable
@@ -37,12 +35,12 @@ import com.poulastaa.utils.Constants.VERIFICATION_MAIL_TOKEN_TIME
 import com.poulastaa.utils.toLocalDate
 import com.poulastaa.utils.toTeacherAddress
 import com.poulastaa.utils.toTeacherDetails
-import com.poulastaa.utils.toTeacherProfilePic
 import kotlinx.coroutines.*
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.statements.UpdateStatement
-import org.jetbrains.exposed.sql.statements.api.ExposedBlob
+import java.io.File
 
 class TeacherRepositoryImpl : TeacherRepository {
     private suspend fun findTeacher(email: String) = dbQuery {
@@ -370,39 +368,31 @@ class TeacherRepositoryImpl : TeacherRepository {
 
     override suspend fun storeProfilePic(
         email: String,
-        name: String,
-        profilePic: ByteArray
+        fileNameWithPath: String
     ): Boolean {
         val teacher = findTeacher(email) ?: return false
 
-        val entry = dbQuery {
-            TeacherProfilePicTable.select {
-                TeacherProfilePicTable.teacherId eq teacher.id
-            }.singleOrNull()?.toTeacherProfilePic()
-        }
-
-        if (entry == null) {
-            dbQuery {
-                TeacherProfilePicTable.insert {
-                    it[teacherId] = teacher.id.value
-                    it[this.name] = name
-                    it[this.profilePic] = ExposedBlob(profilePic)
+        dbQuery {
+            TeacherDetailsTable.update(
+                where = {
+                    TeacherDetailsTable.teacherId eq teacher.id
                 }
-            }
-        } else {
-            dbQuery {
-                TeacherProfilePicTable.update(
-                    where = {
-                        TeacherProfilePicTable.teacherId eq teacher.id
-                    }
-                ) {
-                    it[this.name] = name
-                    it[this.profilePic] = ExposedBlob(profilePic)
-                }
+            ) {
+                it[this.profilePic] = fileNameWithPath
             }
         }
 
         return true
+    }
+
+    override suspend fun getProfilePic(email: String): String? = dbQuery {
+        val teacher = findTeacher(email) ?: return@dbQuery null
+
+        TeacherDetailsTable.select {
+            TeacherDetailsTable.teacherId eq teacher.id
+        }.singleOrNull()?.let {
+            it[TeacherDetailsTable.profilePic]
+        }
     }
 
     private suspend fun updateBothAddress(
