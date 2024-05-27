@@ -30,6 +30,7 @@ fun StoreDetailsTextFiled(
     keyboardType: KeyboardType,
     isErr: Boolean,
     errText: String,
+    singleLine: Boolean = true,
     onDone: () -> Unit
 ) {
     OutlinedTextField(
@@ -51,7 +52,7 @@ fun StoreDetailsTextFiled(
                 onDone()
             }
         ),
-        singleLine = true,
+        singleLine = singleLine,
         label = {
             Text(text = label)
         },

@@ -19,13 +19,18 @@ import com.poulastaa.data.model.table.teacher.TeacherAddressTable
 import com.poulastaa.data.model.table.teacher.TeacherTable
 import com.poulastaa.data.model.table.designation.DesignationTable
 import com.poulastaa.data.model.table.designation.DesignationTeacherTypeRelation
+import com.poulastaa.data.model.table.leave.LeaveBalanceTable
+import com.poulastaa.data.model.table.leave.LeaveTypeTable
+import com.poulastaa.data.model.table.teacher.TeacherTypeTable
 import com.poulastaa.data.model.table.utils.LogInEmailTable
 import com.poulastaa.data.model.table.utils.PrincipalTable
 import com.poulastaa.data.model.table.utils.QualificationTable
 import com.poulastaa.data.repository.TeacherRepository
 import com.poulastaa.domain.dao.department.Department
 import com.poulastaa.domain.dao.department.DepartmentHead
+import com.poulastaa.domain.dao.leave.LeaveType
 import com.poulastaa.domain.dao.teacher.Teacher
+import com.poulastaa.domain.dao.teacher.TeacherType
 import com.poulastaa.plugins.dbQuery
 import com.poulastaa.domain.dao.utils.Designation
 import com.poulastaa.domain.dao.utils.LogInEmail
@@ -38,9 +43,7 @@ import com.poulastaa.utils.toTeacherDetails
 import kotlinx.coroutines.*
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.statements.UpdateStatement
-import java.io.File
 
 class TeacherRepositoryImpl : TeacherRepository {
     private suspend fun findTeacher(email: String) = dbQuery {
@@ -222,7 +225,17 @@ class TeacherRepositoryImpl : TeacherRepository {
         )
 
         CoroutineScope(Dispatchers.IO).launch {
-            data.storeDetails()
+            val one = async { data.storeDetails() }
+            val two = async {
+                setLeaveBalance(
+                    teacherTypeId = data.details.teacherTypeId,
+                    teacherId = teacher.id.value,
+                    gender = req.sex
+                )
+            }
+
+            one.await()
+            two.await()
         }
 
         SetDetailsRes(
@@ -539,6 +552,73 @@ class TeacherRepositoryImpl : TeacherRepository {
         addressDef.awaitAll()
     }
 
+    private suspend fun setLeaveBalance(teacherTypeId: Int, teacherId: Int, gender: Char) = coroutineScope {
+        fun insertLeaveBalance(
+            teacherId: Int,
+            teacherTypeId: Int,
+            leaveTypeId: Int,
+            balance: Double
+        ) {
+            LeaveBalanceTable.insert { statement ->
+                statement[this.teacherId] = teacherId
+                statement[this.teacherTypeId] = teacherTypeId
+                statement[this.leaveTypeId] = leaveTypeId
+                statement[this.leaveBalance] = balance
+            }
+        }
+
+        dbQuery {
+            TeacherType.find {
+                TeacherTypeTable.id eq teacherTypeId
+            }.single()
+        }.let {
+            when {
+                it.type == com.poulastaa.data.model.constants.TeacherType.SACT.name -> {
+                    val casualLeave = 14.0
+                    val medicalLeave = 20.0
+                    val studyLeave = 360.0
+
+                    getSACTTeacherLeaveType().map { (leaveType, leaveTypeId) ->
+                        async {
+                            dbQuery {
+                                when (leaveType) {
+                                    LeaveType.ScatType.CASUAL_LEAVE -> insertLeaveBalance(
+                                        teacherId = teacherId,
+                                        teacherTypeId = it.id.value,
+                                        leaveTypeId = leaveTypeId,
+                                        balance = casualLeave
+                                    )
+
+                                    LeaveType.ScatType.MEDICAL_LEAVE -> insertLeaveBalance(
+                                        teacherId = teacherId,
+                                        teacherTypeId = it.id.value,
+                                        leaveTypeId = leaveTypeId,
+                                        balance = medicalLeave
+                                    )
+
+                                    LeaveType.ScatType.STUDY_LEAVE -> insertLeaveBalance(
+                                        teacherId = teacherId,
+                                        teacherTypeId = it.id.value,
+                                        leaveTypeId = leaveTypeId,
+                                        balance = studyLeave
+                                    )
+                                }
+                            }
+                        }
+                    }.awaitAll()
+                }
+
+                else -> {
+                    val casualLeave = 14.0
+                    val earnedLeave = 30.0
+                    val studyLeave = 360.0
+                    val specialStudyLeave = 360.0
+                    val maternityLeave = if (gender == 'F') 135.0 else null
+                }
+            }
+        }
+    }
+
     private suspend fun TeacherDetailsEntry.setDetails() = dbQuery {
         TeacherDetailsTable.insert { // todo store exp
             it[this.teacherId] = this@setDetails.teacherId
@@ -652,5 +732,31 @@ class TeacherRepositoryImpl : TeacherRepository {
         Qualification.find {
             QualificationTable.type.upperCase() eq type.uppercase()
         }.singleOrNull()
+    }
+
+    private suspend fun getSACTTeacherLeaveType() = dbQuery {
+        LeaveType.find {
+            LeaveTypeTable.type inList LeaveType.ScatType.entries.map {
+                it.value
+            }
+        }.map {
+            when (it.type) {
+                LeaveType.ScatType.CASUAL_LEAVE.value -> LeaveType.ScatType.CASUAL_LEAVE to it.id.value
+                LeaveType.ScatType.MEDICAL_LEAVE.value -> LeaveType.ScatType.MEDICAL_LEAVE to it.id.value
+                else -> LeaveType.ScatType.STUDY_LEAVE to it.id.value
+            }
+        }
+    }
+
+    private suspend fun getPermanentTeacherLeaveType() = dbQuery {
+        LeaveType.find {
+            LeaveTypeTable.type inList LeaveType.PermanentType.entries.map {
+                it.value
+            }
+        }.map {
+            when (it.type) {
+
+            }
+        }
     }
 }

@@ -149,11 +149,16 @@ primary key (teacherId ,teacherTypeId, leaveTypeId)
 
 create table TeacherProfilePic(
 	teacherId Int references Teacher(id) on delete cascade,
+    name varchar(200) not null,
     profilePic blob not null,
     primary key (teacherId)
 );
 
 
+drop table TeacherProfilePic;
+
+
+select * from leavetype;
 
 
 

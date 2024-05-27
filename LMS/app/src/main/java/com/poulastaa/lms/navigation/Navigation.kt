@@ -9,6 +9,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.poulastaa.lms.presentation.apply_leave.ApplyLeaveRootScreen
 import com.poulastaa.lms.presentation.auth.AuthRootScreen
 import com.poulastaa.lms.presentation.home.type.HomeRootScreenType
 import com.poulastaa.lms.presentation.profile.ProfileRootScreen
@@ -249,7 +250,9 @@ fun Navigation(
         }
 
         composable(route = Screens.ApplyLeave.route) {
-
+            ApplyLeaveRootScreen {
+                navController.popBackStack()
+            }
         }
 
         composable(route = Screens.LeaveHistory.route) {

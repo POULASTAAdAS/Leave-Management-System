@@ -10,19 +10,25 @@ class LeaveType(id: EntityID<Int>) : IntEntity(id) {
 
     val type by LeaveTypeTable.type
 
-    enum class TYPE {
-        CASUAL_LEAVE,
-        MEDICAL_LEAVE,
-        STUDY_LEAVE,
-        EARNED_LEAVE,
-        ON_DUTY_LEAVE,
-        SPECIAL_STUDY_LEAVE,
-        MATERNITY_LEAVE,
-        QUARANTINE_LEAVE,
-        COMMUTED_LEAVE,
-        EXTRAORDINARY_LEAVE,
-        COMPENSATORY_LEAVE,
-        LEAVE_NOT_DUE,
-        SPECIAL_DISABILITY_LEAVE
+    enum class ScatType(val value: String) {
+        CASUAL_LEAVE("Casual Leave"),
+        MEDICAL_LEAVE("Medical Leave"),
+        STUDY_LEAVE("Study Leave")
+    }
+
+    enum class PermanentType(val value: String) {
+        CASUAL_LEAVE("Casual Leave"),
+        MEDICAL_LEAVE("Medical Leave"),
+        STUDY_LEAVE("Study Leave"),
+        EARNED_LEAVE("Earned Leave"),
+        ON_DUTY_LEAVE("On Duty Leave"),
+        SPECIAL_STUDY_LEAVE("Special Study Leave"),
+        MATERNITY_LEAVE("Maternity Leave"),
+        QUARANTINE_LEAVE("Quarintine Leave"),
+        COMMUTED_LEAVE("Commuted Leave"),
+        EXTRAORDINARY_LEAVE("Extraordinary Leave"),
+        COMPENSATORY_LEAVE("Compensatory Leave"),
+        LEAVE_NOT_DUE("Leave Not Due"),
+        SPECIAL_DISABILITY_LEAVE("Special Disability Leave")
     }
 }

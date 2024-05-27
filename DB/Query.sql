@@ -34,7 +34,10 @@ select * from designation;
 
 select * from department;
 
-SELECT CONCAT('"', type, '",') AS type FROM qualification;
+SELECT CONCAT('"', type, '",') AS type FROM leavetype;
+
+
+select * from leavetype;
 
 select * from qualification;
 
@@ -61,5 +64,8 @@ select * from teacherdetails;
 select * from designation;
 
 
+select * from leavebalance;
+
+select * from leaveType;
 
 
