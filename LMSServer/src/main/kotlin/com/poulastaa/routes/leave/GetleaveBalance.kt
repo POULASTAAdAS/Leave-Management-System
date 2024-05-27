@@ -1,7 +1,6 @@
-package com.poulastaa.routes.details
+package com.poulastaa.routes.leave
 
 import com.poulastaa.data.model.EndPoints
-import com.poulastaa.data.model.GetTeacherRes
 import com.poulastaa.data.model.auth.UserSession
 import com.poulastaa.data.repository.ServiceRepository
 import com.poulastaa.routes.utils.setCookie
@@ -13,20 +12,19 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 
-fun Route.getDetails(
-    service: ServiceRepository
-) {
+fun Route.getLeaveBalance(service: ServiceRepository) {
     authenticate(SESSION_AUTH) {
-        route(EndPoints.GetDetails.route) {
+        route(EndPoints.GetLeaveBalance.route) {
             get {
                 val payload =
                     call.sessions.get<UserSession>() ?: return@get call.respondRedirect(EndPoints.UnAuthorised.route)
 
-                val email = call.parameters["email"] ?: return@get call.respondRedirect(EndPoints.UnAuthorised.route)
 
-                val response = service.getTeacherDetails(email) ?: return@get call.respond(
-                    message = GetTeacherRes(),
-                    status = HttpStatusCode.NotFound
+                val type = call.parameters["type"] ?: return@get call.respondRedirect(EndPoints.UnAuthorised.route)
+
+                val response = service.getLeaveBalance(
+                    type = type,
+                    email = payload.email
                 )
 
                 setCookie(

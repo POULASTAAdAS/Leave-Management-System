@@ -34,14 +34,12 @@ import com.poulastaa.lms.ui.utils.DateUtils
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StoreDetailsDateDialog(
+fun LMSDateDialog(
     label: String,
     onDismissRequest: () -> Unit,
     onSuccess: (date: String) -> Unit
 ) {
     val state = rememberDatePickerState()
-
-
 
     DatePickerDialog(
         onDismissRequest = onDismissRequest,
@@ -74,7 +72,6 @@ fun StoreDetailsDateDialog(
                         }
 
                         val date = localDate?.let { DateUtils.dateToString(localDate) }
-
                         date?.let(onSuccess)
                     }
                 ) {
@@ -117,7 +114,7 @@ private fun Preview() {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            StoreDetailsDateDialog(
+            LMSDateDialog(
                 label = stringResource(id = R.string.bdate),
                 onDismissRequest = {},
                 onSuccess = {}

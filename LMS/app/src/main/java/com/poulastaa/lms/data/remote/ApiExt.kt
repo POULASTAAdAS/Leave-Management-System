@@ -121,7 +121,7 @@ suspend inline fun <reified Response : Any> OkHttpClient.get(
         constructRoute(route).toHttpUrlOrNull()?.newBuilder()
             ?: return Result.Error(DataError.Network.UNKNOWN)
 
-    params.forEach {
+    if (params.isNotEmpty()) params.forEach {
         urlBuilder.addQueryParameter(it.first, it.second)
     }
 

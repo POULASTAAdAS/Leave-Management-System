@@ -6,9 +6,11 @@ import com.poulastaa.data.model.auth.req.SetDetailsReq
 import com.poulastaa.data.model.auth.res.*
 import com.poulastaa.data.model.details.UpdateAddressReq
 import com.poulastaa.data.model.details.UpdateDetailsReq
+import com.poulastaa.data.model.leave.GetBalanceRes
 import com.poulastaa.data.repository.JWTRepository
 import com.poulastaa.data.repository.TeacherRepository
 import com.poulastaa.data.repository.ServiceRepository
+import com.poulastaa.data.repository.leave.LeaveWrapper
 import com.poulastaa.domain.dao.utils.Principal
 import com.poulastaa.invalidTokenList
 import com.poulastaa.utils.Constants.LOGIN_VERIFICATION_MAIL_TOKEN_CLAIM_KEY
@@ -21,7 +23,8 @@ import java.io.File
 
 class ServiceRepositoryImpl(
     private val jwtRepo: JWTRepository,
-    private val teacher: TeacherRepository
+    private val teacher: TeacherRepository,
+    private val leave: LeaveWrapper
 ) : ServiceRepository {
     override suspend fun auth(email: String): AuthRes {
         if (!validateEmail(email)) return AuthRes()
@@ -59,7 +62,7 @@ class ServiceRepositoryImpl(
                 val token = jwtRepo.generateLogInVerificationMailToken(email = email)
                 sendEmailVerificationMail(email, token, EndPoints.VerifyLogInEmail.route)
 
-                val user = teacher.getTeacher(email)
+                val user = teacher.getTeacherWithDetails(email)
 
                 AuthRes(
                     authStatus = response.first,
@@ -108,7 +111,7 @@ class ServiceRepositoryImpl(
         val status = teacher.loginEmailVerificationCheck(email)
 
         return if (status) {
-            val name = teacher.getTeacher(email).name
+            val name = teacher.getTeacherWithDetails(email).name
 
             EmailVerificationRes(status = true) to name
         } else EmailVerificationRes() to null
@@ -174,6 +177,19 @@ class ServiceRepositoryImpl(
     }
 
 
+    override suspend fun getLeaveBalance(type: String, email: String): GetBalanceRes {
+        val teacher = teacher.getTeacher(email) ?: return GetBalanceRes()
+
+        return leave.leaveUtils.getLeaveBalance(
+            teacherId = teacher.id.value,
+            type = type
+        )?.let {
+            GetBalanceRes(
+                balance = it
+            )
+        } ?: GetBalanceRes()
+    }
+
     private fun validateEmail(email: String) =
         email.matches(Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\$"))
 
@@ -207,6 +223,4 @@ class ServiceRepositoryImpl(
 
         return areAddressesValid
     }
-
-    private fun constructProfilePicUrl() = System.getenv("BASE_URL") + EndPoints.GetProfilePic.route
 }

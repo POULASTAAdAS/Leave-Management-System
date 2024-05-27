@@ -23,8 +23,8 @@ data class StoreDetailsUiState(
             "Assistant Professor-II",
             "Assistant Professor-III",
             "Associate Professor",
-            "SCAT-I",
-            "SCAT-II"
+            "SACT-I",
+            "SACT-II"
         )
     ),
     val department: ListHolder = ListHolder(

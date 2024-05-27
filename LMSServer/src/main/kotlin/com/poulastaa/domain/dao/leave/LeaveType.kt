@@ -21,7 +21,6 @@ class LeaveType(id: EntityID<Int>) : IntEntity(id) {
         MEDICAL_LEAVE("Medical Leave"),
         STUDY_LEAVE("Study Leave"),
         EARNED_LEAVE("Earned Leave"),
-        ON_DUTY_LEAVE("On Duty Leave"),
         SPECIAL_STUDY_LEAVE("Special Study Leave"),
         MATERNITY_LEAVE("Maternity Leave"),
         QUARANTINE_LEAVE("Quarintine Leave"),

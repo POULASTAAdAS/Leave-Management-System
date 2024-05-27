@@ -27,6 +27,7 @@ select * from TeacherDetails;
 
 update teacher set emailVerified = false where id = 1;
 
+select * from teacher;
 
 select * from loginemail;
 
@@ -34,7 +35,7 @@ select * from designation;
 
 select * from department;
 
-SELECT CONCAT('"', type, '",') AS type FROM leavetype;
+SELECT CONCAT('"', type, '",') AS type FROM path;
 
 
 select * from leavetype;
@@ -59,6 +60,7 @@ SELECT addresstype.id, addresstype.`type` FROM addresstype WHERE addresstype.id 
 
 update teacher set email = 'sacteacherone@gmail.com' where id = 1;
 
+delete from teacherdetails;
 
 select * from teacherdetails;
 select * from designation;
@@ -67,5 +69,20 @@ select * from designation;
 select * from leavebalance;
 
 select * from leaveType;
+
+select * from qualification;
+
+select* from designation;
+
+select * from teachertype;
+
+
+select * from teacher;
+
+
+select * from path;
+
+
+
 
 

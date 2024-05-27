@@ -13,4 +13,6 @@ object Constants {
     const val SIGNUP_VERIFICATION_MAIL_TOKEN_CLAIM_KEY = "signUpEmailVerify"
     const val LOGIN_VERIFICATION_MAIL_TOKEN_CLAIM_KEY = "logInEmailVerify"
     const val VERIFICATION_MAIL_TOKEN_TIME = 240000L // 4 minute
+
+    const val SESSION_AUTH = "session-auth"
 }

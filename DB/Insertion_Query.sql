@@ -31,7 +31,7 @@ insert into Department values
 
 insert ignore into TeacherType values
 (1 ,'Permenent'),
-(2 ,'SCAT');
+(2 ,'SACT');
 
 insert ignore into teacher (email) values
 ('sacteacherone@gmail.com'),
@@ -46,8 +46,8 @@ insert ignore into Designation (`type`) values
 ('Assistant Professor-II'),
 ('Assistant Professor-III'),
 ('Associate Professor'),
-('SCAT-I'),
-('SCAT-II');
+('SACT-I'),
+('SACT-II');
 
 
 insert ignore into DesignationTeacherTypeRelation values

@@ -58,6 +58,8 @@ class TeacherRepositoryImpl : TeacherRepository {
         }.firstOrNull()
     }
 
+    override suspend fun getTeacher(email: String): Teacher? = findTeacher(email)
+
     override suspend fun getTeacherDetailsStatus(email: String): Pair<AuthStatus, Any> = coroutineScope {
         val teacherDef = async { findTeacher(email) }
         val principleDef = async { findPrinciple(email) }
@@ -86,7 +88,7 @@ class TeacherRepositoryImpl : TeacherRepository {
         authStatus to Unit
     }
 
-    override suspend fun getTeacher(email: String): User = withContext(Dispatchers.IO) {
+    override suspend fun getTeacherWithDetails(email: String): User = withContext(Dispatchers.IO) {
         val teacher = findTeacher(email) ?: return@withContext User()
 
         val (designationId, departmentId) = dbQuery {
@@ -209,6 +211,7 @@ class TeacherRepositoryImpl : TeacherRepository {
     override suspend fun saveTeacherDetails(req: SetDetailsReq): SetDetailsRes = withContext(Dispatchers.IO) {
         val teacher = findTeacher(email = req.email) ?: return@withContext SetDetailsRes()
 
+        if (!teacher.emailVerified) return@withContext SetDetailsRes()
 
         val dataDef = async { req.toDetailsEntry(teacher.id) }
         val isEntryEmptyDef = async { checkIfDetailsAlreadyFilled(teacher.id.value) }
@@ -473,6 +476,7 @@ class TeacherRepositoryImpl : TeacherRepository {
         val departmentId = departmentIdDef.await() ?: return@coroutineScope null
         val qualificationId = qualificationIdDef.await() ?: return@coroutineScope null
 
+
         val dbo = this@toDetailsEntry.dbo.toLocalDate() ?: return@coroutineScope null
         val joiningDate = this@toDetailsEntry.joiningDate.toLocalDate() ?: return@coroutineScope null
 
@@ -552,7 +556,11 @@ class TeacherRepositoryImpl : TeacherRepository {
         addressDef.awaitAll()
     }
 
-    private suspend fun setLeaveBalance(teacherTypeId: Int, teacherId: Int, gender: Char) = coroutineScope {
+    private suspend fun setLeaveBalance(
+        teacherTypeId: Int,
+        teacherId: Int,
+        gender: Char
+    ) = coroutineScope {
         fun insertLeaveBalance(
             teacherId: Int,
             teacherTypeId: Int,
@@ -572,8 +580,8 @@ class TeacherRepositoryImpl : TeacherRepository {
                 TeacherTypeTable.id eq teacherTypeId
             }.single()
         }.let {
-            when {
-                it.type == com.poulastaa.data.model.constants.TeacherType.SACT.name -> {
+            when (it.type) {
+                com.poulastaa.data.model.constants.TeacherType.SACT.name -> {
                     val casualLeave = 14.0
                     val medicalLeave = 20.0
                     val studyLeave = 360.0
@@ -608,13 +616,116 @@ class TeacherRepositoryImpl : TeacherRepository {
                     }.awaitAll()
                 }
 
-                else -> {
+                com.poulastaa.data.model.constants.TeacherType.PERMANENT.name -> {
                     val casualLeave = 14.0
                     val earnedLeave = 30.0
                     val studyLeave = 360.0
                     val specialStudyLeave = 360.0
                     val maternityLeave = if (gender == 'F') 135.0 else null
+                    val quarantineLeave = 21.0
+                    val medicalLeave = 20.0
+                    val commutedLeave = 180.0
+                    val extraOrdinaryLeave = 360.0
+                    val leaveNotDueLeave = 360.0
+                    val specialDisabilityLeave = 720.0
+
+                    getPermanentTeacherLeaveType().map { (leaveType, leaveTypeId) ->
+                        async {
+                            dbQuery {
+                                when (leaveType) {
+                                    LeaveType.PermanentType.CASUAL_LEAVE -> insertLeaveBalance(
+                                        teacherId = teacherId,
+                                        teacherTypeId = it.id.value,
+                                        leaveTypeId = leaveTypeId,
+                                        balance = casualLeave
+                                    )
+
+                                    LeaveType.PermanentType.MEDICAL_LEAVE -> insertLeaveBalance(
+                                        teacherId = teacherId,
+                                        teacherTypeId = it.id.value,
+                                        leaveTypeId = leaveTypeId,
+                                        balance = medicalLeave
+                                    )
+
+                                    LeaveType.PermanentType.STUDY_LEAVE -> insertLeaveBalance(
+                                        teacherId = teacherId,
+                                        teacherTypeId = it.id.value,
+                                        leaveTypeId = leaveTypeId,
+                                        balance = studyLeave
+                                    )
+
+                                    LeaveType.PermanentType.EARNED_LEAVE -> insertLeaveBalance(
+                                        teacherId = teacherId,
+                                        teacherTypeId = it.id.value,
+                                        leaveTypeId = leaveTypeId,
+                                        balance = earnedLeave
+                                    )
+
+                                    LeaveType.PermanentType.SPECIAL_STUDY_LEAVE -> insertLeaveBalance(
+                                        teacherId = teacherId,
+                                        teacherTypeId = it.id.value,
+                                        leaveTypeId = leaveTypeId,
+                                        balance = specialStudyLeave
+                                    )
+
+                                    LeaveType.PermanentType.MATERNITY_LEAVE -> maternityLeave?.let { balance ->
+                                        insertLeaveBalance(
+                                            teacherId = teacherId,
+                                            teacherTypeId = it.id.value,
+                                            leaveTypeId = leaveTypeId,
+                                            balance = balance
+                                        )
+                                    } ?: Unit
+
+
+                                    LeaveType.PermanentType.QUARANTINE_LEAVE -> insertLeaveBalance(
+                                        teacherId = teacherId,
+                                        teacherTypeId = it.id.value,
+                                        leaveTypeId = leaveTypeId,
+                                        balance = quarantineLeave
+                                    )
+
+                                    LeaveType.PermanentType.COMMUTED_LEAVE -> insertLeaveBalance(
+                                        teacherId = teacherId,
+                                        teacherTypeId = it.id.value,
+                                        leaveTypeId = leaveTypeId,
+                                        balance = commutedLeave
+                                    )
+
+                                    LeaveType.PermanentType.EXTRAORDINARY_LEAVE -> insertLeaveBalance(
+                                        teacherId = teacherId,
+                                        teacherTypeId = it.id.value,
+                                        leaveTypeId = leaveTypeId,
+                                        balance = extraOrdinaryLeave
+                                    )
+
+                                    LeaveType.PermanentType.COMPENSATORY_LEAVE -> insertLeaveBalance(
+                                        teacherId = teacherId,
+                                        teacherTypeId = it.id.value,
+                                        leaveTypeId = leaveTypeId,
+                                        balance = 0.0
+                                    )
+
+                                    LeaveType.PermanentType.LEAVE_NOT_DUE -> insertLeaveBalance(
+                                        teacherId = teacherId,
+                                        teacherTypeId = it.id.value,
+                                        leaveTypeId = leaveTypeId,
+                                        balance = leaveNotDueLeave
+                                    )
+
+                                    LeaveType.PermanentType.SPECIAL_DISABILITY_LEAVE -> insertLeaveBalance(
+                                        teacherId = teacherId,
+                                        teacherTypeId = it.id.value,
+                                        leaveTypeId = leaveTypeId,
+                                        balance = specialDisabilityLeave
+                                    )
+                                }
+                            }
+                        }
+                    }.awaitAll()
                 }
+
+                else -> IllegalArgumentException("should now happen")
             }
         }
     }
@@ -755,7 +866,18 @@ class TeacherRepositoryImpl : TeacherRepository {
             }
         }.map {
             when (it.type) {
-
+                LeaveType.PermanentType.CASUAL_LEAVE.name -> LeaveType.PermanentType.CASUAL_LEAVE to it.id.value
+                LeaveType.PermanentType.MEDICAL_LEAVE.name -> LeaveType.PermanentType.MEDICAL_LEAVE to it.id.value
+                LeaveType.PermanentType.STUDY_LEAVE.name -> LeaveType.PermanentType.STUDY_LEAVE to it.id.value
+                LeaveType.PermanentType.EARNED_LEAVE.name -> LeaveType.PermanentType.EARNED_LEAVE to it.id.value
+                LeaveType.PermanentType.SPECIAL_STUDY_LEAVE.name -> LeaveType.PermanentType.SPECIAL_STUDY_LEAVE to it.id.value
+                LeaveType.PermanentType.MATERNITY_LEAVE.name -> LeaveType.PermanentType.MATERNITY_LEAVE to it.id.value
+                LeaveType.PermanentType.QUARANTINE_LEAVE.name -> LeaveType.PermanentType.QUARANTINE_LEAVE to it.id.value
+                LeaveType.PermanentType.COMMUTED_LEAVE.name -> LeaveType.PermanentType.COMMUTED_LEAVE to it.id.value
+                LeaveType.PermanentType.EXTRAORDINARY_LEAVE.name -> LeaveType.PermanentType.EXTRAORDINARY_LEAVE to it.id.value
+                LeaveType.PermanentType.COMPENSATORY_LEAVE.name -> LeaveType.PermanentType.COMPENSATORY_LEAVE to it.id.value
+                LeaveType.PermanentType.LEAVE_NOT_DUE.name -> LeaveType.PermanentType.LEAVE_NOT_DUE to it.id.value
+                else -> LeaveType.PermanentType.SPECIAL_DISABILITY_LEAVE to it.id.value
             }
         }
     }

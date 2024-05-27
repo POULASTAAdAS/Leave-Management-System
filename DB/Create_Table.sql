@@ -142,7 +142,7 @@ teacherId Int references Teacher(id) on delete cascade,
 teacherTypeId Int references TeacherType(id) on delete cascade,
 leaveTypeId Int references LeaveType(id) on delete cascade,
 leaveBalance Double not null,
-`year` Year DEFAULT(CURRENT_DATE),
+`year` int not null,
 primary key (teacherId ,teacherTypeId, leaveTypeId)
 );
 
@@ -155,10 +155,6 @@ create table TeacherProfilePic(
 );
 
 
-drop table TeacherProfilePic;
-
-
-select * from leavetype;
 
 
 

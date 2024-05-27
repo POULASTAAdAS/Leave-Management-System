@@ -1,12 +1,15 @@
 package com.poulastaa.lms.presentation.apply_leave
 
+import android.os.Build
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -16,14 +19,21 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.poulastaa.lms.R
+import com.poulastaa.lms.presentation.store_details.ListHolder
+import com.poulastaa.lms.presentation.store_details.components.LMSDateDialog
 import com.poulastaa.lms.presentation.store_details.components.StoreDetailsClickableTextField
 import com.poulastaa.lms.presentation.store_details.components.StoreDetailsFloatingActionButton
 import com.poulastaa.lms.presentation.store_details.components.StoreDetailsListSelector
@@ -78,6 +88,8 @@ private fun ApplyLeaveScreen(
     onEvent: (ApplyLeaveUiEvent) -> Unit,
     navigateBack: () -> Unit
 ) {
+    val focusManager = LocalFocusManager.current
+
     val textFieldColors = TextFieldDefaults.colors(
         focusedContainerColor = Color.Transparent,
         unfocusedContainerColor = Color.Transparent,
@@ -161,17 +173,30 @@ private fun ApplyLeaveScreen(
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.spacedBy(MaterialTheme.dimens.medium1),
         ) {
-            StoreDetailsClickableTextField(
-                modifier = Modifier.fillMaxWidth(.5f),
-                text = state.balance,
-                label = stringResource(id = R.string.leave_balance),
-                color = textFieldColors,
-                otherColor = MaterialTheme.colorScheme.primaryContainer,
-                disabledContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(.1f),
-                isErr = false,
-                errStr = "",
-                onClick = {}
-            )
+            Box {
+                StoreDetailsClickableTextField(
+                    modifier = Modifier
+                        .fillMaxWidth(.5f)
+                        .alpha(if (state.isGettingLeaveBalance) 0f else 1f),
+                    text = state.balance,
+                    label = stringResource(id = R.string.leave_balance),
+                    color = textFieldColors,
+                    otherColor = MaterialTheme.colorScheme.primaryContainer,
+                    disabledContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(.1f),
+                    isErr = false,
+                    errStr = "",
+                    onClick = {}
+                )
+
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .alpha(if (state.isGettingLeaveBalance) 1f else 0f),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    strokeCap = StrokeCap.Round,
+                    strokeWidth = 3.dp
+                )
+            }
 
             StoreDetailsListSelector(
                 modifier = Modifier.fillMaxWidth(.4f),
@@ -247,27 +272,61 @@ private fun ApplyLeaveScreen(
             errText = state.leaveReason.errText.asString(),
             singleLine = false,
             onDone = {
-
+                focusManager.moveFocus(FocusDirection.Down)
             }
         )
 
-        StoreDetailsListSelector(
-            modifier = Modifier.fillMaxWidth(.9f),
-            label = stringResource(id = R.string.address_during_leave),
-            text = state.addressDuringLeave.selected,
-            isOpen = state.addressDuringLeave.isDialogOpen,
-            list = state.addressDuringLeave.all,
-            color = textFieldColors,
-            onCancel = {
-                onEvent(ApplyLeaveUiEvent.OnAddressDuringLeaveToggle)
-            },
-            onToggle = {
-                onEvent(ApplyLeaveUiEvent.OnAddressDuringLeaveToggle)
-            },
-            onSelected = {
-                onEvent(ApplyLeaveUiEvent.OnAddressDuringLeaveSelected(it))
+        if (state.addressDuringLeave.selected == "OutStation") {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = {
+                        onEvent(ApplyLeaveUiEvent.OnAddressDuringLeaveOutSideBackClick)
+                    },
+                    colors = IconButtonDefaults.iconButtonColors(
+                        contentColor = MaterialTheme.colorScheme.background
+                    )
+                ) {
+                    Icon(
+                        imageVector = ArrowBackIcon,
+                        contentDescription = null
+                    )
+                }
+
+                StoreDetailsTextFiled(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = state.addressDuringLeaveOutStation.data,
+                    label = stringResource(id = R.string.outstation),
+                    onValueChange = { onEvent(ApplyLeaveUiEvent.OnAddressDuringLeaveOther(it)) },
+                    keyboardType = KeyboardType.Text,
+                    isErr = state.addressDuringLeaveOutStation.isErr,
+                    errText = state.addressDuringLeaveOutStation.errText.asString(),
+                    singleLine = false,
+                    onDone = {
+                        focusManager.clearFocus()
+                    }
+                )
             }
-        )
+        } else {
+            StoreDetailsListSelector(
+                modifier = Modifier.fillMaxWidth(.9f),
+                label = stringResource(id = R.string.address_during_leave),
+                text = state.addressDuringLeave.selected,
+                isOpen = state.addressDuringLeave.isDialogOpen,
+                list = state.addressDuringLeave.all,
+                color = textFieldColors,
+                onCancel = {
+                    onEvent(ApplyLeaveUiEvent.OnAddressDuringLeaveToggle)
+                },
+                onToggle = {
+                    onEvent(ApplyLeaveUiEvent.OnAddressDuringLeaveToggle)
+                },
+                onSelected = {
+                    onEvent(ApplyLeaveUiEvent.OnAddressDuringLeaveSelected(it))
+                }
+            )
+        }
 
         StoreDetailsListSelector(
             modifier = Modifier.fillMaxWidth(.9f),
@@ -286,6 +345,32 @@ private fun ApplyLeaveScreen(
                 onEvent(ApplyLeaveUiEvent.OnPathSelected(it))
             }
         )
+
+        if (state.fromDate.isDialogOpen) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                LMSDateDialog(
+                    label = stringResource(id = R.string.select_from_date),
+                    onDismissRequest = {
+                        onEvent(ApplyLeaveUiEvent.OnFromDateToggle)
+                    },
+                    onSuccess = {
+                        onEvent(ApplyLeaveUiEvent.OnFromDateSelected(it))
+                    }
+                )
+        }
+
+        if (state.toDate.isDialogOpen) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                LMSDateDialog(
+                    label = stringResource(id = R.string.select_to_date),
+                    onDismissRequest = {
+                        onEvent(ApplyLeaveUiEvent.OnToDateToggle)
+                    },
+                    onSuccess = {
+                        onEvent(ApplyLeaveUiEvent.OnToDateSelected(it))
+                    }
+                )
+        }
     }
 }
 
@@ -294,7 +379,12 @@ private fun ApplyLeaveScreen(
 private fun Preview() {
     TestThem {
         ApplyLeaveScreen(
-            state = ApplyLeaveUiState(),
+            state = ApplyLeaveUiState(
+                isGettingLeaveBalance = false,
+                addressDuringLeave = ListHolder(
+                    selected = ""
+                )
+            ),
             onEvent = {},
             navigateBack = {}
         )

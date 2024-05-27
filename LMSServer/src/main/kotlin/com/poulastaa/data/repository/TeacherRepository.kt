@@ -8,12 +8,15 @@ import com.poulastaa.data.model.auth.res.User
 import com.poulastaa.data.model.auth.res.VerifiedMailStatus
 import com.poulastaa.data.model.details.UpdateAddressReq
 import com.poulastaa.data.model.details.UpdateDetailsReq
+import com.poulastaa.domain.dao.teacher.Teacher
 import java.io.File
 
 interface TeacherRepository {
+    suspend fun getTeacher(email: String): Teacher?
+
     suspend fun getTeacherDetailsStatus(email: String): Pair<AuthStatus, Any>
 
-    suspend fun getTeacher(email: String): User
+    suspend fun getTeacherWithDetails(email: String): User
 
     suspend fun updateSignUpVerificationStatus(email: String): VerifiedMailStatus
     suspend fun updateLogInVerificationStatus(email: String): Pair<VerifiedMailStatus, Pair<String, String>>

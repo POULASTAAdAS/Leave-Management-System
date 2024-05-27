@@ -34,9 +34,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.poulastaa.lms.R
+import com.poulastaa.lms.presentation.store_details.components.LMSDateDialog
 import com.poulastaa.lms.presentation.store_details.components.StoreDetailsActionButton
 import com.poulastaa.lms.presentation.store_details.components.StoreDetailsClickableTextField
-import com.poulastaa.lms.presentation.store_details.components.StoreDetailsDateDialog
 import com.poulastaa.lms.presentation.store_details.components.StoreDetailsFloatingActionButton
 import com.poulastaa.lms.presentation.store_details.components.StoreDetailsListSelector
 import com.poulastaa.lms.presentation.store_details.components.StoreDetailsTextFiled
@@ -370,7 +370,7 @@ private fun StoreDetailsScreen(
 
         if (state.bDay.isDialogOpen)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                StoreDetailsDateDialog(
+                LMSDateDialog(
                     label = stringResource(id = R.string.bdate),
                     onDismissRequest = {
                         onEvent(StoreDetailsUiEvent.OnBDateDialogClick)
@@ -383,7 +383,7 @@ private fun StoreDetailsScreen(
 
         if (state.joiningDate.isDialogOpen)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                StoreDetailsDateDialog(
+                LMSDateDialog(
                     label = stringResource(id = R.string.date_of_joining),
                     onDismissRequest = {
                         onEvent(StoreDetailsUiEvent.OnJoinDateDialogClick)

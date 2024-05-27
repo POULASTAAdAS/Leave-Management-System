@@ -4,6 +4,7 @@ import com.poulastaa.data.model.auth.UserSession
 import com.poulastaa.data.repository.ServiceRepository
 import com.poulastaa.routes.auth.*
 import com.poulastaa.routes.details.*
+import com.poulastaa.routes.leave.getLeaveBalance
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
 import io.ktor.server.routing.*
@@ -33,6 +34,8 @@ fun Application.configureRouting() {
 
         updateProfile(service)
         getProfilePic(service)
+
+        getLeaveBalance(service)
 
         unAuth()
 
