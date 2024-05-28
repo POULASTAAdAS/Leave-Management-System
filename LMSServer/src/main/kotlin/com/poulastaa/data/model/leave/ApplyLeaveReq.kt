@@ -8,6 +8,7 @@ data class ApplyLeaveReq(
     val leaveType: String,
     val fromDate: String,
     val toDate: String,
+    val totalDays: String,
     val reason: String,
     val addressDuringLeave: String,
     val path: String

@@ -16,5 +16,5 @@ object LeaveReqTable : LongIdTable() {
     val reason = text("reason").default("")
     val addressDuringLeave = varchar("addressDuringLeave", 100)
     val pathId = PathTable.reference("pathId", PathTable.id, onDelete = ReferenceOption.CASCADE)
-    val doc = blob("doc").nullable()
+    val doc = varchar("doc" , 255).nullable().default(null)
 }

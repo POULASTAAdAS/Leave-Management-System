@@ -1,6 +1,7 @@
 package com.poulastaa.domain.repository
 
 import com.poulastaa.data.model.GetTeacherRes
+import com.poulastaa.data.model.TeacherDetails
 import com.poulastaa.data.model.auth.req.ReqAddress
 import com.poulastaa.data.model.auth.req.SetDetailsReq
 import com.poulastaa.data.model.auth.res.*
@@ -247,7 +248,7 @@ class TeacherRepositoryImpl : TeacherRepository {
         )
     }
 
-    override suspend fun getTeacherDetails(email: String): GetTeacherRes? = coroutineScope {
+    override suspend fun getTeacherDetailsRes(email: String): GetTeacherRes? = coroutineScope {
         val teacher = findTeacher(email) ?: return@coroutineScope null
 
         val teacherDetails = dbQuery {
@@ -410,6 +411,22 @@ class TeacherRepositoryImpl : TeacherRepository {
             it[TeacherDetailsTable.profilePic]
         }
     }
+
+    override suspend fun getTeacherDetails(email: String, id: Int): TeacherDetails? = getTeacherDetailsOnTeacherId(
+        id = id,
+        email = email
+    )
+
+    override suspend fun getTeacherTypeOnId(id: Int): com.poulastaa.data.model.constants.TeacherType? =
+        TeacherType.find {
+            TeacherTypeTable.id eq id
+        }.singleOrNull()?.let {
+            when (it.type) {
+                com.poulastaa.data.model.constants.TeacherType.SACT.name -> com.poulastaa.data.model.constants.TeacherType.SACT
+                com.poulastaa.data.model.constants.TeacherType.PERMANENT.name -> com.poulastaa.data.model.constants.TeacherType.PERMANENT
+                else -> null
+            }
+        }
 
     private suspend fun updateBothAddress(
         id: Int,
@@ -845,7 +862,7 @@ class TeacherRepositoryImpl : TeacherRepository {
         }.singleOrNull()
     }
 
-    private suspend fun getSACTTeacherLeaveType() = dbQuery {
+    override suspend fun getSACTTeacherLeaveType() = dbQuery {
         LeaveType.find {
             LeaveTypeTable.type inList LeaveType.ScatType.entries.map {
                 it.value

@@ -6,6 +6,8 @@ import com.poulastaa.data.model.auth.req.SetDetailsReq
 import com.poulastaa.data.model.auth.res.*
 import com.poulastaa.data.model.details.UpdateAddressReq
 import com.poulastaa.data.model.details.UpdateDetailsReq
+import com.poulastaa.data.model.leave.ApplyLeaveReq
+import com.poulastaa.data.model.leave.ApplyLeaveRes
 import com.poulastaa.data.model.leave.GetBalanceRes
 import com.poulastaa.data.repository.JWTRepository
 import com.poulastaa.data.repository.TeacherRepository
@@ -123,7 +125,7 @@ class ServiceRepositoryImpl(
         return teacher.saveTeacherDetails(req)
     }
 
-    override suspend fun getTeacherDetails(email: String): GetTeacherRes? = teacher.getTeacherDetails(email)
+    override suspend fun getTeacherDetails(email: String): GetTeacherRes? = teacher.getTeacherDetailsRes(email)
 
     override suspend fun updateDetails(
         email: String,
@@ -188,6 +190,18 @@ class ServiceRepositoryImpl(
                 balance = it
             )
         } ?: GetBalanceRes()
+    }
+
+    override suspend fun handleLeaveReq(req: ApplyLeaveReq): ApplyLeaveRes {
+
+
+
+        leave.applyLeave.applyLeave(
+            req = req,
+            doc = null
+        )
+
+        return ApplyLeaveRes()
     }
 
     private fun validateEmail(email: String) =

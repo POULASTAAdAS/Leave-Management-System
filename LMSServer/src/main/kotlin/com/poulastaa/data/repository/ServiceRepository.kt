@@ -8,6 +8,8 @@ import com.poulastaa.data.model.auth.res.SetDetailsRes
 import com.poulastaa.data.model.auth.res.VerifiedMailStatus
 import com.poulastaa.data.model.details.UpdateAddressReq
 import com.poulastaa.data.model.details.UpdateDetailsReq
+import com.poulastaa.data.model.leave.ApplyLeaveReq
+import com.poulastaa.data.model.leave.ApplyLeaveRes
 import com.poulastaa.data.model.leave.GetBalanceRes
 import java.io.File
 
@@ -33,4 +35,6 @@ interface ServiceRepository {
     suspend fun getProfilePic(email: String): File?
 
     suspend fun getLeaveBalance(type: String, email: String): GetBalanceRes
+
+    suspend fun handleLeaveReq(req: ApplyLeaveReq): ApplyLeaveRes
 }

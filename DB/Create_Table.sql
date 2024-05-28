@@ -124,7 +124,7 @@ toDate Date not null,
 reason text not null,
 addressDuringLeave text not null,
 pathId Int references  `Path`(id) on delete cascade,
-doc blob default(null)
+doc varchar(255) default(null)
 );
 
 

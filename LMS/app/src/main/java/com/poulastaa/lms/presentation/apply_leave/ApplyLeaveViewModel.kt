@@ -1,5 +1,6 @@
 package com.poulastaa.lms.presentation.apply_leave
 
+import android.os.Build
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -140,23 +141,74 @@ class ApplyLeaveViewModel @Inject constructor(
             }
 
             is ApplyLeaveUiEvent.OnFromDateSelected -> {
-                val today = LocalDate.now()
-                val fromDate =
-                    LocalDate.parse(event.date, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    val today =
+                        LocalDate.now()
+                    val fromDate =
+                        LocalDate.parse(event.date, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
 
-                if (fromDate < today) {
-                    viewModelScope.launch {
-                        _uiEvent.send(ApplyLeaveUiAction.Err(UiText.StringResource(R.string.please_select_a_valid_date)))
+                    if (fromDate < today) {
+                        viewModelScope.launch {
+                            _uiEvent.send(ApplyLeaveUiAction.Err(UiText.StringResource(R.string.please_select_a_valid_date)))
+                        }
+
+                        return
                     }
 
-                    return
-                }
+                    if (state.toDate.data.isNotEmpty()) {
+                        val toDate = LocalDate.parse(
+                            state.toDate.data,
+                            DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                        )
 
-                if (state.toDate.data.isNotEmpty()) {
-                    val toDate = LocalDate.parse(
-                        state.toDate.data,
-                        DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                        if (fromDate > toDate) {
+                            viewModelScope.launch {
+                                _uiEvent.send(ApplyLeaveUiAction.Err(UiText.StringResource(R.string.please_select_a_valid_date_range)))
+                            }
+
+                            return
+                        }
+
+                        state = state.copy(
+                            totalDays = DateUtils.calculateTotalDays(
+                                fromDate = fromDate,
+                                toDate = toDate
+                            )
+                        )
+                    }
+
+                    state = state.copy(
+                        fromDate = state.fromDate.copy(
+                            isDialogOpen = !state.fromDate.isDialogOpen,
+                            data = event.date,
+                            isErr = false,
+                            errText = UiText.DynamicString("")
+                        )
                     )
+
+                }
+            }
+
+            is ApplyLeaveUiEvent.OnToDateSelected -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    val curDate = LocalDate.now()
+                    val toDate =
+                        LocalDate.parse(event.date, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+
+
+                    if (toDate < curDate) {
+                        viewModelScope.launch {
+                            _uiEvent.send(ApplyLeaveUiAction.Err(UiText.StringResource(R.string.please_select_a_valid_date)))
+                        }
+
+                        return
+                    }
+
+                    val fromDate =
+                        LocalDate.parse(
+                            state.fromDate.data,
+                            DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                        )
 
                     if (fromDate > toDate) {
                         viewModelScope.launch {
@@ -167,60 +219,18 @@ class ApplyLeaveViewModel @Inject constructor(
                     }
 
                     state = state.copy(
+                        toDate = state.toDate.copy(
+                            isDialogOpen = !state.toDate.isDialogOpen,
+                            data = event.date,
+                            isErr = false,
+                            errText = UiText.DynamicString("")
+                        ),
                         totalDays = DateUtils.calculateTotalDays(
                             fromDate = fromDate,
                             toDate = toDate
                         )
                     )
                 }
-
-                state = state.copy(
-                    fromDate = state.fromDate.copy(
-                        isDialogOpen = !state.fromDate.isDialogOpen,
-                        data = event.date,
-                        isErr = false,
-                        errText = UiText.DynamicString("")
-                    )
-                )
-            }
-
-            is ApplyLeaveUiEvent.OnToDateSelected -> {
-                val curDate = LocalDate.now()
-                val toDate =
-                    LocalDate.parse(event.date, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-
-
-                if (toDate < curDate) {
-                    viewModelScope.launch {
-                        _uiEvent.send(ApplyLeaveUiAction.Err(UiText.StringResource(R.string.please_select_a_valid_date)))
-                    }
-
-                    return
-                }
-
-                val fromDate =
-                    LocalDate.parse(state.fromDate.data, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-
-                if (fromDate > toDate) {
-                    viewModelScope.launch {
-                        _uiEvent.send(ApplyLeaveUiAction.Err(UiText.StringResource(R.string.please_select_a_valid_date_range)))
-                    }
-
-                    return
-                }
-
-                state = state.copy(
-                    toDate = state.toDate.copy(
-                        isDialogOpen = !state.toDate.isDialogOpen,
-                        data = event.date,
-                        isErr = false,
-                        errText = UiText.DynamicString("")
-                    ),
-                    totalDays = DateUtils.calculateTotalDays(
-                        fromDate = fromDate,
-                        toDate = toDate
-                    )
-                )
             }
 
             is ApplyLeaveUiEvent.OnLeaveReason -> {

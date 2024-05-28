@@ -8,13 +8,13 @@ import org.jetbrains.exposed.dao.id.EntityID
 class LeaveReq(id : EntityID<Long>): LongEntity(id) {
     companion object: LongEntityClass<LeaveReq>(LeaveReqTable)
 
-    val teacherId by LeaveReqTable.teacherId
-    val leaveTypeId by LeaveReqTable.leaveTypeId
-    val reqDate by LeaveReqTable.reqDate
-    val toDate by LeaveReqTable.toDate
-    val fromDate by LeaveReqTable.fromDate
-    val reason by LeaveReqTable.reason
-    val addressDuringLeave by LeaveReqTable.addressDuringLeave
-    val pathId by LeaveReqTable.pathId
-    val doc by LeaveReqTable.doc
+    var teacherId by LeaveReqTable.teacherId
+    var leaveTypeId by LeaveReqTable.leaveTypeId
+    var reqDate by LeaveReqTable.reqDate
+    var toDate by LeaveReqTable.toDate
+    var fromDate by LeaveReqTable.fromDate
+    var reason by LeaveReqTable.reason
+    var addressDuringLeave by LeaveReqTable.addressDuringLeave
+    var pathId by LeaveReqTable.pathId
+    var doc by LeaveReqTable.doc
 }

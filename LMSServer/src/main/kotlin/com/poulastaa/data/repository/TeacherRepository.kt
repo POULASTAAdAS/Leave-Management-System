@@ -1,15 +1,17 @@
 package com.poulastaa.data.repository
 
 import com.poulastaa.data.model.GetTeacherRes
+import com.poulastaa.data.model.TeacherDetails
 import com.poulastaa.data.model.auth.req.SetDetailsReq
 import com.poulastaa.data.model.auth.res.AuthStatus
 import com.poulastaa.data.model.auth.res.SetDetailsRes
 import com.poulastaa.data.model.auth.res.User
 import com.poulastaa.data.model.auth.res.VerifiedMailStatus
+import com.poulastaa.data.model.constants.TeacherType
 import com.poulastaa.data.model.details.UpdateAddressReq
 import com.poulastaa.data.model.details.UpdateDetailsReq
+import com.poulastaa.domain.dao.leave.LeaveType
 import com.poulastaa.domain.dao.teacher.Teacher
-import java.io.File
 
 interface TeacherRepository {
     suspend fun getTeacher(email: String): Teacher?
@@ -25,7 +27,7 @@ interface TeacherRepository {
     suspend fun loginEmailVerificationCheck(email: String): Boolean
     suspend fun saveTeacherDetails(req: SetDetailsReq): SetDetailsRes
 
-    suspend fun getTeacherDetails(email: String): GetTeacherRes?
+    suspend fun getTeacherDetailsRes(email: String): GetTeacherRes?
 
     suspend fun updateDetails(email: String, req: UpdateDetailsReq): Boolean
 
@@ -33,4 +35,11 @@ interface TeacherRepository {
 
     suspend fun storeProfilePic(email: String, fileNameWithPath: String): Boolean
     suspend fun getProfilePic(email: String): String?
+
+
+    suspend fun getTeacherDetails(email: String , id: Int): TeacherDetails?
+
+    suspend fun getTeacherTypeOnId(id: Int): TeacherType?
+
+    suspend fun getSACTTeacherLeaveType(): List<Pair<LeaveType.ScatType, Int>>
 }
