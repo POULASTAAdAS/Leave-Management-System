@@ -83,6 +83,13 @@
     <string name="outstation">Outstation</string>
     <string name="select_from_date">Select From Date</string>
     <string name="select_to_date">Select To Date</string>
+    <string name="please_select_from_date_first">Please select from date first</string>
+    <string name="please_attach_appropriate_doc">Please attach appropriate document</string>
+    <string name="please_select_a_valid_date">Please select a valid Date.</string>
+    <string name="please_select_a_valid_date_range">Please select a valid date range</string>
+    <string name="not_enough_balance">You have Insufficient balance to apply leave.</string>
+    <string name="leave_req_rejected">Sorry request can\'t be accepted.</string>
+    <string name="leave_req_accepted">leave Request Accepted.</string>
 
     <array name="com_google_android_gms_fonts_certs">
         <item>@array/com_google_android_gms_fonts_certs_dev</item>

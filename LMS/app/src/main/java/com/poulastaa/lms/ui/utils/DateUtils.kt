@@ -8,9 +8,11 @@ import java.time.LocalDate
 import java.time.Period
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import kotlin.math.abs
 
 object DateUtils {
     @RequiresApi(Build.VERSION_CODES.O)
@@ -77,4 +79,18 @@ object DateUtils {
             "$adjustedYears Y/$adjustedMonths M"
         }
     }
+
+    fun calculateTotalDays(fromDate: LocalDate, toDate: LocalDate): String =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            ChronoUnit.DAYS.between(fromDate, toDate).inc().toString()
+        } else {
+            val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val todayDate: Date = dateFormatter.parse(fromDate.toString())!!
+            val selectedDateDate: Date = dateFormatter.parse(toDate.toString())!!
+
+            val diffInMillis = abs(selectedDateDate.time - todayDate.time)
+            val daysBetween = diffInMillis / (24 * 60 * 60 * 1000)
+
+            daysBetween.inc().toString()
+        }
 }
