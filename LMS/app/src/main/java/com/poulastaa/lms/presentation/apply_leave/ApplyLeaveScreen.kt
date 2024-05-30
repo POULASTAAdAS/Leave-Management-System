@@ -1,14 +1,26 @@
 package com.poulastaa.lms.presentation.apply_leave
 
+import android.content.Context
 import android.os.Build
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -17,20 +29,28 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.poulastaa.lms.R
 import com.poulastaa.lms.presentation.store_details.ListHolder
 import com.poulastaa.lms.presentation.store_details.components.LMSDateDialog
@@ -77,6 +97,7 @@ fun ApplyLeaveRootScreen(
 
     ApplyLeaveScreen(
         state = viewModel.state,
+        context = context,
         onEvent = viewModel::onEvent,
         navigateBack = navigateBack
     )
@@ -85,10 +106,12 @@ fun ApplyLeaveRootScreen(
 @Composable
 private fun ApplyLeaveScreen(
     state: ApplyLeaveUiState,
+    context: Context,
     onEvent: (ApplyLeaveUiEvent) -> Unit,
     navigateBack: () -> Unit
 ) {
     val focusManager = LocalFocusManager.current
+    val hapticFeedback = LocalHapticFeedback.current
 
     val textFieldColors = TextFieldDefaults.colors(
         focusedContainerColor = Color.Transparent,
@@ -111,14 +134,13 @@ private fun ApplyLeaveScreen(
         disabledContainerColor = Color.Transparent
     )
 
-
     ScreenWrapper(
         floatingActionButton = {
             StoreDetailsFloatingActionButton(
                 modifier = Modifier.padding(MaterialTheme.dimens.medium1),
                 isLoading = state.isMakingApiCall,
                 oncCLick = {
-                    onEvent(ApplyLeaveUiEvent.OnReqClick)
+                    onEvent(ApplyLeaveUiEvent.OnReqClick(context))
                 }
             )
         },
@@ -164,6 +186,7 @@ private fun ApplyLeaveScreen(
                 onEvent(ApplyLeaveUiEvent.OnLeaveTypeToggle)
             },
             onSelected = {
+                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                 onEvent(ApplyLeaveUiEvent.OnLeaveTypeSelected(it))
             }
         )
@@ -227,12 +250,16 @@ private fun ApplyLeaveScreen(
                 text = state.fromDate.data,
                 trailingIcon = CalenderIcon,
                 label = stringResource(id = R.string.from_date),
-                color = textFieldColors,
+                color = textFieldColors.copy(
+                    disabledSupportingTextColor = MaterialTheme.colorScheme.error
+                ),
+                otherColor = if (state.fromDate.isErr) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.background,
                 isErr = state.fromDate.isErr,
                 errStr = state.fromDate.errText.asString(),
                 onClick = {
+                    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                     onEvent(ApplyLeaveUiEvent.OnFromDateToggle)
-                }
+                },
             )
 
             StoreDetailsClickableTextField(
@@ -240,12 +267,16 @@ private fun ApplyLeaveScreen(
                 text = state.toDate.data,
                 trailingIcon = CalenderIcon,
                 label = stringResource(id = R.string.to_date),
-                color = textFieldColors,
+                color = textFieldColors.copy(
+                    disabledSupportingTextColor = MaterialTheme.colorScheme.error
+                ),
+                otherColor = if (state.fromDate.isErr) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.background,
                 isErr = state.toDate.isErr,
                 errStr = state.toDate.errText.asString(),
                 onClick = {
+                    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                     onEvent(ApplyLeaveUiEvent.OnToDateToggle)
-                }
+                },
             )
         }
 
@@ -346,6 +377,81 @@ private fun ApplyLeaveScreen(
             }
         )
 
+        val launcher =
+            rememberLauncherForActivityResult(contract = ActivityResultContracts.OpenDocument()) {
+                onEvent(ApplyLeaveUiEvent.OnDocSelected(it))
+            }
+
+        AnimatedVisibility(visible = state.isDocNeeded) {
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Spacer(modifier = Modifier.height(MaterialTheme.dimens.medium1))
+
+                Text(
+                    text = stringResource(id = R.string.please_attach_appropriate_doc),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                    textDecoration = TextDecoration.Underline
+                )
+
+                Spacer(modifier = Modifier.height(MaterialTheme.dimens.medium1))
+
+                AnimatedVisibility(visible = state.isDocErr) {
+                    Text(
+                        text = stringResource(id = R.string.error_doc_empty),
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = MaterialTheme.typography.titleMedium.fontSize
+                    )
+                }
+
+                Card(
+                    modifier = Modifier
+                        .padding(MaterialTheme.dimens.small1)
+                        .aspectRatio(1f)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = {
+                                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                                launcher.launch(arrayOf("image/*"))
+                            }
+                        ),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.onBackground
+                    ),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = 18.dp
+                    ),
+                ) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(state.docUrl)
+                            .fallback(R.drawable.ic_attach_doc)
+                            .error(R.drawable.ic_attach_doc)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = null,
+                        clipToBounds = true,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .then(
+                                if (state.docUrl == null) Modifier.padding(MaterialTheme.dimens.large2 + MaterialTheme.dimens.medium1)
+                                else Modifier
+                            ),
+                        colorFilter = if (state.docUrl == null) ColorFilter.tint(
+                            color = MaterialTheme.colorScheme.background.copy(.3f)
+                        ) else null
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(MaterialTheme.dimens.medium1))
+            }
+        }
+
         if (state.fromDate.isDialogOpen) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                 LMSDateDialog(
@@ -374,6 +480,7 @@ private fun ApplyLeaveScreen(
     }
 }
 
+
 @Preview
 @Composable
 private fun Preview() {
@@ -381,10 +488,13 @@ private fun Preview() {
         ApplyLeaveScreen(
             state = ApplyLeaveUiState(
                 isGettingLeaveBalance = false,
+                isDocNeeded = true,
                 addressDuringLeave = ListHolder(
                     selected = ""
-                )
+                ),
+                isDocErr = true
             ),
+            context = LocalContext.current,
             onEvent = {},
             navigateBack = {}
         )

@@ -1,5 +1,6 @@
 package com.poulastaa.lms.data.remote
 
+import android.webkit.MimeTypeMap
 import com.google.gson.Gson
 import com.poulastaa.lms.BuildConfig
 import com.poulastaa.lms.domain.repository.utils.DataStoreRepository
@@ -30,7 +31,7 @@ import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 import okhttp3.Request as Req
 
-val mediaType = "application/json".toMediaType()
+val mediaType = "application/json; charset=utf-8".toMediaType()
 
 suspend inline fun <reified Response : Any> OkHttpClient.uploadFile(
     route: String,
@@ -168,6 +169,66 @@ suspend inline fun <reified Request : Any, reified Response : Any> OkHttpClient.
         handleOtherException(e)
     }
 }
+
+
+fun getMimeType(file: File): String? {
+    val extension = MimeTypeMap.getFileExtensionFromUrl(file.toString())
+    return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+}
+
+suspend inline fun <reified Request : Any, reified Response : Any> OkHttpClient.applyLeave(
+    route: String,
+    cookieManager: CookieManager,
+    ds: DataStoreRepository,
+    body: Request,
+    gson: Gson,
+    cookie: String,
+    file: File?
+): Result<Response, DataError.Network> {
+    val url = constructRoute(route)
+
+    val jsonBody = gson.toJson(body).toRequestBody(mediaType)
+    val fileBody = file?.let {
+        val mimeType = getMimeType(file) ?: "application/octet-stream"
+        it.asRequestBody(mimeType.toMediaTypeOrNull())
+    }
+
+    val reqBody = MultipartBody.Builder()
+        .setType(MultipartBody.FORM)
+        .addFormDataPart(
+            name = "json",
+            filename = null,
+            body = jsonBody
+        ).apply {
+            fileBody?.let {
+                addFormDataPart(
+                    name = "file",
+                    filename = file.name,
+                    body = it
+                )
+            }
+        }.build()
+
+
+    val req = Req.Builder()
+        .url(url)
+        .header("Cookie", cookie)
+        .post(reqBody)
+        .build()
+
+    return try {
+        val response = makeCall(req)
+        responseToResult<Response>(
+            response = response,
+            gson = gson,
+            cookieManager = cookieManager,
+            ds = ds
+        )
+    } catch (e: Exception) {
+        handleOtherException(e)
+    }
+}
+
 
 suspend fun OkHttpClient.makeCall(request: Req): Response {
     return suspendCoroutine { continuation ->

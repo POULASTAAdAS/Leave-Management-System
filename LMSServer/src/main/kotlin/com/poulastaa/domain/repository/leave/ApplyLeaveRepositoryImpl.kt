@@ -40,14 +40,15 @@ class ApplyLeaveRepositoryImpl(
             }.singleOrNull()
         } ?: return ApplyLeaveRes()
 
-
         when (teacherType) {
             TeacherType.SACT -> {
-                when (LeaveType.ScatType.valueOf(req.leaveType)) {
+                val type = LeaveType.ScatType.valueOf(req.leaveType.uppercase().replace(' ', '_'))
+
+                when (type) {
                     LeaveType.ScatType.CASUAL_LEAVE -> {
                         val id = dbQuery {
                             LeaveType.find {
-                                LeaveTypeTable.type eq LeaveType.ScatType.CASUAL_LEAVE.name
+                                LeaveTypeTable.type eq LeaveType.ScatType.CASUAL_LEAVE.value
                             }.single().id
                         }
 
@@ -66,10 +67,10 @@ class ApplyLeaveRepositoryImpl(
                             )
                         )
 
-                        return when {
-                            response == ApplyLeaveStatus.REJECTED.name -> ApplyLeaveRes()
-                            response == ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS.name -> ApplyLeaveRes(status = ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS)
-                            response == ApplyLeaveStatus.SOMETHING_WENT_WRONG.name -> ApplyLeaveRes(status = ApplyLeaveStatus.SOMETHING_WENT_WRONG)
+                        return when (response) {
+                            ApplyLeaveStatus.REJECTED.name -> ApplyLeaveRes()
+                            ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS.name -> ApplyLeaveRes(status = ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS)
+                            ApplyLeaveStatus.SOMETHING_WENT_WRONG.name -> ApplyLeaveRes(status = ApplyLeaveStatus.SOMETHING_WENT_WRONG)
                             else -> ApplyLeaveRes(
                                 status = ApplyLeaveStatus.ACCEPTED,
                                 newBalance = response
@@ -150,11 +151,11 @@ class ApplyLeaveRepositoryImpl(
         val leaveBalanceDef = async {
             leaveUtils.getLeaveBalance(
                 teacherId = leave.teacherId.value,
-                type = LeaveType.ScatType.CASUAL_LEAVE.name
+                type = LeaveType.ScatType.CASUAL_LEAVE.value
             )
         }
 
-        val reasonDef = async {
+        val isEmptyDef = async {
             dbQuery {
                 LeaveReq.find {
                     LeaveReqTable.teacherId eq leave.teacherId and (LeaveReqTable.toDate greaterEq leave.fromDate)
@@ -163,10 +164,10 @@ class ApplyLeaveRepositoryImpl(
         }
 
         val leaveBalance = leaveBalanceDef.await()?.toDouble() ?: return@coroutineScope ApplyLeaveStatus.REJECTED.name
-        if (leaveBalance > leave.totalDays) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+        if (leaveBalance < leave.totalDays) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
-        val response = reasonDef.await()
-        if (response) return@coroutineScope ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS.name
+        val isEmpty = isEmptyDef.await()
+        if (!isEmpty) return@coroutineScope ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS.name
 
         dbQuery {
             LeaveReq.new {

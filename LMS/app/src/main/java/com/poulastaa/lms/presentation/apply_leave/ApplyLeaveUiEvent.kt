@@ -1,5 +1,8 @@
 package com.poulastaa.lms.presentation.apply_leave
 
+import android.content.Context
+import android.net.Uri
+
 sealed interface ApplyLeaveUiEvent {
     data class OnLeaveTypeSelected(val index: Int) : ApplyLeaveUiEvent
     data class OnDayTypeSelected(val index: Int) : ApplyLeaveUiEvent
@@ -13,7 +16,9 @@ sealed interface ApplyLeaveUiEvent {
     data class OnAddressDuringLeaveOther(val value: String) : ApplyLeaveUiEvent
     data class OnPathSelected(val index: Int) : ApplyLeaveUiEvent
 
-    data object OnReqClick : ApplyLeaveUiEvent
+    data class OnDocSelected(val url: Uri?) : ApplyLeaveUiEvent
+
+    data class OnReqClick(val context: Context) : ApplyLeaveUiEvent
 
     data object OnLeaveTypeToggle : ApplyLeaveUiEvent
     data object OnDayTypeToggle : ApplyLeaveUiEvent

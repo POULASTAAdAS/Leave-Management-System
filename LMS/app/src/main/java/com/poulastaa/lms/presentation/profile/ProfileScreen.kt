@@ -249,7 +249,6 @@ private fun ProfileCard(
 
     val photoPicker =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.PickVisualMedia()) {
-
             onClick(
                 ProfileUiEvent.OnProfileEditClick(
                     context = context,
@@ -257,8 +256,6 @@ private fun ProfileCard(
                 )
             )
         }
-
-
 
     Card(
         modifier = Modifier

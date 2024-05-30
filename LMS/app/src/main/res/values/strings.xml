@@ -89,7 +89,12 @@
     <string name="please_select_a_valid_date_range">Please select a valid date range</string>
     <string name="not_enough_balance">You have Insufficient balance to apply leave.</string>
     <string name="leave_req_rejected">Sorry request can\'t be accepted.</string>
-    <string name="leave_req_accepted">leave Request Accepted.</string>
+    <string name="leave_req_accepted">Leave Request has been made.</string>
+    <string name="storage_permission_required">Storage Permission Required</string>
+    <string name="storage_permission_desc">In order to upload document this app need access your local storage.Please click \"Okay\" to continue.</string>
+    <string name="okay">Okay</string>
+    <string name="error_doc_empty">Document can\'t be empty</string>
+    <string name="leave_req_already_exists">Your selected date overlap with other ongoing leave.</string>
 
     <array name="com_google_android_gms_fonts_certs">
         <item>@array/com_google_android_gms_fonts_certs_dev</item>

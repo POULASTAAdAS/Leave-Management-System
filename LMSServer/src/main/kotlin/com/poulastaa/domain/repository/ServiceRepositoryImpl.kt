@@ -192,17 +192,13 @@ class ServiceRepositoryImpl(
         } ?: GetBalanceRes()
     }
 
-    override suspend fun handleLeaveReq(req: ApplyLeaveReq): ApplyLeaveRes {
-
-
-
-        leave.applyLeave.applyLeave(
-            req = req,
-            doc = null
-        )
-
-        return ApplyLeaveRes()
-    }
+    override suspend fun handleLeaveReq(
+        req: ApplyLeaveReq,
+        filePath: String?
+    ): ApplyLeaveRes = leave.applyLeave.applyLeave(
+        req = req,
+        doc = filePath
+    )
 
     private fun validateEmail(email: String) =
         email.matches(Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\$"))

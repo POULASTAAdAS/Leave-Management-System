@@ -36,5 +36,8 @@ interface ServiceRepository {
 
     suspend fun getLeaveBalance(type: String, email: String): GetBalanceRes
 
-    suspend fun handleLeaveReq(req: ApplyLeaveReq): ApplyLeaveRes
+    suspend fun handleLeaveReq(
+        req: ApplyLeaveReq,
+        filePath: String?
+    ): ApplyLeaveRes
 }

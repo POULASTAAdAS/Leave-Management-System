@@ -85,10 +85,9 @@ select * from path;
 
 select * from leavereq;
 
-drop table leaveReq;
 
 
-
+delete from leavereq;
 
 
 

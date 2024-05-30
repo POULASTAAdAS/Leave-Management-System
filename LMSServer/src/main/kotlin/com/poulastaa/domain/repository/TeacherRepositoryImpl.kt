@@ -417,7 +417,7 @@ class TeacherRepositoryImpl : TeacherRepository {
         email = email
     )
 
-    override suspend fun getTeacherTypeOnId(id: Int): com.poulastaa.data.model.constants.TeacherType? =
+    override suspend fun getTeacherTypeOnId(id: Int): com.poulastaa.data.model.constants.TeacherType? = dbQuery {
         TeacherType.find {
             TeacherTypeTable.id eq id
         }.singleOrNull()?.let {
@@ -427,6 +427,7 @@ class TeacherRepositoryImpl : TeacherRepository {
                 else -> null
             }
         }
+    }
 
     private suspend fun updateBothAddress(
         id: Int,

@@ -7,7 +7,8 @@ import java.io.File
 
 fun fileFromUri(
     context: Context,
-    uri: Uri
+    uri: Uri,
+    type:String = "Profile"
 ): File? {
     return try {
         val contentResolver = context.contentResolver
@@ -15,7 +16,7 @@ fun fileFromUri(
             val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
             cursor.moveToFirst()
             cursor.getString(nameIndex)
-        } ?: "Profile"
+        } ?: type
 
         val file = File(context.cacheDir, fileName)
 

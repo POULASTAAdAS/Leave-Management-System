@@ -1,5 +1,6 @@
 package com.poulastaa.lms.presentation.apply_leave
 
+import android.content.Context
 import android.os.Build
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,11 +15,12 @@ import com.poulastaa.lms.data.model.leave.ApplyLeaveReq
 import com.poulastaa.lms.data.model.leave.ApplyLeaveRes
 import com.poulastaa.lms.data.model.leave.ApplyLeaveStatus
 import com.poulastaa.lms.data.model.leave.GetBalanceRes
+import com.poulastaa.lms.data.remote.applyLeave
 import com.poulastaa.lms.data.remote.get
-import com.poulastaa.lms.data.remote.post
 import com.poulastaa.lms.domain.repository.utils.DataStoreRepository
 import com.poulastaa.lms.domain.utils.DataError
 import com.poulastaa.lms.domain.utils.Result
+import com.poulastaa.lms.presentation.utils.fileFromUri
 import com.poulastaa.lms.ui.utils.DateUtils
 import com.poulastaa.lms.ui.utils.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -113,6 +115,13 @@ class ApplyLeaveViewModel @Inject constructor(
                     )
                 )
 
+                state = if (state.leaveType.selected != "Casual Leave") state.copy(
+                    isDocNeeded = true
+                )
+                else state.copy(
+                    isDocNeeded = false
+                )
+
                 viewModelScope.launch {
                     getLeaveBalance?.cancel()
                     getLeaveBalance = getLeaveBalance()
@@ -126,18 +135,6 @@ class ApplyLeaveViewModel @Inject constructor(
                         selected = state.dayType.all[event.index]
                     )
                 )
-
-                if (state.leaveType.selected == "Medical Leave" || state.leaveType.selected == "Study Leave") {
-                    state = state.copy(
-                        isDocNeeded = true
-                    )
-
-                    viewModelScope.launch {
-                        _uiEvent.send(
-                            ApplyLeaveUiAction.Err(UiText.StringResource(R.string.please_attach_appropriate_doc))
-                        )
-                    }
-                }
             }
 
             is ApplyLeaveUiEvent.OnFromDateSelected -> {
@@ -271,6 +268,13 @@ class ApplyLeaveViewModel @Inject constructor(
                 )
             }
 
+            is ApplyLeaveUiEvent.OnDocSelected -> {
+                state = state.copy(
+                    docUrl = event.url,
+                    isDocErr = false
+                )
+            }
+
 
             ApplyLeaveUiEvent.OnDayTypeToggle -> {
                 state = state.copy(
@@ -337,7 +341,7 @@ class ApplyLeaveViewModel @Inject constructor(
                 )
             }
 
-            ApplyLeaveUiEvent.OnReqClick -> {
+            is ApplyLeaveUiEvent.OnReqClick -> {
                 if (state.isMakingApiCall) return
 
                 if (isErr()) return
@@ -346,7 +350,7 @@ class ApplyLeaveViewModel @Inject constructor(
                     isMakingApiCall = true
                 )
 
-                applyLeave()
+                applyLeave(event.context)
             }
         }
     }
@@ -457,6 +461,14 @@ class ApplyLeaveViewModel @Inject constructor(
             isErr = true
         }
 
+        if (state.isDocNeeded && state.docUrl == null) {
+            state = state.copy(
+                isDocErr = true
+            )
+
+            isErr = true
+        }
+
         if (isErr) {
             viewModelScope.launch {
                 _uiEvent.send(
@@ -516,39 +528,59 @@ class ApplyLeaveViewModel @Inject constructor(
         }
     }
 
-    private fun applyLeave() {
+    private fun applyLeave(
+        context: Context
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             val cookie = ds.readCookie().first()
             val user = ds.readUser().first()
 
             val body = ApplyLeaveReq(
                 email = user.email,
-                leaveType = state.leaveType.selected,
-                fromDate = state.fromDate.data,
-                toDate = state.toDate.data,
-                reason = state.leaveReason.data,
-                addressDuringLeave = state.addressDuringLeave.selected.ifEmpty { state.addressDuringLeaveOutStation.data },
-                path = state.path.selected
+                leaveType = state.leaveType.selected.trim(),
+                fromDate = state.fromDate.data.trim(),
+                toDate = state.toDate.data.trim(),
+                totalDays = state.totalDays.trim(),
+                reason = state.leaveReason.data.trim(),
+                addressDuringLeave = state.addressDuringLeave.selected.trim(),
+                path = state.path.selected.trim(),
             )
 
-            val response = client.post<ApplyLeaveReq, ApplyLeaveRes>(
+            val file = state.docUrl?.let {
+                fileFromUri(
+                    context = context,
+                    uri = it,
+                    type = "ApplyLeave"
+                )
+            }
+
+            val response = client.applyLeave<ApplyLeaveReq, ApplyLeaveRes>(
                 route = EndPoints.ApplyLeave.route,
+                cookieManager = cookieManager,
+                ds = ds,
                 body = body,
                 gson = gson,
-                cookieManager = cookieManager,
                 cookie = cookie,
-                ds = ds
+                file = file
             )
 
             when (response) {
                 is Result.Error -> {
                     when (response.error) {
                         DataError.Network.NO_INTERNET -> {
-                            _uiEvent.send(ApplyLeaveUiAction.Err(UiText.StringResource(R.string.error_internet)))
+                            _uiEvent.send(
+                                ApplyLeaveUiAction.Err(
+                                    UiText.StringResource(R.string.error_internet)
+                                )
+                            )
                         }
 
                         else -> {
-                            _uiEvent.send(ApplyLeaveUiAction.Err(UiText.StringResource(R.string.error_something_went_wrong)))
+                            _uiEvent.send(
+                                ApplyLeaveUiAction.Err(
+                                    UiText.StringResource(R.string.error_something_went_wrong)
+                                )
+                            )
                         }
                     }
                 }
@@ -556,26 +588,41 @@ class ApplyLeaveViewModel @Inject constructor(
                 is Result.Success -> {
                     when (response.data.status) {
                         ApplyLeaveStatus.ACCEPTED -> {
-                            _uiEvent.send(ApplyLeaveUiAction.Err(UiText.StringResource(R.string.leave_req_accepted)))
+                            state = state.copy(
+                                balance = response.data.newBalance,
+                                isSuccess = true
+                            )
 
-                            if (state.leaveType.selected == body.leaveType) state = state.copy(
-                                balance = response.data.newBalance
+                            _uiEvent.send(
+                                ApplyLeaveUiAction.Err(
+                                    UiText.StringResource(R.string.leave_req_accepted)
+                                )
                             )
                         }
 
-                        ApplyLeaveStatus.REJECTED -> _uiEvent.send(
-                            ApplyLeaveUiAction.Err(
-                                UiText.StringResource(
-                                    R.string.leave_req_rejected
+                        ApplyLeaveStatus.REJECTED -> {
+                            _uiEvent.send(
+                                ApplyLeaveUiAction.Err(
+                                    UiText.StringResource(R.string.leave_req_rejected)
                                 )
                             )
-                        )
+                        }
 
-                        ApplyLeaveStatus.SOMETHING_WENT_WRONG -> _uiEvent.send(
-                            ApplyLeaveUiAction.Err(
-                                UiText.StringResource(R.string.error_something_went_wrong)
+                        ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS -> {
+                            _uiEvent.send(
+                                ApplyLeaveUiAction.Err(
+                                    UiText.StringResource(R.string.leave_req_already_exists)
+                                )
                             )
-                        )
+                        }
+
+                        ApplyLeaveStatus.SOMETHING_WENT_WRONG -> {
+                            _uiEvent.send(
+                                ApplyLeaveUiAction.Err(
+                                    UiText.StringResource(R.string.error_something_went_wrong)
+                                )
+                            )
+                        }
                     }
                 }
             }

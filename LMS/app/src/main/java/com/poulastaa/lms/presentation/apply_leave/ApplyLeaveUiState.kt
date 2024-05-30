@@ -1,5 +1,6 @@
 package com.poulastaa.lms.presentation.apply_leave
 
+import android.net.Uri
 import com.poulastaa.lms.data.model.auth.LocalUser
 import com.poulastaa.lms.presentation.store_details.DialogHolder
 import com.poulastaa.lms.presentation.store_details.Holder
@@ -11,7 +12,11 @@ data class ApplyLeaveUiState(
     val isMakingApiCall: Boolean = false,
     val user: LocalUser = LocalUser(),
 
+    val isSuccess: Boolean = false,
+
     val isDocNeeded: Boolean = false,
+    val isDocErr: Boolean = false,
+    val docUrl: Uri? = null,
 
     val balance: String = "0.0",
 
