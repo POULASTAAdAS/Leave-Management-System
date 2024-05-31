@@ -8,20 +8,28 @@ import com.poulastaa.data.model.details.UpdateAddressReq
 import com.poulastaa.data.model.details.UpdateDetailsReq
 import com.poulastaa.data.model.leave.ApplyLeaveReq
 import com.poulastaa.data.model.leave.ApplyLeaveRes
+import com.poulastaa.data.model.leave.ApplyLeaveStatus
 import com.poulastaa.data.model.leave.GetBalanceRes
+import com.poulastaa.data.model.table.department.DepartmentHeadTable
+import com.poulastaa.data.model.table.department.DepartmentTable
+import com.poulastaa.data.model.table.utils.PathTable
 import com.poulastaa.data.repository.JWTRepository
 import com.poulastaa.data.repository.TeacherRepository
 import com.poulastaa.data.repository.ServiceRepository
 import com.poulastaa.data.repository.leave.LeaveWrapper
+import com.poulastaa.domain.dao.department.Department
+import com.poulastaa.domain.dao.department.DepartmentHead
+import com.poulastaa.domain.dao.utils.HeadClark
+import com.poulastaa.domain.dao.utils.Path
 import com.poulastaa.domain.dao.utils.Principal
 import com.poulastaa.invalidTokenList
+import com.poulastaa.plugins.dbQuery
 import com.poulastaa.utils.Constants.LOGIN_VERIFICATION_MAIL_TOKEN_CLAIM_KEY
 import com.poulastaa.utils.Constants.SIGNUP_VERIFICATION_MAIL_TOKEN_CLAIM_KEY
 import com.poulastaa.utils.sendEmail
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.io.File
+import java.time.LocalDateTime
 
 class ServiceRepositoryImpl(
     private val jwtRepo: JWTRepository,
@@ -195,10 +203,79 @@ class ServiceRepositoryImpl(
     override suspend fun handleLeaveReq(
         req: ApplyLeaveReq,
         filePath: String?
-    ): ApplyLeaveRes = leave.applyLeave.applyLeave(
-        req = req,
-        doc = filePath
-    )
+    ): ApplyLeaveRes {
+        val response = leave.applyLeave.applyLeave(
+            req = req,
+            doc = filePath
+        )
+
+        // send mails
+        if (response.status == ApplyLeaveStatus.ACCEPTED) CoroutineScope(Dispatchers.IO).launch {
+            val sendMailToTeacher = async {
+                leaveAcceptanceLetter(
+                    to = req.email,
+                    leaveType = req.leaveType,
+                    fromDate = req.fromDate,
+                    toDate = req.toDate,
+                    totalDays = req.totalDays,
+                    reqDateTime = LocalDateTime.now().toString()
+                )
+            }
+
+            val sendMailToHead = async {
+                val pathDef = async {
+                    dbQuery {
+                        Path.find {
+                            PathTable.type eq req.path
+                        }.single()
+                    }
+                }
+
+                val teacherDetails = dbQuery {
+                    teacher.getTeacher(req.email)?.let {
+                        teacher.getTeacherDetails(it.email, it.id.value)
+                    }
+                } ?: return@async
+
+                val departmentHead = dbQuery {
+                    DepartmentHead.find {
+                        DepartmentHeadTable.departmentId eq teacherDetails.departmentId
+                    }.single()
+                }
+
+                val department = dbQuery {
+                    Department.find {
+                        DepartmentTable.id eq departmentHead.departmentId
+                    }.single()
+                }
+
+                val email = when (Path.PathType.valueOf(pathDef.await().type)) {
+                    Path.PathType.PRINCIPLE -> dbQuery { Principal.all().first().email }
+
+                    Path.PathType.HEAD_CLARK -> dbQuery { HeadClark.all().first().email }
+
+                    Path.PathType.DEPARTMENT_HEAD -> dbQuery { teacher.getTeacherOnId(departmentHead.teacherId.value).email }
+                }
+
+                leaveReqNotificationToHead(
+                    to = email,
+                    leaveType = req.leaveType,
+                    fromDate = req.fromDate,
+                    toDate = req.toDate,
+                    totalDays = req.totalDays,
+                    reqDateTime = LocalDateTime.now().toString(),
+                    department = department.name,
+                    name = teacherDetails.name
+                )
+            }
+
+            sendMailToTeacher.await()
+            sendMailToHead.await()
+        }
+
+
+        return response
+    }
 
     private fun validateEmail(email: String) =
         email.matches(Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\$"))
@@ -232,5 +309,61 @@ class ServiceRepositoryImpl(
         }
 
         return areAddressesValid
+    }
+
+
+    private fun leaveAcceptanceLetter(
+        to: String,
+        leaveType: String,
+        fromDate: String,
+        toDate: String,
+        totalDays: String,
+        reqDateTime: String
+    ) {
+        val subject = "Leave Request Accepted"
+        val messageContent = """
+            Your leave request for $leaveType from $fromDate to $toDate,A total days of $totalDays days, has been accepted.
+            Request submitted on: $reqDateTime.
+            
+            This is an auto-generated mail. Please do not reply to this message.
+            
+            Regards,
+            ${System.getenv("college")}
+        """.trimIndent()
+
+        sendEmail(
+            to = to,
+            subject = subject,
+            content = messageContent
+        )
+    }
+
+    private fun leaveReqNotificationToHead(
+        to: String,
+        leaveType: String,
+        fromDate: String,
+        toDate: String,
+        totalDays: String,
+        reqDateTime: String,
+        department: String,
+        name: String
+    ) {
+        val subject = "A Leave Request is made by $name"
+        val messageContent = """
+            A leave request is made by $name from Department $department of $leaveType from $fromDate to $toDate,A total days of $totalDays days.
+            Request submitted on: $reqDateTime.
+            
+            This is an auto-generated mail. Please do not reply to this message.
+            
+            Regards,
+            ${System.getenv("college")}
+        """.trimIndent()
+
+        sendEmail(
+            to = to,
+            subject = subject,
+            content = messageContent
+        )
+
     }
 }

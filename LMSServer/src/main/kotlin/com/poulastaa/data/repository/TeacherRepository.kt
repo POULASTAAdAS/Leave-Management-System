@@ -16,6 +16,8 @@ import com.poulastaa.domain.dao.teacher.Teacher
 interface TeacherRepository {
     suspend fun getTeacher(email: String): Teacher?
 
+    suspend fun getTeacherOnId(id: Int): Teacher
+
     suspend fun getTeacherDetailsStatus(email: String): Pair<AuthStatus, Any>
 
     suspend fun getTeacherWithDetails(email: String): User
@@ -37,7 +39,7 @@ interface TeacherRepository {
     suspend fun getProfilePic(email: String): String?
 
 
-    suspend fun getTeacherDetails(email: String , id: Int): TeacherDetails?
+    suspend fun getTeacherDetails(email: String, id: Int): TeacherDetails?
 
     suspend fun getTeacherTypeOnId(id: Int): TeacherType?
 

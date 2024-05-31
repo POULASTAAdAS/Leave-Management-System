@@ -403,8 +403,6 @@ class ApplyLeaveViewModel @Inject constructor(
                     ApplyLeaveUiAction.Err(UiText.StringResource(R.string.not_enough_balance))
                 )
             }
-
-            isErr = true
         }
 
 

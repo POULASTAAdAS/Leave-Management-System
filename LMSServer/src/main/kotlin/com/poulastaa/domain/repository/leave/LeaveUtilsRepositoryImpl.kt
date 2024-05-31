@@ -10,17 +10,17 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.upperCase
 
 class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
-    private suspend fun getLeaveType(type: String) = dbQuery {
+    override suspend fun getLeaveType(type: String) = dbQuery {
         LeaveType.find {
             LeaveTypeTable.type.upperCase() eq type.uppercase()
-        }.singleOrNull()
+        }.single()
     }
 
     override suspend fun getLeaveBalance(
         teacherId: Int,
         type: String
     ): String? = dbQuery {
-        val entry = getLeaveType(type) ?: return@dbQuery null
+        val entry = getLeaveType(type)
 
         LeaveBalanceTable.select {
             LeaveBalanceTable.teacherId eq teacherId and (LeaveBalanceTable.leaveTypeId eq entry.id)

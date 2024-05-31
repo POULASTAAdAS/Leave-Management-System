@@ -61,6 +61,12 @@ class TeacherRepositoryImpl : TeacherRepository {
 
     override suspend fun getTeacher(email: String): Teacher? = findTeacher(email)
 
+    override suspend fun getTeacherOnId(id: Int): Teacher = dbQuery {
+        Teacher.find {
+            TeacherTable.id eq id
+        }.single()
+    }
+
     override suspend fun getTeacherDetailsStatus(email: String): Pair<AuthStatus, Any> = coroutineScope {
         val teacherDef = async { findTeacher(email) }
         val principleDef = async { findPrinciple(email) }

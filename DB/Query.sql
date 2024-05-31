@@ -85,11 +85,14 @@ select * from path;
 
 select * from leavereq;
 
+delete from leavereq where id != 4;
 
 
 delete from leavereq;
 
+select * from leaveBalance;
 
+select * from path;
 
 
 
