@@ -95,6 +95,8 @@
     <string name="okay">Okay</string>
     <string name="error_doc_empty">Document can\'t be empty</string>
     <string name="leave_req_already_exists">Your selected date overlap with other ongoing leave.</string>
+    <string name="leave_status_header">Leave Status</string>
+    <string name="leave_history_heading">Leave History</string>
 
     <array name="com_google_android_gms_fonts_certs">
         <item>@array/com_google_android_gms_fonts_certs_dev</item>

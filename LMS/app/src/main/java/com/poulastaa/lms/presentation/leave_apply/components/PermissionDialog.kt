@@ -1,4 +1,4 @@
-package com.poulastaa.lms.presentation.apply_leave.components
+package com.poulastaa.lms.presentation.leave_apply.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

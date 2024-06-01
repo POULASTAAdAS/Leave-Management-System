@@ -1,4 +1,4 @@
-package com.poulastaa.lms.presentation.apply_leave
+package com.poulastaa.lms.presentation.leave_apply
 
 import com.poulastaa.lms.navigation.Screens
 import com.poulastaa.lms.ui.utils.UiText

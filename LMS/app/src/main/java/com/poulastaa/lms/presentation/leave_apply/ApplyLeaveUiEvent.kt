@@ -1,4 +1,4 @@
-package com.poulastaa.lms.presentation.apply_leave
+package com.poulastaa.lms.presentation.leave_apply
 
 import android.content.Context
 import android.net.Uri

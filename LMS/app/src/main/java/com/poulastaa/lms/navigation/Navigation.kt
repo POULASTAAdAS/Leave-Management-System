@@ -9,9 +9,10 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.poulastaa.lms.presentation.apply_leave.ApplyLeaveRootScreen
+import com.poulastaa.lms.presentation.leave_apply.ApplyLeaveRootScreen
 import com.poulastaa.lms.presentation.auth.AuthRootScreen
 import com.poulastaa.lms.presentation.home.type.HomeRootScreenType
+import com.poulastaa.lms.presentation.leave_status.LeaveStatusRootScreen
 import com.poulastaa.lms.presentation.profile.ProfileRootScreen
 import com.poulastaa.lms.presentation.profile.edit.address_edit.AddressEditRootScreen
 import com.poulastaa.lms.presentation.profile.edit.address_edit.AddressEditUiEvent
@@ -260,7 +261,9 @@ fun Navigation(
         }
 
         composable(route = Screens.LeaveStatus.route) {
-
+            LeaveStatusRootScreen {
+                navController.popBackStack()
+            }
         }
 
         composable(route = Screens.ApproveLeave.route) {
