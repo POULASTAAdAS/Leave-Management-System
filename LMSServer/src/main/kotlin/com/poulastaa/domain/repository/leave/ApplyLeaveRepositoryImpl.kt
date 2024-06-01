@@ -18,10 +18,7 @@ import com.poulastaa.domain.dao.utils.Path
 import com.poulastaa.plugins.dbQuery
 import com.poulastaa.utils.toTeacherDetails
 import kotlinx.coroutines.*
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.max
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.update
+import org.jetbrains.exposed.sql.*
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -101,7 +98,7 @@ class ApplyLeaveRepositoryImpl(
                             type = LeaveType.ScatType.STUDY_LEAVE.value
                         )
 
-                        leaveType to applyStudyLeaveForSACTeacher(
+                        leaveType to applyStudyLeave(
                             req = LeaveEntry(
                                 teacherId = teacher.id,
                                 leaveTypeId = leaveType.id,
@@ -116,94 +113,242 @@ class ApplyLeaveRepositoryImpl(
                             )
                         )
                     }
-                }.let { (leaveType, response) ->
-                    when (response) {
-                        ApplyLeaveStatus.REJECTED.name -> ApplyLeaveRes()
-                        ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS.name -> ApplyLeaveRes(status = ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS)
-                        ApplyLeaveStatus.SOMETHING_WENT_WRONG.name -> ApplyLeaveRes(status = ApplyLeaveStatus.SOMETHING_WENT_WRONG)
-                        else -> {
-                            CoroutineScope(Dispatchers.IO).launch {
-                                dbQuery {
-                                    LeaveBalanceTable.update(
-                                        where = {
-                                            LeaveBalanceTable.teacherId eq teacher.id and (LeaveBalanceTable.leaveTypeId eq leaveType.id)
-                                        }
-                                    ) {
-                                        it[this.leaveBalance] = response.toDouble()
-                                    }
-                                }
-                            }
-
-
-                            ApplyLeaveRes(
-                                status = ApplyLeaveStatus.ACCEPTED,
-                                newBalance = response
-                            )
-                        }
-                    }
                 }
             }
 
             TeacherType.PERMANENT -> {
                 when (LeaveType.PermanentType.valueOf(req.leaveType)) {
                     LeaveType.PermanentType.CASUAL_LEAVE -> {
+                        val leaveType = leaveUtils.getLeaveType(
+                            type = LeaveType.PermanentType.CASUAL_LEAVE.value
+                        )
 
-                    }
-
-                    LeaveType.PermanentType.MEDICAL_LEAVE -> {
-
-                    }
-
-                    LeaveType.PermanentType.STUDY_LEAVE -> {
-
+                        leaveType to applyCasualLeave(
+                            req = LeaveEntry(
+                                teacherId = teacher.id,
+                                leaveTypeId = leaveType.id,
+                                reqData = LocalDateTime.now(),
+                                toDate = LocalDate.parse(req.toDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                fromDate = LocalDate.parse(req.fromDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                totalDays = req.totalDays.toDouble(),
+                                reason = req.reason,
+                                addressDuringLeave = req.addressDuringLeave,
+                                pathId = path.id,
+                                doc = doc
+                            )
+                        )
                     }
 
                     LeaveType.PermanentType.EARNED_LEAVE -> {
+                        // todo
+                        return ApplyLeaveRes()
+                    }
 
+                    LeaveType.PermanentType.MEDICAL_LEAVE -> {
+                        if (doc == null) return ApplyLeaveRes()
+
+                        val leaveType = leaveUtils.getLeaveType(
+                            type = LeaveType.PermanentType.MEDICAL_LEAVE.value
+                        )
+
+                        leaveType to applyMedicalLeave(
+                            req = LeaveEntry(
+                                teacherId = teacher.id,
+                                leaveTypeId = leaveType.id,
+                                reqData = LocalDateTime.now(),
+                                toDate = LocalDate.parse(req.toDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                fromDate = LocalDate.parse(req.fromDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                totalDays = req.totalDays.toDouble(),
+                                reason = req.reason,
+                                addressDuringLeave = req.addressDuringLeave,
+                                pathId = path.id,
+                                doc = doc
+                            )
+                        )
+                    }
+
+                    LeaveType.PermanentType.STUDY_LEAVE -> {
+                        if (doc == null) return ApplyLeaveRes()
+
+                        val leaveType = leaveUtils.getLeaveType(
+                            type = LeaveType.PermanentType.STUDY_LEAVE.value
+                        )
+
+                        leaveType to applyStudyLeave(
+                            req = LeaveEntry(
+                                teacherId = teacher.id,
+                                leaveTypeId = leaveType.id,
+                                reqData = LocalDateTime.now(),
+                                toDate = LocalDate.parse(req.toDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                fromDate = LocalDate.parse(req.fromDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                totalDays = req.totalDays.toDouble(),
+                                reason = req.reason,
+                                addressDuringLeave = req.addressDuringLeave,
+                                pathId = path.id,
+                                doc = doc
+                            )
+                        )
                     }
 
                     LeaveType.PermanentType.SPECIAL_STUDY_LEAVE -> {
+                        if (doc == null) return ApplyLeaveRes()
 
+                        val leaveType = leaveUtils.getLeaveType(
+                            type = LeaveType.PermanentType.SPECIAL_STUDY_LEAVE.value
+                        )
+
+                        leaveType to applySpecialStudyLeave(
+                            req = LeaveEntry(
+                                teacherId = teacher.id,
+                                leaveTypeId = leaveType.id,
+                                reqData = LocalDateTime.now(),
+                                toDate = LocalDate.parse(req.toDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                fromDate = LocalDate.parse(req.fromDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                totalDays = req.totalDays.toDouble(),
+                                reason = req.reason,
+                                addressDuringLeave = req.addressDuringLeave,
+                                pathId = path.id,
+                                doc = doc
+                            )
+                        )
                     }
 
                     LeaveType.PermanentType.MATERNITY_LEAVE -> {
+                        if (doc == null) return ApplyLeaveRes()
 
+                        if (teacherDetails.gender.uppercase() != "F") return ApplyLeaveRes()
+
+                        val leaveType = leaveUtils.getLeaveType(
+                            type = LeaveType.PermanentType.MATERNITY_LEAVE.value
+                        )
+
+                        leaveType to applyMaternityLeave(
+                            req = LeaveEntry(
+                                teacherId = teacher.id,
+                                leaveTypeId = leaveType.id,
+                                reqData = LocalDateTime.now(),
+                                toDate = LocalDate.parse(req.toDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                fromDate = LocalDate.parse(req.fromDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                totalDays = req.totalDays.toDouble(),
+                                reason = req.reason,
+                                addressDuringLeave = req.addressDuringLeave,
+                                pathId = path.id,
+                                doc = doc
+                            )
+                        )
                     }
 
                     LeaveType.PermanentType.QUARANTINE_LEAVE -> {
+                        if (doc == null) return ApplyLeaveRes()
 
+                        val leaveType = leaveUtils.getLeaveType(
+                            type = LeaveType.PermanentType.QUARANTINE_LEAVE.value
+                        )
+
+                        leaveType to applyQuarantineLeave(
+                            req = LeaveEntry(
+                                teacherId = teacher.id,
+                                leaveTypeId = leaveType.id,
+                                reqData = LocalDateTime.now(),
+                                toDate = LocalDate.parse(req.toDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                fromDate = LocalDate.parse(req.fromDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                totalDays = req.totalDays.toDouble(),
+                                reason = req.reason,
+                                addressDuringLeave = req.addressDuringLeave,
+                                pathId = path.id,
+                                doc = doc
+                            )
+                        )
                     }
 
                     LeaveType.PermanentType.COMMUTED_LEAVE -> {
-
+                        TODO()
                     }
 
                     LeaveType.PermanentType.EXTRAORDINARY_LEAVE -> {
-
+                        TODO()
                     }
 
                     LeaveType.PermanentType.COMPENSATORY_LEAVE -> {
-
+                        TODO()
                     }
 
                     LeaveType.PermanentType.LEAVE_NOT_DUE -> {
+                        if (doc == null) return ApplyLeaveRes()
 
+                        val leaveType = leaveUtils.getLeaveType(
+                            type = LeaveType.PermanentType.LEAVE_NOT_DUE.value
+                        )
+
+                        leaveType to applyLeaveNotDueLeave(
+                            req = LeaveEntry(
+                                teacherId = teacher.id,
+                                leaveTypeId = leaveType.id,
+                                reqData = LocalDateTime.now(),
+                                toDate = LocalDate.parse(req.toDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                fromDate = LocalDate.parse(req.fromDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                totalDays = req.totalDays.toDouble(),
+                                reason = req.reason,
+                                addressDuringLeave = req.addressDuringLeave,
+                                pathId = path.id,
+                                doc = doc
+                            )
+                        )
                     }
 
                     LeaveType.PermanentType.SPECIAL_DISABILITY_LEAVE -> {
+                        if (doc == null) return ApplyLeaveRes()
 
+                        val leaveType = leaveUtils.getLeaveType(
+                            type = LeaveType.PermanentType.SPECIAL_DISABILITY_LEAVE.value
+                        )
+
+                        leaveType to applySpecialDisabilityLeave(
+                            req = LeaveEntry(
+                                teacherId = teacher.id,
+                                leaveTypeId = leaveType.id,
+                                reqData = LocalDateTime.now(),
+                                toDate = LocalDate.parse(req.toDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                fromDate = LocalDate.parse(req.fromDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                totalDays = req.totalDays.toDouble(),
+                                reason = req.reason,
+                                addressDuringLeave = req.addressDuringLeave,
+                                pathId = path.id,
+                                doc = doc
+                            )
+                        )
                     }
-                }.let {
-                    ApplyLeaveRes()
+                }
+            }
+        }.let { (leaveType, response) ->
+            when (response) {
+                ApplyLeaveStatus.REJECTED.name -> ApplyLeaveRes()
+                ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS.name -> ApplyLeaveRes(status = ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS)
+                ApplyLeaveStatus.SOMETHING_WENT_WRONG.name -> ApplyLeaveRes(status = ApplyLeaveStatus.SOMETHING_WENT_WRONG)
+                else -> {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        dbQuery {
+                            LeaveBalanceTable.update(
+                                where = {
+                                    LeaveBalanceTable.teacherId eq teacher.id and (LeaveBalanceTable.leaveTypeId eq leaveType.id)
+                                }
+                            ) {
+                                it[this.leaveBalance] = response.toDouble()
+                            }
+                        }
+                    }
+
+                    ApplyLeaveRes(
+                        status = ApplyLeaveStatus.ACCEPTED,
+                        newBalance = response
+                    )
                 }
             }
         }
     }
 
 
-    private suspend fun applyCasualLeaveForSACTeacher(
-        req: LeaveEntry
-    ) = coroutineScope {
+    private suspend fun applyCasualLeaveForSACTeacher(req: LeaveEntry) = coroutineScope {
         if (req.totalDays > 4.0) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
         val leaveBalanceDef = async {
@@ -233,9 +378,9 @@ class ApplyLeaveRepositoryImpl(
         (leaveBalance - req.totalDays).toString()
     }
 
-    private suspend fun applyMedicalLeaveForSACTeacher(
-        req: LeaveEntry
-    ) = coroutineScope {
+    private suspend fun applyMedicalLeaveForSACTeacher(req: LeaveEntry) = coroutineScope {
+        if (req.totalDays > 20) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+
         val leaveBalanceDef = async {
             leaveUtils.getLeaveBalance(
                 teacherId = req.teacherId.value,
@@ -243,11 +388,10 @@ class ApplyLeaveRepositoryImpl(
             )
         }
 
-
         val recentEntryDef = async {
             dbQuery {
                 val medicalLeaveType = leaveUtils.getLeaveType(
-                    type = LeaveType.ScatType.STUDY_LEAVE.value
+                    type = LeaveType.ScatType.MEDICAL_LEAVE.value
                 )
 
                 LeaveReqTable.slice(LeaveReqTable.toDate.max())
@@ -259,12 +403,15 @@ class ApplyLeaveRepositoryImpl(
             }
         }
 
-
         val leaveBalance = leaveBalanceDef.await()?.toDouble() ?: return@coroutineScope ApplyLeaveStatus.REJECTED.name
         if (leaveBalance < req.totalDays) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
         // check if conflict with casual leave
-        val isCasualEmpty = checkIfConflictWithCasualLeave(req.teacherId.value, req.toDate).await()
+        val isCasualEmpty = checkIfConflictWithOtherLeave(
+            teacherId = req.teacherId.value,
+            toDate = req.toDate,
+            leaveType = LeaveType.ScatType.CASUAL_LEAVE.value
+        ).await()
         if (!isCasualEmpty) return@coroutineScope ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS.name
 
         // check if conflict with other medial leaves
@@ -277,9 +424,7 @@ class ApplyLeaveRepositoryImpl(
         (leaveBalance - req.totalDays).toString()
     }
 
-    private suspend fun applyStudyLeaveForSACTeacher(
-        req: LeaveEntry
-    ) = coroutineScope {
+    private suspend fun applyStudyLeave(req: LeaveEntry) = coroutineScope {
         if (req.totalDays > 360.0) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
         val leaveBalanceDef = async {
@@ -296,7 +441,7 @@ class ApplyLeaveRepositoryImpl(
                 }.single().toTeacherDetails("")
                     .let {
                         val joiningDate = LocalDate.parse(it.joiningDate)
-                        val reqDate = req.toDate
+                        val reqDate = req.fromDate
 
                         ChronoUnit.YEARS.between(joiningDate, reqDate)
                     }
@@ -310,7 +455,8 @@ class ApplyLeaveRepositoryImpl(
                 )
 
                 LeaveReq.find {
-                    LeaveReqTable.teacherId eq req.teacherId and (LeaveReqTable.leaveTypeId eq studyLeaveType.id)
+                    LeaveReqTable.teacherId eq req.teacherId and
+                            (LeaveReqTable.leaveTypeId eq studyLeaveType.id)
                 }.toList()
             }
         }
@@ -355,6 +501,292 @@ class ApplyLeaveRepositoryImpl(
         (leaveBalance - req.totalDays).toString()
     }
 
+    private suspend fun applyCasualLeave(req: LeaveEntry) = coroutineScope {
+        if (req.totalDays > 7.0) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+
+        val leaveBalanceDef = async {
+            leaveUtils.getLeaveBalance(
+                teacherId = req.teacherId.value,
+                type = LeaveType.PermanentType.CASUAL_LEAVE.value
+            )
+        }
+
+        // checking if conflict with other leaves
+        val isEmptyDef = async {
+            dbQuery {
+                LeaveReq.find {
+                    LeaveReqTable.teacherId eq req.teacherId and (LeaveReqTable.toDate greaterEq req.fromDate)
+                }.empty()
+            }
+        }
+
+        val leaveBalance = leaveBalanceDef.await()?.toDouble() ?: return@coroutineScope ApplyLeaveStatus.REJECTED.name
+        if (leaveBalance < req.totalDays) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+
+        val isEmpty = isEmptyDef.await()
+        if (!isEmpty) return@coroutineScope ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS.name
+
+
+
+        addNewLeaveEntry(req)
+        (leaveBalance - req.totalDays).toString()
+    }
+
+    private suspend fun applyMedicalLeave(req: LeaveEntry) = coroutineScope {
+        val leaveBalanceDef = async {
+            leaveUtils.getLeaveBalance(
+                teacherId = req.teacherId.value,
+                type = LeaveType.PermanentType.MEDICAL_LEAVE.value
+            )
+        }
+
+        val isConflictWithQuarantineLeaveDef = checkIfConflictWithOtherLeave(
+            teacherId = req.teacherId.value,
+            toDate = req.toDate,
+            leaveType = LeaveType.PermanentType.QUARANTINE_LEAVE.value
+        )
+
+        val isConflictWithCasualLeaveDef = checkIfConflictWithOtherLeave(
+            teacherId = req.teacherId.value,
+            toDate = req.toDate,
+            leaveType = LeaveType.PermanentType.CASUAL_LEAVE.value
+        )
+
+        val recentEntryDef = async {
+            dbQuery {
+                val medicalLeaveType = leaveUtils.getLeaveType(
+                    type = LeaveType.ScatType.MEDICAL_LEAVE.value
+                )
+
+                LeaveReqTable.slice(LeaveReqTable.toDate.max())
+                    .select {
+                        LeaveReqTable.teacherId eq req.teacherId and
+                                (LeaveReqTable.leaveTypeId eq medicalLeaveType.id)
+                    }
+                    .map { it[LeaveReqTable.toDate.max()] }
+                    .singleOrNull()
+            }
+        }
+
+        val leaveBalance = leaveBalanceDef.await()?.toDouble() ?: return@coroutineScope ApplyLeaveStatus.REJECTED.name
+        if (leaveBalance < req.totalDays) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+
+        val isConflictWithQuarantineLeave = !isConflictWithQuarantineLeaveDef.await()
+        val isConflictWithCasualLeave = !isConflictWithCasualLeaveDef.await()
+        val recentEntry = recentEntryDef.await()
+
+        if (isConflictWithQuarantineLeave || isConflictWithCasualLeave) return@coroutineScope ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS.name
+
+        // check if conflict with other medial leaves
+        recentEntry?.let {
+            if (req.fromDate <= it) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+        }
+
+        addNewLeaveEntry(req)
+        (leaveBalance - req.totalDays).toString()
+    }
+
+    private suspend fun applySpecialStudyLeave(req: LeaveEntry) = coroutineScope {
+        if (req.totalDays > 360.0) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+
+        val leaveBalanceDef = async {
+            leaveUtils.getLeaveBalance(
+                teacherId = req.teacherId.value,
+                type = LeaveType.PermanentType.SPECIAL_STUDY_LEAVE.value
+            )
+        }
+
+        val serviceYearsDef = async {
+            dbQuery {
+                TeacherDetailsTable.select {
+                    TeacherDetailsTable.teacherId eq req.teacherId
+                }.single().toTeacherDetails("")
+                    .let {
+                        val joiningDate = LocalDate.parse(it.joiningDate)
+                        val reqDate = req.fromDate
+
+                        ChronoUnit.YEARS.between(joiningDate, reqDate)
+                    }
+            }
+        }
+
+        val leaveBalance = leaveBalanceDef.await()?.toDouble() ?: return@coroutineScope ApplyLeaveStatus.REJECTED.name
+        if (leaveBalance < req.totalDays) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+
+        val serviceYears = serviceYearsDef.await()
+        if (serviceYears < 2L) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+
+
+        val monthDiffInApplyDateToFromDate = ChronoUnit.MONTHS.between(
+            req.reqData.toLocalDate(),
+            req.fromDate
+        )
+
+        if (monthDiffInApplyDateToFromDate < 3) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+
+        addNewLeaveEntry(req)
+
+        (leaveBalance - req.totalDays).toString()
+    }
+
+    private suspend fun applyMaternityLeave(req: LeaveEntry) = coroutineScope {
+        if (req.totalDays > 135.0) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+
+        val leaveBalanceDef = async {
+            leaveUtils.getLeaveBalance(
+                teacherId = req.teacherId.value,
+                type = LeaveType.PermanentType.MATERNITY_LEAVE.value
+            )
+        }
+
+        val recentEntryDef = async {
+            dbQuery {
+                val maternityLeaveType = leaveUtils.getLeaveType(
+                    type = LeaveType.PermanentType.MATERNITY_LEAVE.value
+                )
+
+                LeaveReqTable.slice(LeaveReqTable.toDate.max())
+                    .select {
+                        LeaveReqTable.teacherId eq req.teacherId and
+                                (LeaveReqTable.leaveTypeId eq maternityLeaveType.id)
+                    }
+                    .map { it[LeaveReqTable.toDate.max()] }
+                    .singleOrNull()
+            }
+        }
+
+
+        val leaveBalance = leaveBalanceDef.await()?.toDouble() ?: return@coroutineScope ApplyLeaveStatus.REJECTED.name
+        if (leaveBalance < req.totalDays) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+
+        recentEntryDef.await()?.let {
+            if (req.fromDate <= it) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+        }
+
+        addNewLeaveEntry(req)
+        (leaveBalance - req.totalDays).toString()
+    }
+
+    private suspend fun applyQuarantineLeave(req: LeaveEntry) = coroutineScope {
+        if (req.totalDays > 21) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+
+        val leaveBalanceDef = async {
+            leaveUtils.getLeaveBalance(
+                teacherId = req.teacherId.value,
+                type = LeaveType.PermanentType.QUARANTINE_LEAVE.value
+            )
+        }
+
+        val conflictWithCasualLeaveDef = checkIfConflictWithOtherLeave(
+            teacherId = req.teacherId.value,
+            toDate = req.toDate,
+            leaveType = LeaveType.PermanentType.CASUAL_LEAVE.value
+        )
+
+        val leaveBalance = leaveBalanceDef.await()?.toDouble() ?: return@coroutineScope ApplyLeaveStatus.REJECTED.name
+        if (leaveBalance < req.totalDays) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+
+        val conflictWithCasualLeave = !conflictWithCasualLeaveDef.await()
+        if (conflictWithCasualLeave) return@coroutineScope ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS.name
+
+        addNewLeaveEntry(req)
+        (leaveBalance - req.totalDays).toString()
+    }
+
+    private suspend fun applyLeaveNotDueLeave(req: LeaveEntry) = coroutineScope {
+        if (req.totalDays > 90) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+
+        val leaveBalanceDef = async {
+            leaveUtils.getLeaveBalance(
+                teacherId = req.teacherId.value,
+                type = LeaveType.PermanentType.LEAVE_NOT_DUE.value
+            )
+        }
+
+        val isConflictWithCasualLeaveDef = checkIfConflictWithOtherLeave(
+            teacherId = req.teacherId.value,
+            toDate = req.toDate,
+            leaveType = LeaveType.PermanentType.LEAVE_NOT_DUE.value
+        )
+
+        val recentEntryDef = async {
+            dbQuery {
+                val leaveNotDue = leaveUtils.getLeaveType(
+                    type = LeaveType.PermanentType.LEAVE_NOT_DUE.value
+                )
+
+                LeaveReqTable.slice(LeaveReqTable.toDate.max())
+                    .select {
+                        LeaveReqTable.teacherId eq req.teacherId and
+                                (LeaveReqTable.leaveTypeId eq leaveNotDue.id)
+                    }
+                    .map { it[LeaveReqTable.toDate.max()] }
+                    .singleOrNull()
+            }
+        }
+
+        val leaveBalance = leaveBalanceDef.await()?.toDouble() ?: return@coroutineScope ApplyLeaveStatus.REJECTED.name
+        if (leaveBalance < req.totalDays) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+
+        val isConflictWithCasualLeave = !isConflictWithCasualLeaveDef.await()
+        val recentEntry = recentEntryDef.await()
+
+        if (isConflictWithCasualLeave) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+
+        recentEntry?.let {
+            if (req.fromDate <= it) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+        }
+
+        addNewLeaveEntry(req)
+        (leaveBalance - req.totalDays).toString()
+    }
+
+    private suspend fun applySpecialDisabilityLeave(req: LeaveEntry) = coroutineScope {
+        if (req.totalDays > 720) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+
+        val leaveBalanceDef = async {
+            leaveUtils.getLeaveBalance(
+                teacherId = req.teacherId.value,
+                type = LeaveType.PermanentType.SPECIAL_DISABILITY_LEAVE.value
+            )
+        }
+
+        val isConflictWithCasualLeaveDef = checkIfConflictWithOtherLeave(
+            teacherId = req.teacherId.value,
+            toDate = req.toDate,
+            leaveType = LeaveType.PermanentType.SPECIAL_DISABILITY_LEAVE.value
+        )
+
+        val recentEntryDef = async {
+            dbQuery {
+                val leaveNotDue = leaveUtils.getLeaveType(
+                    type = LeaveType.PermanentType.SPECIAL_DISABILITY_LEAVE.value
+                )
+
+                LeaveReqTable.slice(LeaveReqTable.toDate.max())
+                    .select {
+                        LeaveReqTable.teacherId eq req.teacherId and
+                                (LeaveReqTable.leaveTypeId eq leaveNotDue.id)
+                    }
+                    .map { it[LeaveReqTable.toDate.max()] }
+                    .singleOrNull()
+            }
+        }
+
+        val leaveBalance = leaveBalanceDef.await()?.toDouble() ?: return@coroutineScope ApplyLeaveStatus.REJECTED.name
+        if (leaveBalance < req.totalDays) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+
+        val isConflictWithCasualLeave = !isConflictWithCasualLeaveDef.await()
+        if (isConflictWithCasualLeave) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+
+        val recentEntry = recentEntryDef.await()
+        recentEntry?.let {
+            if (req.fromDate <= it) return@coroutineScope ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS.name
+        }
+
+        addNewLeaveEntry(req)
+        (leaveBalance - req.totalDays).toString()
+    }
 
     private suspend fun addNewLeaveEntry(req: LeaveEntry) = dbQuery {
         LeaveReq.new {
@@ -370,20 +802,21 @@ class ApplyLeaveRepositoryImpl(
         }
     }
 
-    private suspend fun checkIfConflictWithCasualLeave(
+    private suspend fun checkIfConflictWithOtherLeave(
         teacherId: Int,
-        toDate: LocalDate
+        toDate: LocalDate,
+        leaveType: String
     ) = coroutineScope {
         async {
-            val casualLeaveId = dbQuery {
+            val leaveId = dbQuery {
                 leaveUtils.getLeaveType(
-                    type = LeaveType.ScatType.CASUAL_LEAVE.value
+                    type = leaveType
                 ).id
             }
 
             dbQuery {
                 LeaveReq.find {
-                    LeaveReqTable.teacherId eq teacherId and (LeaveReqTable.leaveTypeId eq casualLeaveId.value) and
+                    LeaveReqTable.teacherId eq teacherId and (LeaveReqTable.leaveTypeId eq leaveId.value) and
                             (LeaveReqTable.toDate greaterEq toDate) and
                             (LeaveReqTable.fromDate greaterEq toDate)
                 }.empty()
