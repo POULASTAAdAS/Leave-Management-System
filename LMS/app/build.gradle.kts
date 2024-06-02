@@ -119,4 +119,7 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.6.0")
 
     implementation("com.google.code.gson:gson:2.11.0")
+
+    implementation ("androidx.paging:paging-runtime-ktx:3.3.0")
+    implementation ("androidx.paging:paging-compose:3.3.0")
 }

@@ -388,20 +388,11 @@ class ApplyLeaveRepositoryImpl(
             )
         }
 
-        val recentEntryDef = async {
-            dbQuery {
-                val medicalLeaveType = leaveUtils.getLeaveType(
-                    type = LeaveType.ScatType.MEDICAL_LEAVE.value
-                )
 
-                LeaveReqTable.slice(LeaveReqTable.toDate.max())
-                    .select {
-                        LeaveReqTable.teacherId eq req.teacherId and (LeaveReqTable.leaveTypeId eq medicalLeaveType.id)
-                    }
-                    .map { it[LeaveReqTable.toDate.max()] }
-                    .singleOrNull()
-            }
-        }
+        val recentEntryDef = getRecentEntry(
+            type = LeaveType.PermanentType.MEDICAL_LEAVE.value,
+            teacherId = req.teacherId.value
+        )
 
         val leaveBalance = leaveBalanceDef.await()?.toDouble() ?: return@coroutineScope ApplyLeaveStatus.REJECTED.name
         if (leaveBalance < req.totalDays) return@coroutineScope ApplyLeaveStatus.REJECTED.name
@@ -515,7 +506,8 @@ class ApplyLeaveRepositoryImpl(
         val isEmptyDef = async {
             dbQuery {
                 LeaveReq.find {
-                    LeaveReqTable.teacherId eq req.teacherId and (LeaveReqTable.toDate greaterEq req.fromDate)
+                    LeaveReqTable.teacherId eq req.teacherId and
+                            (LeaveReqTable.toDate greaterEq req.fromDate)
                 }.empty()
             }
         }
@@ -552,21 +544,10 @@ class ApplyLeaveRepositoryImpl(
             leaveType = LeaveType.PermanentType.CASUAL_LEAVE.value
         )
 
-        val recentEntryDef = async {
-            dbQuery {
-                val medicalLeaveType = leaveUtils.getLeaveType(
-                    type = LeaveType.ScatType.MEDICAL_LEAVE.value
-                )
-
-                LeaveReqTable.slice(LeaveReqTable.toDate.max())
-                    .select {
-                        LeaveReqTable.teacherId eq req.teacherId and
-                                (LeaveReqTable.leaveTypeId eq medicalLeaveType.id)
-                    }
-                    .map { it[LeaveReqTable.toDate.max()] }
-                    .singleOrNull()
-            }
-        }
+        val recentEntryDef = getRecentEntry(
+            type = LeaveType.PermanentType.MEDICAL_LEAVE.value,
+            teacherId = req.teacherId.value
+        )
 
         val leaveBalance = leaveBalanceDef.await()?.toDouble() ?: return@coroutineScope ApplyLeaveStatus.REJECTED.name
         if (leaveBalance < req.totalDays) return@coroutineScope ApplyLeaveStatus.REJECTED.name
@@ -639,21 +620,11 @@ class ApplyLeaveRepositoryImpl(
             )
         }
 
-        val recentEntryDef = async {
-            dbQuery {
-                val maternityLeaveType = leaveUtils.getLeaveType(
-                    type = LeaveType.PermanentType.MATERNITY_LEAVE.value
-                )
 
-                LeaveReqTable.slice(LeaveReqTable.toDate.max())
-                    .select {
-                        LeaveReqTable.teacherId eq req.teacherId and
-                                (LeaveReqTable.leaveTypeId eq maternityLeaveType.id)
-                    }
-                    .map { it[LeaveReqTable.toDate.max()] }
-                    .singleOrNull()
-            }
-        }
+        val recentEntryDef = getRecentEntry(
+            type = LeaveType.PermanentType.MATERNITY_LEAVE.value,
+            teacherId = req.teacherId.value
+        )
 
 
         val leaveBalance = leaveBalanceDef.await()?.toDouble() ?: return@coroutineScope ApplyLeaveStatus.REJECTED.name
@@ -709,21 +680,11 @@ class ApplyLeaveRepositoryImpl(
             leaveType = LeaveType.PermanentType.LEAVE_NOT_DUE.value
         )
 
-        val recentEntryDef = async {
-            dbQuery {
-                val leaveNotDue = leaveUtils.getLeaveType(
-                    type = LeaveType.PermanentType.LEAVE_NOT_DUE.value
-                )
 
-                LeaveReqTable.slice(LeaveReqTable.toDate.max())
-                    .select {
-                        LeaveReqTable.teacherId eq req.teacherId and
-                                (LeaveReqTable.leaveTypeId eq leaveNotDue.id)
-                    }
-                    .map { it[LeaveReqTable.toDate.max()] }
-                    .singleOrNull()
-            }
-        }
+        val recentEntryDef = getRecentEntry(
+            type = LeaveType.PermanentType.LEAVE_NOT_DUE.value,
+            teacherId = req.teacherId.value
+        )
 
         val leaveBalance = leaveBalanceDef.await()?.toDouble() ?: return@coroutineScope ApplyLeaveStatus.REJECTED.name
         if (leaveBalance < req.totalDays) return@coroutineScope ApplyLeaveStatus.REJECTED.name
@@ -757,21 +718,11 @@ class ApplyLeaveRepositoryImpl(
             leaveType = LeaveType.PermanentType.SPECIAL_DISABILITY_LEAVE.value
         )
 
-        val recentEntryDef = async {
-            dbQuery {
-                val leaveNotDue = leaveUtils.getLeaveType(
-                    type = LeaveType.PermanentType.SPECIAL_DISABILITY_LEAVE.value
-                )
 
-                LeaveReqTable.slice(LeaveReqTable.toDate.max())
-                    .select {
-                        LeaveReqTable.teacherId eq req.teacherId and
-                                (LeaveReqTable.leaveTypeId eq leaveNotDue.id)
-                    }
-                    .map { it[LeaveReqTable.toDate.max()] }
-                    .singleOrNull()
-            }
-        }
+        val recentEntryDef = getRecentEntry(
+            type = LeaveType.PermanentType.SPECIAL_DISABILITY_LEAVE.value,
+            teacherId = req.teacherId.value
+        )
 
         val leaveBalance = leaveBalanceDef.await()?.toDouble() ?: return@coroutineScope ApplyLeaveStatus.REJECTED.name
         if (leaveBalance < req.totalDays) return@coroutineScope ApplyLeaveStatus.REJECTED.name
@@ -820,6 +771,27 @@ class ApplyLeaveRepositoryImpl(
                             (LeaveReqTable.toDate greaterEq toDate) and
                             (LeaveReqTable.fromDate greaterEq toDate)
                 }.empty()
+            }
+        }
+    }
+
+    private suspend fun getRecentEntry(
+        type: String,
+        teacherId: Int
+    ) = coroutineScope {
+        async {
+            dbQuery {
+                val leaveType = leaveUtils.getLeaveType(
+                    type = type
+                )
+
+                LeaveReqTable.slice(LeaveReqTable.toDate.max())
+                    .select {
+                        LeaveReqTable.teacherId eq teacherId and
+                                (LeaveReqTable.leaveTypeId eq leaveType.id)
+                    }
+                    .map { it[LeaveReqTable.toDate.max()] }
+                    .singleOrNull()
             }
         }
     }

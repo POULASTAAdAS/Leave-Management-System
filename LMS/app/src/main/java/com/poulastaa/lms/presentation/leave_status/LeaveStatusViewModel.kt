@@ -97,6 +97,13 @@ class LeaveStatusViewModel @Inject constructor(
             }
 
             is LeaveStatusUiEvent.OnLeaveTypeSelected -> {
+                state = state.copy(
+                    leaveTypes = state.leaveTypes.copy(
+                        selected = state.leaveTypes.all[event.index],
+                        isDialogOpen = false
+                    )
+                )
+
                 viewModelScope.launch(Dispatchers.IO) {
                     getLeaveBalance?.cancel()
                     getLeaveBalance = getLeaveBalance()
@@ -115,7 +122,7 @@ class LeaveStatusViewModel @Inject constructor(
         val response = client.get<GetBalanceRes>(
             route = EndPoints.GetLeaveBalance.route,
             params = listOf(
-                "type" to state.leaveTypes.selected
+                "type" to state.leaveTypes.selected.trim()
             ),
             gson = gson,
             cookie = cookie,

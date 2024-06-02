@@ -131,7 +131,8 @@ private fun LeaveStatusScreen(
         Spacer(modifier = Modifier.height(MaterialTheme.dimens.medium1))
 
         Row(
-            modifier = Modifier.fillMaxWidth(.8f)
+            modifier = Modifier.fillMaxWidth(.8f),
+            horizontalArrangement = Arrangement.Center
         ) {
             Box(
                 contentAlignment = Alignment.Center

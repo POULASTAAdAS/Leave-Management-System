@@ -22,6 +22,8 @@ fun Route.getLeaveBalance(service: ServiceRepository) {
 
                 val type = call.parameters["type"] ?: return@get call.respondRedirect(EndPoints.UnAuthorised.route)
 
+                if (type.isEmpty()) return@get call.respondRedirect(EndPoints.UnAuthorised.route)
+
                 val response = service.getLeaveBalance(
                     type = type,
                     email = payload.email
