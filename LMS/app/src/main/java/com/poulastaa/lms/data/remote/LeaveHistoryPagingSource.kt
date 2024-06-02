@@ -9,7 +9,6 @@ import com.poulastaa.lms.domain.repository.utils.DataStoreRepository
 import com.poulastaa.lms.domain.utils.DataError
 import com.poulastaa.lms.domain.utils.Result
 import com.poulastaa.lms.presentation.leave_history.LeaveInfo
-import com.poulastaa.lms.ui.utils.toLeaveInfo
 import kotlinx.coroutines.flow.first
 import okhttp3.OkHttpClient
 import java.net.CookieManager
@@ -29,7 +28,10 @@ class LeaveHistoryPagingSource @Inject constructor(
 
         val response = client.get<List<LeaveInfoRes>>(
             route = EndPoints.GetLeaves.route,
-            params = emptyList(),
+            params = listOf(
+                "page" to page.toString(),
+                "pageSize" to "20"
+            ),
             gson = gson,
             cookie = cookie,
             cookieManager = cookieManager,
@@ -51,7 +53,17 @@ class LeaveHistoryPagingSource @Inject constructor(
 
             is Result.Success -> {
                 LoadResult.Page(
-                    data = response.data.map { it.toLeaveInfo() },
+                    data = response.data.map {
+                        LeaveInfo(
+                            reqDate = it.reqDate,
+                            leaveType = it.leaveType,
+                            status = it.status,
+                            fromDate = it.fromDate,
+                            toDate = it.toDate,
+                            pendingEnd = it.pendingEnd,
+                            totalDays = it.totalDays
+                        )
+                    },
                     prevKey = if (page == 1) null else page.minus(1),
                     nextKey = if (response.data.isEmpty()) null else page.plus(1)
                 )

@@ -1,20 +1,13 @@
 package com.poulastaa.lms.ui.utils
 
-import android.os.Build
 import com.poulastaa.lms.data.model.auth.LocalUser
 import com.poulastaa.lms.data.model.auth.ResponseUser
 import com.poulastaa.lms.data.model.home.UserType
-import com.poulastaa.lms.data.model.leave.LeaveInfoRes
 import com.poulastaa.lms.data.model.stoe_details.AddressReq
 import com.poulastaa.lms.data.model.stoe_details.AddressType
 import com.poulastaa.lms.data.model.stoe_details.StoreDetailsReq
-import com.poulastaa.lms.presentation.leave_history.LeaveInfo
 import com.poulastaa.lms.presentation.store_details.HolderAddress
 import com.poulastaa.lms.presentation.store_details.StoreDetailsUiState
-import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.temporal.ChronoUnit
-import java.util.Locale
 
 fun StoreDetailsUiState.toStoreDetailsReq() = StoreDetailsReq(
     email = this.email.data.trim(),
@@ -61,39 +54,3 @@ fun ResponseUser.toLocalUser() = LocalUser(
     userType = if (this.designation.startsWith("S")) UserType.SACT
     else UserType.PERMANENT
 )
-
-fun LeaveInfoRes.toLeaveInfo() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-    LeaveInfo(
-        reqDate = this.reqDate,
-        leaveType = this.leaveType,
-        status = this.status,
-        fromDate = this.fromDate,
-        toDate = this.toDate,
-        pendingEnd = this.pendingEnd,
-        totalDays = ChronoUnit.DAYS.between(
-            LocalDate.parse(this.fromDate),
-            LocalDate.parse(this.toDate)
-        ).toString()
-    )
-} else {
-    val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-    val fromDate = dateFormat.parse(this.fromDate)
-    val toDate = dateFormat.parse(this.toDate)
-
-    val daysBetween = if (toDate != null && fromDate != null) {
-        val differenceInMill = toDate.time - fromDate.time
-        (differenceInMill / (1000 * 60 * 60 * 24)).toString()
-    } else {
-        "0"
-    }
-
-    LeaveInfo(
-        reqDate = this.reqDate,
-        leaveType = this.leaveType,
-        status = this.status,
-        fromDate = this.fromDate,
-        toDate = this.toDate,
-        pendingEnd = this.pendingEnd,
-        totalDays = daysBetween
-    )
-}

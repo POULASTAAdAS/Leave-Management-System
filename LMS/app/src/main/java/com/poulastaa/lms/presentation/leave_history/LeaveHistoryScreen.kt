@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -74,7 +75,7 @@ private fun LeaveHistoryScreen(
     navigateBack: () -> Unit
 ) {
     Scaffold {
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .background(
                     brush = Brush.verticalGradient(
@@ -87,58 +88,62 @@ private fun LeaveHistoryScreen(
                 .fillMaxSize()
                 .padding(it)
         ) {
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = MaterialTheme.dimens.medium1),
-                    verticalAlignment = Alignment.CenterVertically
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = MaterialTheme.dimens.medium1),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = navigateBack, colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
                 ) {
-                    IconButton(
-                        onClick = navigateBack, colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
-                        )
-                    ) {
-                        Icon(
-                            imageVector = ArrowBackIcon,
-                            contentDescription = null
+                    Icon(
+                        imageVector = ArrowBackIcon,
+                        contentDescription = null
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(MaterialTheme.dimens.medium1))
+
+                Text(
+                    text = stringResource(id = R.string.leave_history_heading),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = MaterialTheme.typography.headlineSmall.fontSize
+                )
+            }
+
+            Spacer(modifier = Modifier.heightIn(MaterialTheme.dimens.medium1))
+
+
+
+            Spacer(modifier = Modifier.heightIn(MaterialTheme.dimens.large1))
+
+
+            if (leave.itemCount > 0)
+                LazyColumn(
+                    modifier = Modifier
+                        .horizontalScroll(rememberScrollState())
+                ) {
+                    item {
+                        LeaveHistoryHeaderCard(
+                            header = state.header
                         )
                     }
 
-                    Spacer(modifier = Modifier.width(MaterialTheme.dimens.medium1))
+                    item {
+                        Spacer(modifier = Modifier.height(MaterialTheme.dimens.large1))
+                        Spacer(modifier = Modifier.height(MaterialTheme.dimens.medium3))
+                    }
 
-                    Text(
-                        text = stringResource(id = R.string.leave_history_heading),
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = MaterialTheme.typography.headlineSmall.fontSize
-                    )
+                    items(leave.itemCount) { index ->
+                        leave[index]?.let { item ->
+                            LeaveHistoryItemCard(leaveInfo = item)
+                        }
+                    }
                 }
-            }
-
-            item {
-                Spacer(modifier = Modifier.heightIn(MaterialTheme.dimens.medium1))
-            }
-
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .horizontalScroll(rememberScrollState()),
-                ) {
-                    LeaveHistoryHeaderCard(header = state.header)
-                }
-            }
-
-            item {
-                Spacer(modifier = Modifier.heightIn(MaterialTheme.dimens.large1))
-            }
-
-            items(leave.itemCount) { index ->
-                leave[index]?.let { item ->
-                    LeaveHistoryItemCard(leaveInfo = item)
-                }
-            }
         }
     }
 }

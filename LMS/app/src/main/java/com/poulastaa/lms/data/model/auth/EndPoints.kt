@@ -1,14 +1,11 @@
 package com.poulastaa.lms.data.model.auth
 
 sealed class EndPoints(val route: String) {
-
     data object Auth : EndPoints(route = "/api/auth")
 
-    data object VerifySignUpEmail : EndPoints(route = "/api/auth/verifySignUpEmail")
     data object SignUpEmailVerificationCheck :
         EndPoints(route = "/api/auth/signUpEmailVerificationCheck")
 
-    data object VerifyLogInEmail : EndPoints(route = "/api/auth/verifyLogInEmail")
     data object LogInEmailVerificationCheck :
         EndPoints(route = "/api/auth/logInEmailVerificationCheck")
 

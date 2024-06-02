@@ -11,6 +11,7 @@ import com.poulastaa.data.model.details.UpdateDetailsReq
 import com.poulastaa.data.model.leave.ApplyLeaveReq
 import com.poulastaa.data.model.leave.ApplyLeaveRes
 import com.poulastaa.data.model.leave.GetBalanceRes
+import com.poulastaa.data.model.leave.LeaveHistoryRes
 import java.io.File
 
 
@@ -40,4 +41,10 @@ interface ServiceRepository {
         req: ApplyLeaveReq,
         filePath: String?
     ): ApplyLeaveRes
+
+    suspend fun getLeaveHistory(
+        email: String,
+        page: Int,
+        pageSize: Int
+    ): List<LeaveHistoryRes>
 }

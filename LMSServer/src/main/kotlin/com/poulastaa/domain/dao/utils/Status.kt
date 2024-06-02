@@ -9,4 +9,11 @@ class Status(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<Status>(StatusTable)
 
     val type by StatusTable.type
+
+    enum class TYPE(val value: String) {
+        ACCEPTED("Accepeted"),
+        REJECTED("Approved"),
+        PENDING("Pending"),
+        APPROVED("Rejected")
+    }
 }

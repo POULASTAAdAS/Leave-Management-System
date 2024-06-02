@@ -113,9 +113,7 @@ insert ignore into PendingEnd (type) values
 insert ignore into LeaveAction (type) values
 ('Approve'),
 ('Reject'),
-('Forword');
-
-
+('Forward');
 
 
 

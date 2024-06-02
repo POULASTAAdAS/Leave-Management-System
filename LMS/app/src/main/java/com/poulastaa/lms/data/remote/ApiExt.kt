@@ -2,6 +2,7 @@ package com.poulastaa.lms.data.remote
 
 import android.webkit.MimeTypeMap
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.poulastaa.lms.BuildConfig
 import com.poulastaa.lms.domain.repository.utils.DataStoreRepository
 import com.poulastaa.lms.domain.utils.DataError
@@ -258,7 +259,8 @@ suspend inline fun <reified T> responseToResult(
     when (response.code) {
         in 200..299 -> {
             val body = response.body!!.string()
-            val obj = gson.fromJson(body, T::class.java)
+            val type = object : TypeToken<T>() {}.type
+            val obj = gson.fromJson<T>(body, type)
 
             try {
                 val cookie = cookieManager?.let { extractCookie(it) }

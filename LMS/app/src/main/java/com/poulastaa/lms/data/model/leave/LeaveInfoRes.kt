@@ -7,4 +7,5 @@ data class LeaveInfoRes(
     val fromDate: String,
     val toDate: String,
     val pendingEnd: String = "",
+    val totalDays: String = ""
 )

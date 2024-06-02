@@ -6,10 +6,7 @@ import com.poulastaa.data.model.auth.req.SetDetailsReq
 import com.poulastaa.data.model.auth.res.*
 import com.poulastaa.data.model.details.UpdateAddressReq
 import com.poulastaa.data.model.details.UpdateDetailsReq
-import com.poulastaa.data.model.leave.ApplyLeaveReq
-import com.poulastaa.data.model.leave.ApplyLeaveRes
-import com.poulastaa.data.model.leave.ApplyLeaveStatus
-import com.poulastaa.data.model.leave.GetBalanceRes
+import com.poulastaa.data.model.leave.*
 import com.poulastaa.data.model.table.department.DepartmentHeadTable
 import com.poulastaa.data.model.table.department.DepartmentTable
 import com.poulastaa.data.model.table.utils.PathTable
@@ -275,6 +272,20 @@ class ServiceRepositoryImpl(
 
 
         return response
+    }
+
+    override suspend fun getLeaveHistory(
+        email: String,
+        page: Int,
+        pageSize: Int
+    ): List<LeaveHistoryRes> {
+        val teacher = teacher.getTeacher(email) ?: return emptyList()
+
+        return leave.leaveUtils.getLeaves(
+            teacherId = teacher.id.value,
+            page = page,
+            pageSize = pageSize
+        )
     }
 
     private fun validateEmail(email: String) =

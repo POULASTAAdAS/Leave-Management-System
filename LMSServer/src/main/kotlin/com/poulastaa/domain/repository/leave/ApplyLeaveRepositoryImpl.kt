@@ -8,6 +8,7 @@ import com.poulastaa.data.model.leave.LeaveEntry
 import com.poulastaa.data.model.table.address.TeacherDetailsTable
 import com.poulastaa.data.model.table.leave.LeaveBalanceTable
 import com.poulastaa.data.model.table.leave.LeaveReqTable
+import com.poulastaa.data.model.table.leave.LeaveStatusTable
 import com.poulastaa.data.model.table.utils.PathTable
 import com.poulastaa.data.repository.TeacherRepository
 import com.poulastaa.data.repository.leave.ApplyLeaveRepository
@@ -110,7 +111,8 @@ class ApplyLeaveRepositoryImpl(
                                 addressDuringLeave = req.addressDuringLeave,
                                 pathId = path.id,
                                 doc = doc
-                            )
+                            ),
+                            isPermanent = false
                         )
                     }
                 }
@@ -186,7 +188,8 @@ class ApplyLeaveRepositoryImpl(
                                 addressDuringLeave = req.addressDuringLeave,
                                 pathId = path.id,
                                 doc = doc
-                            )
+                            ),
+                            isPermanent = true
                         )
                     }
 
@@ -362,7 +365,8 @@ class ApplyLeaveRepositoryImpl(
         val isEmptyDef = async {
             dbQuery {
                 LeaveReq.find {
-                    LeaveReqTable.teacherId eq req.teacherId and (LeaveReqTable.toDate greaterEq req.fromDate)
+                    LeaveReqTable.teacherId eq req.teacherId and
+                            (LeaveReqTable.toDate greaterEq req.fromDate)
                 }.empty()
             }
         }
@@ -373,7 +377,7 @@ class ApplyLeaveRepositoryImpl(
         val isEmpty = isEmptyDef.await()
         if (!isEmpty) return@coroutineScope ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS.name
 
-        addNewLeaveEntry(req)
+        handleNewLeaveEntry(req, false)
 
         (leaveBalance - req.totalDays).toString()
     }
@@ -410,12 +414,15 @@ class ApplyLeaveRepositoryImpl(
             if (req.fromDate <= it) return@coroutineScope ApplyLeaveStatus.REJECTED.name
         }
 
-        addNewLeaveEntry(req)
+        handleNewLeaveEntry(req, false)
 
         (leaveBalance - req.totalDays).toString()
     }
 
-    private suspend fun applyStudyLeave(req: LeaveEntry) = coroutineScope {
+    private suspend fun applyStudyLeave(
+        req: LeaveEntry,
+        isPermanent: Boolean
+    ) = coroutineScope {
         if (req.totalDays > 360.0) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
         val leaveBalanceDef = async {
@@ -462,7 +469,7 @@ class ApplyLeaveRepositoryImpl(
         val oldStudyLeaveEntry = oldStudyLeaveEntryDef.await()
 
 
-        if (oldStudyLeaveEntry.isEmpty()) addNewLeaveEntry(req)
+        if (oldStudyLeaveEntry.isEmpty()) handleNewLeaveEntry(req, true)
         else {
             oldStudyLeaveEntry.forEach { // check for conflict
                 if (req.fromDate <= it.toDate) return@coroutineScope ApplyLeaveStatus.REJECTED.name
@@ -486,7 +493,7 @@ class ApplyLeaveRepositoryImpl(
                 ) < 3
             ) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
-            addNewLeaveEntry(req)
+            handleNewLeaveEntry(req, isPermanent)
         }
 
         (leaveBalance - req.totalDays).toString()
@@ -520,7 +527,7 @@ class ApplyLeaveRepositoryImpl(
 
 
 
-        addNewLeaveEntry(req)
+        handleNewLeaveEntry(req, true)
         (leaveBalance - req.totalDays).toString()
     }
 
@@ -563,7 +570,7 @@ class ApplyLeaveRepositoryImpl(
             if (req.fromDate <= it) return@coroutineScope ApplyLeaveStatus.REJECTED.name
         }
 
-        addNewLeaveEntry(req)
+        handleNewLeaveEntry(req, true)
         (leaveBalance - req.totalDays).toString()
     }
 
@@ -605,7 +612,7 @@ class ApplyLeaveRepositoryImpl(
 
         if (monthDiffInApplyDateToFromDate < 3) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
-        addNewLeaveEntry(req)
+        handleNewLeaveEntry(req, true)
 
         (leaveBalance - req.totalDays).toString()
     }
@@ -634,7 +641,7 @@ class ApplyLeaveRepositoryImpl(
             if (req.fromDate <= it) return@coroutineScope ApplyLeaveStatus.REJECTED.name
         }
 
-        addNewLeaveEntry(req)
+        handleNewLeaveEntry(req, true)
         (leaveBalance - req.totalDays).toString()
     }
 
@@ -660,7 +667,7 @@ class ApplyLeaveRepositoryImpl(
         val conflictWithCasualLeave = !conflictWithCasualLeaveDef.await()
         if (conflictWithCasualLeave) return@coroutineScope ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS.name
 
-        addNewLeaveEntry(req)
+        handleNewLeaveEntry(req, true)
         (leaveBalance - req.totalDays).toString()
     }
 
@@ -698,7 +705,7 @@ class ApplyLeaveRepositoryImpl(
             if (req.fromDate <= it) return@coroutineScope ApplyLeaveStatus.REJECTED.name
         }
 
-        addNewLeaveEntry(req)
+        handleNewLeaveEntry(req, true)
         (leaveBalance - req.totalDays).toString()
     }
 
@@ -735,21 +742,42 @@ class ApplyLeaveRepositoryImpl(
             if (req.fromDate <= it) return@coroutineScope ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS.name
         }
 
-        addNewLeaveEntry(req)
+        handleNewLeaveEntry(req, true)
         (leaveBalance - req.totalDays).toString()
     }
 
-    private suspend fun addNewLeaveEntry(req: LeaveEntry) = dbQuery {
-        LeaveReq.new {
-            this.teacherId = req.teacherId
-            this.leaveTypeId = req.leaveTypeId
-            this.reqDate = req.reqData
-            this.toDate = req.toDate
-            this.fromDate = req.fromDate
-            this.reason = req.reason
-            this.addressDuringLeave = req.addressDuringLeave
-            this.pathId = req.pathId
-            this.doc = req.doc
+    private suspend fun handleNewLeaveEntry(
+        req: LeaveEntry,
+        isPermanent: Boolean
+    ) = coroutineScope {
+        val newEntry = dbQuery {
+            LeaveReq.new {
+                this.teacherId = req.teacherId
+                this.leaveTypeId = req.leaveTypeId
+                this.reqDate = req.reqData
+                this.toDate = req.toDate
+                this.fromDate = req.fromDate
+                this.reason = req.reason
+                this.addressDuringLeave = req.addressDuringLeave
+                this.pathId = req.pathId
+                this.doc = req.doc
+            }
+        }
+
+        val statusIdDef = async { leaveUtils.getPendingStatusId() }
+        val pendingEndIdDef = async { leaveUtils.getPendingEndId(isPermanent) }
+
+        val statusId = statusIdDef.await()
+        val pendingEndId = pendingEndIdDef.await()
+
+        dbQuery {
+            LeaveStatusTable.insert {
+                it[this.leaveId] = newEntry.id.value
+                it[this.statusId] = statusId
+                it[this.pendingEndId] = pendingEndId
+                it[this.cause] = ""
+                it[this.actionId] = null
+            }
         }
     }
 

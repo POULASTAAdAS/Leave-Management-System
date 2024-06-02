@@ -10,9 +10,9 @@ class LeaveAction(id: EntityID<Int>) : IntEntity(id) {
 
     val type by LeaveActionTable.type
 
-    enum class TYPE {
-        APPROVED,
-        FORWARD,
-        REJECT
+    enum class TYPE(val value: String) {
+        APPROVED("Approve"),
+        FORWARD("Forward"),
+        REJECT("Reject")
     }
 }
