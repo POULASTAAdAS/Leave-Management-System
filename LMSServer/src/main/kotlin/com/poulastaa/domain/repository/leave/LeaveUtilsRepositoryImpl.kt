@@ -1,7 +1,11 @@
 package com.poulastaa.domain.repository.leave
 
+import com.poulastaa.data.model.TeacherDetails
+import com.poulastaa.data.model.leave.LeaveApproveRes
 import com.poulastaa.data.model.leave.LeaveHistoryRes
+import com.poulastaa.data.model.table.address.TeacherDetailsTable
 import com.poulastaa.data.model.table.leave.*
+import com.poulastaa.data.model.table.leave.LeaveStatusTable.leaveId
 import com.poulastaa.data.model.table.utils.PendingEndTable
 import com.poulastaa.data.model.table.utils.StatusTable
 import com.poulastaa.data.repository.leave.LeaveUtilsRepository
@@ -41,7 +45,7 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
         }
     }
 
-    override suspend fun getLeaves(
+    override suspend fun getHistoryLeaves(
         teacherId: Int,
         page: Int,
         pageSize: Int
@@ -116,5 +120,71 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
         Status.find {
             StatusTable.type eq Status.TYPE.PENDING.value
         }.single().id
+    }
+
+    override suspend fun getApproveLeave(
+        departmentId: Int,
+        teacherHeadId: Int,
+        page: Int,
+        pageSize: Int
+    ): List<LeaveApproveRes> =
+        coroutineScope {
+            val leaveId = dbQuery {
+                LeaveStatusTable
+                    .slice(LeaveStatusTable.leaveId)
+                    .select {
+                        LeaveStatusTable.departmentId eq departmentId and (LeaveStatusTable.actionId eq null)
+                    }.map {
+                        it[LeaveStatusTable.leaveId].value
+                    }
+            }
+
+            if (leaveId.isEmpty()) return@coroutineScope emptyList()
+
+            dbQuery {
+                LeaveReq.find {
+                    LeaveReqTable.id inList leaveId and (LeaveReqTable.teacherId notInList listOf(teacherHeadId))
+                }.orderBy(LeaveReqTable.reqDate to SortOrder.ASC)
+                    .drop(if (page == 1) 0 else page * pageSize)
+                    .take(pageSize)
+                    .map {
+                        async {
+                            val name = async {
+                                dbQuery {
+                                    TeacherDetailsTable
+                                        .slice(TeacherDetailsTable.name)
+                                        .select {
+                                            TeacherDetailsTable.teacherId eq it.teacherId
+                                        }.single().let { res ->
+                                            res[TeacherDetailsTable.name]
+                                        }
+                                }
+                            }
+                            val leaveType = async {
+                                dbQuery {
+                                    LeaveType.find {
+                                        LeaveTypeTable.id eq it.leaveTypeId
+                                    }.single().type
+                                }
+                            }
+
+                            LeaveApproveRes(
+                                leaveId = it.id.value,
+                                reqData = it.reqDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
+                                name = name.await(),
+                                leaveType = leaveType.await(),
+                                fromDate = it.fromDate.toString(),
+                                toDate = it.toDate.toString(),
+                                totalDays = ChronoUnit.DAYS.between(it.fromDate, it.toDate).toString()
+                            )
+                        }
+                    }.awaitAll()
+            }
+        }
+
+    override suspend fun getLeaveOnId(leaveId: Long): LeaveReq = dbQuery {
+        LeaveReq.find {
+            LeaveReqTable.id eq leaveId
+        }.single()
     }
 }

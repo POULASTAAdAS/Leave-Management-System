@@ -71,7 +71,7 @@ fun LeaveHistoryRootScreen(
 @Composable
 private fun LeaveHistoryScreen(
     state: LeaveHistoryUiState,
-    leave: LazyPagingItems<LeaveInfo>,
+    leave: LazyPagingItems<LeaveHistoryInfo>,
     navigateBack: () -> Unit
 ) {
     Scaffold {
@@ -116,9 +116,6 @@ private fun LeaveHistoryScreen(
             }
 
             Spacer(modifier = Modifier.heightIn(MaterialTheme.dimens.medium1))
-
-
-
             Spacer(modifier = Modifier.heightIn(MaterialTheme.dimens.large1))
 
 

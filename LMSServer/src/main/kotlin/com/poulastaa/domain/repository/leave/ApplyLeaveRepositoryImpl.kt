@@ -1,23 +1,28 @@
 package com.poulastaa.domain.repository.leave
 
 import com.poulastaa.data.model.constants.TeacherType
-import com.poulastaa.data.model.leave.ApplyLeaveReq
-import com.poulastaa.data.model.leave.ApplyLeaveRes
-import com.poulastaa.data.model.leave.ApplyLeaveStatus
-import com.poulastaa.data.model.leave.LeaveEntry
+import com.poulastaa.data.model.leave.*
 import com.poulastaa.data.model.table.address.TeacherDetailsTable
+import com.poulastaa.data.model.table.leave.LeaveActionTable
 import com.poulastaa.data.model.table.leave.LeaveBalanceTable
 import com.poulastaa.data.model.table.leave.LeaveReqTable
 import com.poulastaa.data.model.table.leave.LeaveStatusTable
 import com.poulastaa.data.model.table.utils.PathTable
+import com.poulastaa.data.model.table.utils.PendingEndTable
+import com.poulastaa.data.model.table.utils.StatusTable
 import com.poulastaa.data.repository.TeacherRepository
 import com.poulastaa.data.repository.leave.ApplyLeaveRepository
 import com.poulastaa.data.repository.leave.LeaveUtilsRepository
+import com.poulastaa.domain.dao.leave.LeaveAction
 import com.poulastaa.domain.dao.leave.LeaveReq
 import com.poulastaa.domain.dao.leave.LeaveType
 import com.poulastaa.domain.dao.utils.Path
+import com.poulastaa.domain.dao.utils.PendingEnd
+import com.poulastaa.domain.dao.utils.Principal
+import com.poulastaa.domain.dao.utils.Status
 import com.poulastaa.plugins.dbQuery
 import com.poulastaa.utils.toTeacherDetails
+import com.sun.jdi.ByteValue
 import kotlinx.coroutines.*
 import org.jetbrains.exposed.sql.*
 import java.time.LocalDate
@@ -64,7 +69,8 @@ class ApplyLeaveRepositoryImpl(
                                 reason = req.reason,
                                 addressDuringLeave = req.addressDuringLeave,
                                 pathId = path.id,
-                                doc = doc
+                                doc = doc,
+                                departmentId = teacherDetails.departmentId
                             )
                         )
                     }
@@ -87,7 +93,8 @@ class ApplyLeaveRepositoryImpl(
                                 reason = req.reason,
                                 addressDuringLeave = req.addressDuringLeave,
                                 pathId = path.id,
-                                doc = doc
+                                doc = doc,
+                                departmentId = teacherDetails.departmentId
                             )
                         )
                     }
@@ -110,7 +117,8 @@ class ApplyLeaveRepositoryImpl(
                                 reason = req.reason,
                                 addressDuringLeave = req.addressDuringLeave,
                                 pathId = path.id,
-                                doc = doc
+                                doc = doc,
+                                departmentId = teacherDetails.departmentId
                             ),
                             isPermanent = false
                         )
@@ -136,7 +144,8 @@ class ApplyLeaveRepositoryImpl(
                                 reason = req.reason,
                                 addressDuringLeave = req.addressDuringLeave,
                                 pathId = path.id,
-                                doc = doc
+                                doc = doc,
+                                departmentId = teacherDetails.departmentId
                             )
                         )
                     }
@@ -164,7 +173,8 @@ class ApplyLeaveRepositoryImpl(
                                 reason = req.reason,
                                 addressDuringLeave = req.addressDuringLeave,
                                 pathId = path.id,
-                                doc = doc
+                                doc = doc,
+                                departmentId = teacherDetails.departmentId
                             )
                         )
                     }
@@ -187,7 +197,8 @@ class ApplyLeaveRepositoryImpl(
                                 reason = req.reason,
                                 addressDuringLeave = req.addressDuringLeave,
                                 pathId = path.id,
-                                doc = doc
+                                doc = doc,
+                                departmentId = teacherDetails.departmentId
                             ),
                             isPermanent = true
                         )
@@ -211,7 +222,8 @@ class ApplyLeaveRepositoryImpl(
                                 reason = req.reason,
                                 addressDuringLeave = req.addressDuringLeave,
                                 pathId = path.id,
-                                doc = doc
+                                doc = doc,
+                                departmentId = teacherDetails.departmentId
                             )
                         )
                     }
@@ -236,7 +248,8 @@ class ApplyLeaveRepositoryImpl(
                                 reason = req.reason,
                                 addressDuringLeave = req.addressDuringLeave,
                                 pathId = path.id,
-                                doc = doc
+                                doc = doc,
+                                departmentId = teacherDetails.departmentId
                             )
                         )
                     }
@@ -259,7 +272,8 @@ class ApplyLeaveRepositoryImpl(
                                 reason = req.reason,
                                 addressDuringLeave = req.addressDuringLeave,
                                 pathId = path.id,
-                                doc = doc
+                                doc = doc,
+                                departmentId = teacherDetails.departmentId
                             )
                         )
                     }
@@ -294,7 +308,8 @@ class ApplyLeaveRepositoryImpl(
                                 reason = req.reason,
                                 addressDuringLeave = req.addressDuringLeave,
                                 pathId = path.id,
-                                doc = doc
+                                doc = doc,
+                                departmentId = teacherDetails.departmentId
                             )
                         )
                     }
@@ -317,7 +332,8 @@ class ApplyLeaveRepositoryImpl(
                                 reason = req.reason,
                                 addressDuringLeave = req.addressDuringLeave,
                                 pathId = path.id,
-                                doc = doc
+                                doc = doc,
+                                departmentId = teacherDetails.departmentId
                             )
                         )
                     }
@@ -775,6 +791,7 @@ class ApplyLeaveRepositoryImpl(
                 it[this.leaveId] = newEntry.id.value
                 it[this.statusId] = statusId
                 it[this.pendingEndId] = pendingEndId
+                it[this.departmentId] = req.departmentId
                 it[this.cause] = ""
                 it[this.actionId] = null
             }
@@ -822,5 +839,81 @@ class ApplyLeaveRepositoryImpl(
                     .singleOrNull()
             }
         }
+    }
+
+
+    override suspend fun handleLeave(
+        req: HandleLeaveReq,
+        isPrincipal: Boolean
+    ): Pair<LeaveAction.TYPE, Int> = coroutineScope {
+        val actionType = when {
+            req.action.startsWith("Accept") -> LeaveAction.TYPE.FORWARD
+            req.action.startsWith("Approve") -> LeaveAction.TYPE.APPROVED
+            else -> LeaveAction.TYPE.REJECT
+        }
+
+        val actionDef = async {
+            dbQuery {
+                LeaveAction.find {
+                    LeaveActionTable.type.upperCase() eq actionType.value.uppercase()
+                }.single()
+            }
+        }
+
+        val statusType = when (actionType) {
+            LeaveAction.TYPE.APPROVED -> Status.TYPE.APPROVED
+            LeaveAction.TYPE.FORWARD -> Status.TYPE.PENDING
+            LeaveAction.TYPE.REJECT -> Status.TYPE.REJECTED
+        }
+
+        val statusDef = async {
+            dbQuery {
+                Status.find {
+                    StatusTable.type.upperCase() eq statusType.value.uppercase()
+                }.single()
+            }
+        }
+
+        val pendingType = when (actionType) {
+            LeaveAction.TYPE.APPROVED -> if (isPrincipal) PendingEnd.TYPE.NOT_PENDING else PendingEnd.TYPE.PRINCIPLE_LEVEL
+            LeaveAction.TYPE.FORWARD -> PendingEnd.TYPE.PRINCIPLE_LEVEL
+            LeaveAction.TYPE.REJECT -> PendingEnd.TYPE.NOT_PENDING
+        }
+
+        val pendingEndDef = async {
+            dbQuery {
+                PendingEnd.find {
+                    PendingEndTable.type.upperCase() eq pendingType.value.uppercase()
+                }.single()
+            }
+        }
+
+        val teacherIdDef = async {
+            dbQuery {
+                LeaveReq.find {
+                    LeaveReqTable.id eq req.leaveId
+                }.single().teacherId.value
+            }
+        }
+
+        val action = actionDef.await()
+        val status = statusDef.await()
+        val pendingEnd = pendingEndDef.await()
+        val teacherId = teacherIdDef.await()
+
+        dbQuery {
+            LeaveStatusTable.update(
+                where = {
+                    LeaveStatusTable.leaveId eq req.leaveId
+                }
+            ) {
+                it[this.statusId] = status.id
+                it[this.pendingEndId] = pendingEnd.id
+                it[this.cause] = req.cause
+                it[this.actionId] = action.id
+            }
+        }
+
+        actionType to teacherId
     }
 }

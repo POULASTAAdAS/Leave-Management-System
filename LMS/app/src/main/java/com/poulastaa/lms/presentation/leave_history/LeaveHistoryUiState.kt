@@ -14,7 +14,7 @@ data class LeaveHistoryUiState(
 )
 
 
-data class LeaveInfo(
+data class LeaveHistoryInfo(
     val reqDate: String,
     val leaveType: String,
     val status: String,

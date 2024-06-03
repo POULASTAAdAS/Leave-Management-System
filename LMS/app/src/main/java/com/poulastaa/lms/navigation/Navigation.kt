@@ -12,6 +12,7 @@ import androidx.navigation.navArgument
 import com.poulastaa.lms.presentation.auth.AuthRootScreen
 import com.poulastaa.lms.presentation.home.type.HomeRootScreenType
 import com.poulastaa.lms.presentation.leave_apply.ApplyLeaveRootScreen
+import com.poulastaa.lms.presentation.leave_approval.ApproveLeaveRootScreen
 import com.poulastaa.lms.presentation.leave_history.LeaveHistoryRootScreen
 import com.poulastaa.lms.presentation.leave_status.LeaveStatusRootScreen
 import com.poulastaa.lms.presentation.profile.ProfileRootScreen
@@ -270,7 +271,9 @@ fun Navigation(
         }
 
         composable(route = Screens.ApproveLeave.route) {
-
+            ApproveLeaveRootScreen {
+                navController.popBackStack()
+            }
         }
 
         composable(route = Screens.ViewLeave.route) {

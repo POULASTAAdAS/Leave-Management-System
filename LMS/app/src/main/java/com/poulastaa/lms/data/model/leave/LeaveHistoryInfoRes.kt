@@ -1,6 +1,6 @@
 package com.poulastaa.lms.data.model.leave
 
-data class LeaveInfoRes(
+data class LeaveHistoryInfoRes(
     val reqDate: String = "",
     val leaveType: String = "",
     val status: String = "",

@@ -8,10 +8,7 @@ import com.poulastaa.data.model.auth.res.SetDetailsRes
 import com.poulastaa.data.model.auth.res.VerifiedMailStatus
 import com.poulastaa.data.model.details.UpdateAddressReq
 import com.poulastaa.data.model.details.UpdateDetailsReq
-import com.poulastaa.data.model.leave.ApplyLeaveReq
-import com.poulastaa.data.model.leave.ApplyLeaveRes
-import com.poulastaa.data.model.leave.GetBalanceRes
-import com.poulastaa.data.model.leave.LeaveHistoryRes
+import com.poulastaa.data.model.leave.*
 import java.io.File
 
 
@@ -47,4 +44,15 @@ interface ServiceRepository {
         page: Int,
         pageSize: Int
     ): List<LeaveHistoryRes>
+
+    suspend fun getApproveLeaveAsDepartment(
+        email: String,
+        page: Int,
+        pageSize: Int
+    ): List<LeaveApproveRes>
+
+    suspend fun handleLeave(
+        req: HandleLeaveReq,
+        email: String
+    ): Boolean
 }

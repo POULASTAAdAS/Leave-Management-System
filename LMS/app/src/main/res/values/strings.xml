@@ -72,7 +72,7 @@
     <string name="address_updated">Address Updated</string>
     <string name="profile_pic_updated">Profile updated please go back to see changes.</string>
     <string name="apply_leave_success">Leave request has been sent.An conformation mail will be sent to you.</string>
-    <string name="leave_type">Leave type</string>
+    <string name="leave_type">Leave Type</string>
     <string name="leave_balance">Balance</string>
     <string name="from_date">From Date</string>
     <string name="to_date">To Date</string>
@@ -97,6 +97,11 @@
     <string name="leave_req_already_exists">Your selected date overlap with other ongoing leave.</string>
     <string name="leave_status_header">Leave Status</string>
     <string name="leave_history_heading">Leave History</string>
+    <string name="no_leave_to_approve">No Teacher has requested for leave.</string>
+    <string name="leave_req_date">Date Of Application</string>
+    <string name="action">Action</string>
+    <string name="cause">cause</string>
+    <string name="submit">submit</string>
 
     <array name="com_google_android_gms_fonts_certs">
         <item>@array/com_google_android_gms_fonts_certs_dev</item>

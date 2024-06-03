@@ -6,6 +6,8 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.google.gson.Gson
+import com.poulastaa.lms.BuildConfig
+import com.poulastaa.lms.data.model.auth.EndPoints
 import com.poulastaa.lms.data.model.auth.LocalUser
 import com.poulastaa.lms.domain.repository.utils.DataStoreRepository
 import com.poulastaa.lms.navigation.Screens
@@ -73,7 +75,9 @@ class DataStoreRepositoryImpl @Inject constructor(
         emit(emptyPreferences())
     }.map {
         it[PreferencesKeys.USER]?.let { user ->
-            Gson().fromJson(user, LocalUser::class.java)
+            Gson().fromJson(user, LocalUser::class.java).copy(
+                profilePicUrl = BuildConfig.BASE_URL + EndPoints.GetProfilePic.route
+            )
         } ?: LocalUser()
     }
 }

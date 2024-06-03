@@ -20,6 +20,8 @@ sealed class EndPoints(val route: String) {
     data object GetLeaveBalance : EndPoints(route = "/api/auth/getLeaveBalance")
 
     data object ApplyLeave : EndPoints(route = "/api/auth/applyLeave")
+    data object GetHistoryLeaves : EndPoints(route = "/api/auth/getHistoryLeaves")
 
-    data object GetLeaves : EndPoints(route = "/api/auth/getLeaves")
+    data object GetApproveLeaves : EndPoints(route = "/api/auth/getApproveLeaves")
+    data object HandleLeave : EndPoints(route = "/api/auth/handleLeave")
 }

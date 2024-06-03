@@ -4,9 +4,7 @@ import com.poulastaa.data.model.auth.UserSession
 import com.poulastaa.data.repository.ServiceRepository
 import com.poulastaa.routes.auth.*
 import com.poulastaa.routes.details.*
-import com.poulastaa.routes.leave.applyLeave
-import com.poulastaa.routes.leave.getLeave
-import com.poulastaa.routes.leave.getLeaveBalance
+import com.poulastaa.routes.leave.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
 import io.ktor.server.routing.*
@@ -40,6 +38,9 @@ fun Application.configureRouting() {
         getLeaveBalance(service)
         applyLeave(service)
         getLeave(service)
+
+        getApproveLeave(service)
+        handleLeave(service)
 
         unAuth()
 

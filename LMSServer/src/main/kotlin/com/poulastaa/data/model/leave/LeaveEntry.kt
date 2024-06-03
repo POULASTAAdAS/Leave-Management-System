@@ -14,5 +14,6 @@ data class LeaveEntry(
     val reason: String,
     val addressDuringLeave: String,
     val pathId: EntityID<Int>,
+    val departmentId: Int,
     val doc: String? = null,
 )

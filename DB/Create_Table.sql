@@ -133,7 +133,8 @@ leaveId BigInt primary key references LeaveReq(id) on delete cascade,
 statusId Int references `Status`(id) on delete cascade,
 pendingEndId Int references PendingEnd(id) on delete cascade,
 cause text not null default(""),
-actionId Int default(null) references LeaveAction(id) on delete cascade 
+actionId Int default(null) references LeaveAction(id) on delete cascade,
+departmentId int references Department(id) on delete cascade
 );
 
 

@@ -25,7 +25,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.poulastaa.lms.presentation.leave_history.LeaveInfo
+import com.poulastaa.lms.presentation.leave_history.LeaveHistoryInfo
 import com.poulastaa.lms.ui.theme.TestThem
 import com.poulastaa.lms.ui.theme.dimens
 import java.time.LocalDate
@@ -33,7 +33,7 @@ import java.time.LocalDate
 @Composable
 fun LeaveHistoryItemCard(
     modifier: Modifier = Modifier,
-    leaveInfo: LeaveInfo
+    leaveInfo: LeaveHistoryInfo
 ) {
     Card(
         modifier = Modifier
@@ -92,7 +92,7 @@ private fun ItemText(
 @Composable
 private fun Preview() {
     val data = listOf(
-        LeaveInfo(
+        LeaveHistoryInfo(
             reqDate = LocalDate.now().toString(),
             fromDate = LocalDate.now().toString(),
             toDate = LocalDate.now().toString(),
@@ -101,7 +101,7 @@ private fun Preview() {
             pendingEnd = "Department In-Change",
             totalDays = "2"
         ),
-        LeaveInfo(
+        LeaveHistoryInfo(
             reqDate = LocalDate.now().toString(),
             fromDate = LocalDate.now().toString(),
             toDate = LocalDate.now().toString(),
@@ -110,7 +110,7 @@ private fun Preview() {
             pendingEnd = "Department In-Change",
             totalDays = "2"
         ),
-        LeaveInfo(
+        LeaveHistoryInfo(
             reqDate = LocalDate.now().toString(),
             fromDate = LocalDate.now().toString(),
             toDate = LocalDate.now().toString(),
@@ -119,7 +119,7 @@ private fun Preview() {
             pendingEnd = "Department In-Change",
             totalDays = "2"
         ),
-        LeaveInfo(
+        LeaveHistoryInfo(
             reqDate = LocalDate.now().toString(),
             fromDate = LocalDate.now().toString(),
             toDate = LocalDate.now().toString(),
@@ -128,7 +128,7 @@ private fun Preview() {
             pendingEnd = "Department In-Change",
             totalDays = "2"
         ),
-        LeaveInfo(
+        LeaveHistoryInfo(
             reqDate = LocalDate.now().toString(),
             fromDate = LocalDate.now().toString(),
             toDate = LocalDate.now().toString(),
@@ -137,7 +137,7 @@ private fun Preview() {
             pendingEnd = "Department In-Change",
             totalDays = "2"
         ),
-        LeaveInfo(
+        LeaveHistoryInfo(
             reqDate = LocalDate.now().toString(),
             fromDate = LocalDate.now().toString(),
             toDate = LocalDate.now().toString(),

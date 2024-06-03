@@ -9,6 +9,7 @@ import com.poulastaa.data.model.details.UpdateDetailsReq
 import com.poulastaa.data.model.leave.*
 import com.poulastaa.data.model.table.department.DepartmentHeadTable
 import com.poulastaa.data.model.table.department.DepartmentTable
+import com.poulastaa.data.model.table.leave.LeaveTypeTable
 import com.poulastaa.data.model.table.utils.PathTable
 import com.poulastaa.data.repository.JWTRepository
 import com.poulastaa.data.repository.TeacherRepository
@@ -16,6 +17,8 @@ import com.poulastaa.data.repository.ServiceRepository
 import com.poulastaa.data.repository.leave.LeaveWrapper
 import com.poulastaa.domain.dao.department.Department
 import com.poulastaa.domain.dao.department.DepartmentHead
+import com.poulastaa.domain.dao.leave.LeaveAction
+import com.poulastaa.domain.dao.leave.LeaveType
 import com.poulastaa.domain.dao.utils.HeadClark
 import com.poulastaa.domain.dao.utils.Path
 import com.poulastaa.domain.dao.utils.Principal
@@ -27,6 +30,7 @@ import com.poulastaa.utils.sendEmail
 import kotlinx.coroutines.*
 import java.io.File
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 class ServiceRepositoryImpl(
     private val jwtRepo: JWTRepository,
@@ -281,11 +285,143 @@ class ServiceRepositoryImpl(
     ): List<LeaveHistoryRes> {
         val teacher = teacher.getTeacher(email) ?: return emptyList()
 
-        return leave.leaveUtils.getLeaves(
+        return leave.leaveUtils.getHistoryLeaves(
             teacherId = teacher.id.value,
             page = page,
             pageSize = pageSize
         )
+    }
+
+    override suspend fun getApproveLeaveAsDepartment(
+        email: String,
+        page: Int,
+        pageSize: Int
+    ): List<LeaveApproveRes> = coroutineScope {
+        val teacher = teacher.getTeacher(email) ?: return@coroutineScope emptyList()
+
+        // get department id and check if department head
+        val head = dbQuery {
+            DepartmentHead.find {
+                DepartmentHeadTable.teacherId eq teacher.id
+            }.singleOrNull()
+        } ?: return@coroutineScope emptyList()
+
+        leave.leaveUtils.getApproveLeave(
+            departmentId = head.departmentId.value,
+            teacherHeadId = teacher.id.value,
+            page = page,
+            pageSize = pageSize
+        )
+    }
+
+    override suspend fun handleLeave(req: HandleLeaveReq, email: String): Boolean = coroutineScope {
+        val teacher = teacher.getTeacher(email)
+        val principal = getPrinciple()
+
+        val isPrincipal = email == principal.email
+
+        val (type, teacherId) = if (isPrincipal) {
+            leave.applyLeave.handleLeave(
+                req = req,
+                isPrincipal = true
+            )
+        } else {
+            if (teacher == null) return@coroutineScope false
+
+            dbQuery {
+                DepartmentHead.find {
+                    DepartmentHeadTable.teacherId eq teacher.id
+                }.singleOrNull()
+            } ?: return@coroutineScope false
+
+            leave.applyLeave.handleLeave(
+                req = req,
+                isPrincipal = false
+            )
+        }
+
+        val reqTeacherEmail = this@ServiceRepositoryImpl.teacher.getTeacherOnId(teacherId).email
+
+        val leaveDef = async {
+            this@ServiceRepositoryImpl.leave.leaveUtils.getLeaveOnId(req.leaveId)
+        }
+        val detailsDef = async {
+            this@ServiceRepositoryImpl.teacher.getTeacherWithDetails(reqTeacherEmail)
+        }
+
+        val details = detailsDef.await()
+        val leave = leaveDef.await()
+
+        val leaveType = dbQuery {
+            LeaveType.find {
+                LeaveTypeTable.id eq leave.leaveTypeId
+            }.single()
+        }
+
+        when (type) {
+            LeaveAction.TYPE.APPROVED -> leaveUpdateLetter(
+                to = details.email,
+                subject = "Leave Request Update.",
+                content = """
+                    Hello ${details.name}
+                    Your ${leaveType.type} from ${leave.fromDate} to ${leave.toDate} of total ${
+                    ChronoUnit.DAYS.between(
+                        leave.fromDate,
+                        leave.toDate
+                    )
+                } days,
+                    has been GRANTED.
+                    
+                    This is an auto-generated mail. Please do not reply to this message.
+            
+                    Regards,
+                    ${System.getenv("college")}
+                """
+            )
+
+            LeaveAction.TYPE.FORWARD -> leaveUpdateLetter(
+                to = details.email,
+                subject = "Leave Request Update.",
+                content = """
+                    Hello ${details.name}
+                    Your ${leaveType.type} from ${leave.fromDate} to ${leave.toDate} of total ${
+                    ChronoUnit.DAYS.between(
+                        leave.fromDate,
+                        leave.toDate
+                    )
+                } days,
+                    has been FORWARDED TO PRINCIPLE.
+                    
+                    This is an auto-generated mail. Please do not reply to this message.
+            
+                    Regards,
+                    ${System.getenv("college")}
+                """
+            )
+
+            LeaveAction.TYPE.REJECT -> leaveUpdateLetter(
+                to = details.email,
+                subject = "Leave Request Update.",
+                content = """
+                    Hello ${details.name}
+                    Your ${leaveType.type} from ${leave.fromDate} to ${leave.toDate} of total ${
+                    ChronoUnit.DAYS.between(
+                        leave.fromDate,
+                        leave.toDate
+                    )
+                } days,
+                    has been REJECTED BY ${if (isPrincipal) "PRINCIPLE" else "DEPARTMENT HEAD"}.
+                    
+                    
+                    This is an auto-generated mail. Please do not reply to this message.
+            
+                    Regards,
+                    ${System.getenv("college")}
+                """
+            )
+        }
+
+        true
     }
 
     private fun validateEmail(email: String) =
@@ -340,8 +476,7 @@ class ServiceRepositoryImpl(
             
             Regards,
             ${System.getenv("college")}
-        """.trimIndent()
-
+        """
         sendEmail(
             to = to,
             subject = subject,
@@ -368,13 +503,28 @@ class ServiceRepositoryImpl(
             
             Regards,
             ${System.getenv("college")}
-        """.trimIndent()
+        """
 
         sendEmail(
             to = to,
             subject = subject,
             content = messageContent
         )
+    }
 
+    private fun leaveUpdateLetter(
+        to: String,
+        subject: String,
+        content: String
+    ) {
+        sendEmail(
+            to = to,
+            subject = subject,
+            content = content
+        )
+    }
+
+    private suspend fun getPrinciple() = dbQuery {
+        Principal.all().single()
     }
 }

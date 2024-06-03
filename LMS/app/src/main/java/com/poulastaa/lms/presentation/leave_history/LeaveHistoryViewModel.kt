@@ -29,9 +29,8 @@ class LeaveHistoryViewModel @Inject constructor(
     private val _uiEvent = Channel<LeaveHistoryUiAction>()
     val uiEvent = _uiEvent.receiveAsFlow()
 
-    private val _leave: MutableStateFlow<PagingData<LeaveInfo>> =
+    private val _leave: MutableStateFlow<PagingData<LeaveHistoryInfo>> =
         MutableStateFlow(PagingData.empty())
-
     var leave = _leave.asStateFlow()
         private set
 

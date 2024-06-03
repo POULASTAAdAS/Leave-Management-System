@@ -12,9 +12,10 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 
-fun Route.getLeave(service: ServiceRepository) {
+
+fun Route.getApproveLeave(service: ServiceRepository) {
     authenticate(SESSION_AUTH) {
-        route(EndPoints.GetHistoryLeaves.route) {
+        route(EndPoints.GetApproveLeaves.route) {
             get {
                 val payload =
                     call.sessions.get<UserSession>() ?: return@get call.respondRedirect(EndPoints.UnAuthorised.route)
@@ -23,8 +24,7 @@ fun Route.getLeave(service: ServiceRepository) {
                 val pageSize =
                     call.parameters["pageSize"] ?: return@get call.respondRedirect(EndPoints.UnAuthorised.route)
 
-
-                val response = service.getLeaveHistory(
+                val response = service.getApproveLeaveAsDepartment(
                     email = payload.email,
                     page = page.toInt(),
                     pageSize = pageSize.toInt()

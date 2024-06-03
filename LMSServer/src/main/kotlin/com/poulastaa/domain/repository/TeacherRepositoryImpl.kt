@@ -217,7 +217,6 @@ class TeacherRepositoryImpl : TeacherRepository {
 
     override suspend fun saveTeacherDetails(req: SetDetailsReq): SetDetailsRes = withContext(Dispatchers.IO) {
         val teacher = findTeacher(email = req.email) ?: return@withContext SetDetailsRes()
-
         if (!teacher.emailVerified) return@withContext SetDetailsRes()
 
         val dataDef = async { req.toDetailsEntry(teacher.id) }
@@ -234,19 +233,17 @@ class TeacherRepositoryImpl : TeacherRepository {
             isDepartmentHead = isDepartmentHead
         )
 
-        CoroutineScope(Dispatchers.IO).launch {
-            val one = async { data.storeDetails() }
-            val two = async {
-                setLeaveBalance(
-                    teacherTypeId = data.details.teacherTypeId,
-                    teacherId = teacher.id.value,
-                    gender = req.sex
-                )
-            }
-
-            one.await()
-            two.await()
+        val one = async { data.storeDetails() }
+        val two = async {
+            setLeaveBalance(
+                teacherTypeId = data.details.teacherTypeId,
+                teacherId = teacher.id.value,
+                gender = req.sex
+            )
         }
+
+        one.await()
+        two.await()
 
         SetDetailsRes(
             status = TeacherDetailsSaveStatus.SAVED,
@@ -470,7 +467,7 @@ class TeacherRepositoryImpl : TeacherRepository {
     }
 
     private suspend fun getDepartmentHead(id: Int) = dbQuery {
-        DepartmentHead.find {
+        !DepartmentHead.find {
             DepartmentHeadTable.teacherId eq id
         }.empty()
     }
@@ -591,7 +588,7 @@ class TeacherRepositoryImpl : TeacherRepository {
             leaveTypeId: Int,
             balance: Double
         ) {
-            LeaveBalanceTable.insert { statement ->
+            LeaveBalanceTable.insertIgnore { statement ->
                 statement[this.teacherId] = teacherId
                 statement[this.teacherTypeId] = teacherTypeId
                 statement[this.leaveTypeId] = leaveTypeId
@@ -604,8 +601,16 @@ class TeacherRepositoryImpl : TeacherRepository {
                 TeacherTypeTable.id eq teacherTypeId
             }.single()
         }.let {
-            when (it.type) {
-                com.poulastaa.data.model.constants.TeacherType.SACT.name -> {
+            val type = when {
+                it.type.uppercase().startsWith("S") -> com.poulastaa.data.model.constants.TeacherType.SACT
+                it.type.uppercase().startsWith("P") -> com.poulastaa.data.model.constants.TeacherType.PERMANENT
+                else -> {
+                    throw IllegalArgumentException("should now happen")
+                }
+            }
+
+            when (type) {
+                com.poulastaa.data.model.constants.TeacherType.SACT -> {
                     val casualLeave = 14.0
                     val medicalLeave = 20.0
                     val studyLeave = 360.0
@@ -640,7 +645,7 @@ class TeacherRepositoryImpl : TeacherRepository {
                     }.awaitAll()
                 }
 
-                com.poulastaa.data.model.constants.TeacherType.PERMANENT.name -> {
+                com.poulastaa.data.model.constants.TeacherType.PERMANENT -> {
                     val casualLeave = 14.0
                     val earnedLeave = 30.0
                     val studyLeave = 360.0
@@ -748,14 +753,12 @@ class TeacherRepositoryImpl : TeacherRepository {
                         }
                     }.awaitAll()
                 }
-
-                else -> IllegalArgumentException("should now happen")
             }
         }
     }
 
     private suspend fun TeacherDetailsEntry.setDetails() = dbQuery {
-        TeacherDetailsTable.insert { // todo store exp
+        TeacherDetailsTable.insertIgnore {
             it[this.teacherId] = this@setDetails.teacherId
             it[this.teacherTypeId] = this@setDetails.teacherTypeId
             it[this.hrmsId] = this@setDetails.hrmsId
@@ -890,17 +893,17 @@ class TeacherRepositoryImpl : TeacherRepository {
             }
         }.map {
             when (it.type) {
-                LeaveType.PermanentType.CASUAL_LEAVE.name -> LeaveType.PermanentType.CASUAL_LEAVE to it.id.value
-                LeaveType.PermanentType.MEDICAL_LEAVE.name -> LeaveType.PermanentType.MEDICAL_LEAVE to it.id.value
-                LeaveType.PermanentType.STUDY_LEAVE.name -> LeaveType.PermanentType.STUDY_LEAVE to it.id.value
-                LeaveType.PermanentType.EARNED_LEAVE.name -> LeaveType.PermanentType.EARNED_LEAVE to it.id.value
-                LeaveType.PermanentType.SPECIAL_STUDY_LEAVE.name -> LeaveType.PermanentType.SPECIAL_STUDY_LEAVE to it.id.value
-                LeaveType.PermanentType.MATERNITY_LEAVE.name -> LeaveType.PermanentType.MATERNITY_LEAVE to it.id.value
-                LeaveType.PermanentType.QUARANTINE_LEAVE.name -> LeaveType.PermanentType.QUARANTINE_LEAVE to it.id.value
-                LeaveType.PermanentType.COMMUTED_LEAVE.name -> LeaveType.PermanentType.COMMUTED_LEAVE to it.id.value
-                LeaveType.PermanentType.EXTRAORDINARY_LEAVE.name -> LeaveType.PermanentType.EXTRAORDINARY_LEAVE to it.id.value
-                LeaveType.PermanentType.COMPENSATORY_LEAVE.name -> LeaveType.PermanentType.COMPENSATORY_LEAVE to it.id.value
-                LeaveType.PermanentType.LEAVE_NOT_DUE.name -> LeaveType.PermanentType.LEAVE_NOT_DUE to it.id.value
+                LeaveType.PermanentType.CASUAL_LEAVE.value -> LeaveType.PermanentType.CASUAL_LEAVE to it.id.value
+                LeaveType.PermanentType.MEDICAL_LEAVE.value -> LeaveType.PermanentType.MEDICAL_LEAVE to it.id.value
+                LeaveType.PermanentType.STUDY_LEAVE.value -> LeaveType.PermanentType.STUDY_LEAVE to it.id.value
+                LeaveType.PermanentType.EARNED_LEAVE.value -> LeaveType.PermanentType.EARNED_LEAVE to it.id.value
+                LeaveType.PermanentType.SPECIAL_STUDY_LEAVE.value -> LeaveType.PermanentType.SPECIAL_STUDY_LEAVE to it.id.value
+                LeaveType.PermanentType.MATERNITY_LEAVE.value -> LeaveType.PermanentType.MATERNITY_LEAVE to it.id.value
+                LeaveType.PermanentType.QUARANTINE_LEAVE.value -> LeaveType.PermanentType.QUARANTINE_LEAVE to it.id.value
+                LeaveType.PermanentType.COMMUTED_LEAVE.value -> LeaveType.PermanentType.COMMUTED_LEAVE to it.id.value
+                LeaveType.PermanentType.EXTRAORDINARY_LEAVE.value -> LeaveType.PermanentType.EXTRAORDINARY_LEAVE to it.id.value
+                LeaveType.PermanentType.COMPENSATORY_LEAVE.value -> LeaveType.PermanentType.COMPENSATORY_LEAVE to it.id.value
+                LeaveType.PermanentType.LEAVE_NOT_DUE.value -> LeaveType.PermanentType.LEAVE_NOT_DUE to it.id.value
                 else -> LeaveType.PermanentType.SPECIAL_DISABILITY_LEAVE to it.id.value
             }
         }
