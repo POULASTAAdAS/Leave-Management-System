@@ -6,6 +6,7 @@ import com.poulastaa.data.model.auth.req.SetDetailsReq
 import com.poulastaa.data.model.auth.res.*
 import com.poulastaa.data.model.details.UpdateAddressReq
 import com.poulastaa.data.model.details.UpdateDetailsReq
+import com.poulastaa.data.model.details.UpdateHeadDetailsReq
 import com.poulastaa.data.model.leave.*
 import com.poulastaa.data.model.table.department.DepartmentHeadTable
 import com.poulastaa.data.model.table.department.DepartmentTable
@@ -54,7 +55,7 @@ class ServiceRepositoryImpl(
                     user = User(
                         name = principle.name,
                         email = principle.email,
-                        profilePicUrl = principle.profilePic
+                        profilePicUrl = System.getenv("BASE_URL") + EndPoints.GetProfilePic.route
                     )
                 )
             }
@@ -122,7 +123,8 @@ class ServiceRepositoryImpl(
         val status = teacher.loginEmailVerificationCheck(email)
 
         return if (status) {
-            val name = teacher.getTeacherWithDetails(email).name
+            val teacherName = teacher.getTeacherWithDetails(email).name
+            val name = teacherName.ifEmpty { getPrinciple().name }
 
             EmailVerificationRes(status = true) to name
         } else EmailVerificationRes() to null
@@ -143,6 +145,12 @@ class ServiceRepositoryImpl(
         if (req.email.isNotEmpty() && !validateEmail(req.email)) return false
 
         return teacher.updateDetails(email, req)
+    }
+
+    override suspend fun updateHeadDetails(email: String, req: UpdateHeadDetailsReq): Boolean {
+        if (req.email.isNotEmpty() && !validateEmail(req.email)) return false
+
+        return teacher.updateHeadDetails(email, req)
     }
 
     override suspend fun updateAddress(email: String, req: UpdateAddressReq): Boolean =
@@ -288,26 +296,36 @@ class ServiceRepositoryImpl(
         )
     }
 
-    override suspend fun getApproveLeaveAsDepartment(
+    override suspend fun getApproveLeave(
         email: String,
         page: Int,
         pageSize: Int
     ): List<LeaveApproveRes> = coroutineScope {
-        val teacher = teacher.getTeacher(email) ?: return@coroutineScope emptyList()
+        val teacher = teacher.getTeacher(email)
 
-        // get department id and check if department head
-        val head = dbQuery {
-            DepartmentHead.find {
-                DepartmentHeadTable.teacherId eq teacher.id
-            }.singleOrNull()
-        } ?: return@coroutineScope emptyList()
+        if (teacher != null) {
+            // get department id and check if department head
+            val head = dbQuery {
+                DepartmentHead.find {
+                    DepartmentHeadTable.teacherId eq teacher.id
+                }.singleOrNull()
+            } ?: return@coroutineScope emptyList()
 
-        leave.leaveUtils.getApproveLeave(
-            departmentId = head.departmentId.value,
-            teacherHeadId = teacher.id.value,
-            page = page,
-            pageSize = pageSize
-        )
+            leave.leaveUtils.getApproveLeaveAsDepartmentHead(
+                departmentId = head.departmentId.value,
+                teacherHeadId = teacher.id.value,
+                page = page,
+                pageSize = pageSize
+            )
+        } else {
+            val principal = getPrinciple()
+            if (principal.email != email) return@coroutineScope emptyList()
+
+            leave.leaveUtils.getApproveLeaveAsHead(
+                page = page,
+                pageSize = pageSize
+            )
+        }
     }
 
     override suspend fun handleLeave(req: HandleLeaveReq, email: String): Boolean = coroutineScope {
@@ -364,7 +382,7 @@ class ServiceRepositoryImpl(
                     ChronoUnit.DAYS.between(
                         leave.fromDate,
                         leave.toDate
-                    )
+                    ) + 1L
                 } days,
                     has been GRANTED.
                     
@@ -381,10 +399,10 @@ class ServiceRepositoryImpl(
                 content = """
                     Hello ${details.name}
                     Your ${leaveType.type} from ${leave.fromDate} to ${leave.toDate} of total ${
-                    ChronoUnit.DAYS.between(
+                     ChronoUnit.DAYS.between(
                         leave.fromDate,
                         leave.toDate
-                    )
+                    ) + 1L
                 } days,
                     has been FORWARDED TO PRINCIPLE.
                     
@@ -404,7 +422,7 @@ class ServiceRepositoryImpl(
                     ChronoUnit.DAYS.between(
                         leave.fromDate,
                         leave.toDate
-                    )
+                    ) + 1L
                 } days,
                     has been REJECTED BY ${if (isPrincipal) "PRINCIPLE" else "DEPARTMENT HEAD"}.
                     

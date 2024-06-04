@@ -8,7 +8,7 @@ import org.jetbrains.exposed.dao.id.EntityID
 class Principal(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<Principal>(PrincipalTable)
 
-    val name by PrincipalTable.name
-    val email by PrincipalTable.email
+    var name by PrincipalTable.name
+    var email by PrincipalTable.email
     var profilePic by PrincipalTable.profilePic
 }

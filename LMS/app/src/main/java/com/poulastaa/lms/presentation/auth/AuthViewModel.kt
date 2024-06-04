@@ -1,11 +1,13 @@
 package com.poulastaa.lms.presentation.auth
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
+import com.poulastaa.lms.BuildConfig
 import com.poulastaa.lms.R
 import com.poulastaa.lms.data.model.auth.AuthReq
 import com.poulastaa.lms.data.model.auth.AuthRes
@@ -195,6 +197,8 @@ class AuthViewModel @Inject constructor(
 
                     when (response.data.authStatus) {
                         AuthStatus.PRINCIPLE_FOUND -> {
+                            Log.d("response", response.data.user.toString())
+
                             emailVerificationJob = emailVerificationCheck(
                                 email,
                                 EndPoints.LogInEmailVerificationCheck.route,
@@ -203,7 +207,7 @@ class AuthViewModel @Inject constructor(
                                     LocalUser(
                                         name = it.name,
                                         email = it.email,
-                                        profilePicUrl = it.profilePicUrl,
+                                        profilePicUrl = BuildConfig.BASE_URL + EndPoints.GetProfilePic.route,
                                         userType = UserType.PRINCIPLE
                                     )
                                 }

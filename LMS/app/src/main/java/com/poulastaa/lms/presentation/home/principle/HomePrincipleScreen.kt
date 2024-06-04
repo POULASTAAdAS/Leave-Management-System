@@ -1,5 +1,6 @@
 package com.poulastaa.lms.presentation.home.principle
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +36,7 @@ import com.poulastaa.lms.ui.theme.TestThem
 import com.poulastaa.lms.ui.theme.ViewLeaveIcon
 import com.poulastaa.lms.ui.theme.dimens
 import com.poulastaa.lms.ui.utils.ObserveAsEvent
+import com.poulastaa.lms.ui.utils.UiText
 
 @Composable
 fun HomePrincipleRootScreen(
@@ -63,16 +65,18 @@ fun HomePrincipleRootScreen(
     HomePrincipleScreen(
         time = time,
         user = user,
-        cookie =  cookie,
+        cookie = cookie,
+        context = context,
         onEvent = viewModel::onEvent
     )
 }
 
 @Composable
-fun HomePrincipleScreen(
+private fun HomePrincipleScreen(
     time: String,
     user: LocalUser,
-    cookie:String,
+    cookie: String,
+    context: Context,
     onEvent: (HomePrincipleUiEvent) -> Unit
 ) {
     val hapticFeedback = LocalHapticFeedback.current
@@ -87,7 +91,6 @@ fun HomePrincipleScreen(
             onEvent(HomePrincipleUiEvent.OnProfilePicClick)
         }
     ) {
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.Top,
@@ -100,7 +103,15 @@ fun HomePrincipleScreen(
                     .clickable(
                         onClick = {
                             hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                            onEvent(HomePrincipleUiEvent.OnApplyLeaveClick)
+                            Toast
+                                .makeText(
+                                    context,
+                                    UiText
+                                        .StringResource(R.string.coming_soon)
+                                        .asString(context),
+                                    Toast.LENGTH_LONG
+                                )
+                                .show()
                         }
                     ),
                 icon = ApplyLeaveIcon,
@@ -114,7 +125,15 @@ fun HomePrincipleScreen(
                     .clickable(
                         onClick = {
                             hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                            onEvent(HomePrincipleUiEvent.OnLeaveStatusClick)
+                            Toast
+                                .makeText(
+                                    context,
+                                    UiText
+                                        .StringResource(R.string.coming_soon)
+                                        .asString(context),
+                                    Toast.LENGTH_LONG
+                                )
+                                .show()
                         }
                     ),
                 icon = LeaveStatusIcon,
@@ -129,7 +148,15 @@ fun HomePrincipleScreen(
                     .clickable(
                         onClick = {
                             hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                            onEvent(HomePrincipleUiEvent.OnLeaveHistoryClick)
+                            Toast
+                                .makeText(
+                                    context,
+                                    UiText
+                                        .StringResource(R.string.coming_soon)
+                                        .asString(context),
+                                    Toast.LENGTH_LONG
+                                )
+                                .show()
                         }
                     ),
                 icon = LeaveHistoryIcon,
@@ -235,6 +262,7 @@ private fun Preview() {
         HomePrincipleScreen(
             time = "Good Morning",
             cookie = "",
+            context = LocalContext.current,
             user = LocalUser()
         ) {
 

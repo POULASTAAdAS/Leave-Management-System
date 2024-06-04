@@ -30,6 +30,7 @@ fun Application.configureRouting() {
         getDetails(service)
 
         updateDetails(service)
+        updateHeadDetails(service)
         updateAddress(service)
 
         updateProfile(service)

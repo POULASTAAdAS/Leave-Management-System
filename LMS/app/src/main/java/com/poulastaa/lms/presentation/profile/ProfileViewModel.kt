@@ -9,6 +9,7 @@ import com.google.gson.Gson
 import com.poulastaa.lms.BuildConfig
 import com.poulastaa.lms.R
 import com.poulastaa.lms.data.model.auth.EndPoints
+import com.poulastaa.lms.data.model.home.UserType
 import com.poulastaa.lms.data.model.profile.ProfileRes
 import com.poulastaa.lms.data.model.stoe_details.AddressType
 import com.poulastaa.lms.data.remote.get
@@ -62,6 +63,18 @@ class ProfileViewModel @Inject constructor(
                 )
             }
         }
+
+        viewModelScope.launch {
+            val user = ds.readUser().first()
+
+            state = state.copy(
+                userType = user.userType,
+                name = user.name,
+                personalDetails = state.personalDetails.copy(
+                    email = user.email
+                )
+            )
+        }
     }
 
     private val _uiEvent = Channel<ProfileUiAction>()
@@ -79,20 +92,29 @@ class ProfileViewModel @Inject constructor(
     fun onEvent(event: ProfileUiEvent) {
         when (event) {
             ProfileUiEvent.DetailsEditClick -> {
-                viewModelScope.launch(Dispatchers.IO) {
-                    _uiEvent.send(
-                        ProfileUiAction.OnNavigate(
-                            screen = Screens.EditDetails,
-                            args = mapOf(
-                                Screens.EditDetails.Args.NAME.title to state.name,
-                                Screens.EditDetails.Args.EMAIL.title to state.personalDetails.email,
-                                Screens.EditDetails.Args.PHONE_ONE.title to state.personalDetails.phoneOne,
-                                Screens.EditDetails.Args.PHONE_TWO.title to state.personalDetails.phoneTwo,
-                                Screens.EditDetails.Args.QUALIFICATION.title to state.personalDetails.qualification,
+                if (state.userType == UserType.PRINCIPLE) viewModelScope.launch {
+                    viewModelScope.launch(Dispatchers.IO) {
+                        _uiEvent.send(
+                            ProfileUiAction.OnNavigate(
+                                screen = Screens.EditHeadDetails
                             )
                         )
-                    )
-                }
+                    }
+                } else
+                    viewModelScope.launch(Dispatchers.IO) {
+                        _uiEvent.send(
+                            ProfileUiAction.OnNavigate(
+                                screen = Screens.EditDetails,
+                                args = mapOf(
+                                    Screens.EditDetails.Args.NAME.title to state.name,
+                                    Screens.EditDetails.Args.EMAIL.title to state.personalDetails.email,
+                                    Screens.EditDetails.Args.PHONE_ONE.title to state.personalDetails.phoneOne,
+                                    Screens.EditDetails.Args.PHONE_TWO.title to state.personalDetails.phoneTwo,
+                                    Screens.EditDetails.Args.QUALIFICATION.title to state.personalDetails.qualification,
+                                )
+                            )
+                        )
+                    }
             }
 
             ProfileUiEvent.OnHomeAddressEditClick -> {
@@ -302,6 +324,19 @@ class ProfileViewModel @Inject constructor(
                     isMakingApiCall = false
                 )
             }
+        }
+    }
+
+    fun updateNameAndEmailIfChangedForHead() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val user = ds.readUser().first()
+
+            state = state.copy(
+                name = user.name,
+                personalDetails = state.personalDetails.copy(
+                    email = user.email
+                )
+            )
         }
     }
 }

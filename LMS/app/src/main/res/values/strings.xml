@@ -102,6 +102,7 @@
     <string name="action">Action</string>
     <string name="cause">cause</string>
     <string name="submit">submit</string>
+    <string name="coming_soon">Comming soon.</string>
 
     <array name="com_google_android_gms_fonts_certs">
         <item>@array/com_google_android_gms_fonts_certs_dev</item>

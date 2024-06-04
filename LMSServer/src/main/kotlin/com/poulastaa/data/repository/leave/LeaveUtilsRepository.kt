@@ -22,9 +22,14 @@ interface LeaveUtilsRepository {
 
     suspend fun getPendingEndId(isPermanent: Boolean): EntityID<Int>
     suspend fun getPendingStatusId(): EntityID<Int>
-    suspend fun getApproveLeave(
+    suspend fun getApproveLeaveAsDepartmentHead(
         departmentId: Int,
         teacherHeadId: Int,
+        page: Int,
+        pageSize: Int
+    ): List<LeaveApproveRes>
+
+    suspend fun getApproveLeaveAsHead(
         page: Int,
         pageSize: Int
     ): List<LeaveApproveRes>

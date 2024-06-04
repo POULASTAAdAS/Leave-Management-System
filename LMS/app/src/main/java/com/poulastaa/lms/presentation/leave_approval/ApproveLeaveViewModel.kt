@@ -75,7 +75,7 @@ class ApproveLeaveViewModel @Inject constructor(
                 "Reject"
             )
             else listOf(
-                "Accept",
+                "Approve",
                 "Reject"
             )
 

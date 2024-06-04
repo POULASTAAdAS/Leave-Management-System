@@ -12,8 +12,8 @@ class Status(id: EntityID<Int>) : IntEntity(id) {
 
     enum class TYPE(val value: String) {
         ACCEPTED("Accepeted"),
-        REJECTED("Approved"),
+        REJECTED("Rejected"),
         PENDING("Pending"),
-        APPROVED("Rejected")
+        APPROVED("Approved")
     }
 }

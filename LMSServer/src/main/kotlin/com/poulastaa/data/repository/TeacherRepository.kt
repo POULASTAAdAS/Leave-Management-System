@@ -10,6 +10,7 @@ import com.poulastaa.data.model.auth.res.VerifiedMailStatus
 import com.poulastaa.data.model.constants.TeacherType
 import com.poulastaa.data.model.details.UpdateAddressReq
 import com.poulastaa.data.model.details.UpdateDetailsReq
+import com.poulastaa.data.model.details.UpdateHeadDetailsReq
 import com.poulastaa.domain.dao.leave.LeaveType
 import com.poulastaa.domain.dao.teacher.Teacher
 
@@ -32,6 +33,7 @@ interface TeacherRepository {
     suspend fun getTeacherDetailsRes(email: String): GetTeacherRes?
 
     suspend fun updateDetails(email: String, req: UpdateDetailsReq): Boolean
+    suspend fun updateHeadDetails(email: String, req: UpdateHeadDetailsReq): Boolean
 
     suspend fun updateAddress(email: String, req: UpdateAddressReq): Boolean
 

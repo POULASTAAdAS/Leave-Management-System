@@ -2,8 +2,11 @@ package com.poulastaa.lms.presentation.profile
 
 import com.poulastaa.lms.BuildConfig
 import com.poulastaa.lms.data.model.auth.EndPoints
+import com.poulastaa.lms.data.model.home.UserType
 
 data class ProfileUiState(
+    val userType: UserType = UserType.LOAD,
+
     val isInternet: Boolean = false,
     val isMakingApiCall: Boolean = true,
 

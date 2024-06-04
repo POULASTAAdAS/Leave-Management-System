@@ -13,6 +13,7 @@ sealed class EndPoints(val route: String) {
     data object GetDetails : EndPoints(route = "/api/auth/getDetails")
 
     data object UpdateDetails : EndPoints(route = "/api/auth/updateDetails")
+    data object UpdateHeadDetails : EndPoints(route = "/api/auth/updateHeadDetails")
     data object UpdateAddress : EndPoints(route = "/api/auth/updateAddress")
 
     data object UpdateProfilePic : EndPoints(route = "/api/updateProfilePic")

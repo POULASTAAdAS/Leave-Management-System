@@ -1,6 +1,5 @@
 package com.poulastaa.lms.navigation
 
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -22,6 +21,7 @@ import com.poulastaa.lms.presentation.profile.edit.address_edit.AddressEditViewM
 import com.poulastaa.lms.presentation.profile.edit.details_edit.DetailsEditUiEvent
 import com.poulastaa.lms.presentation.profile.edit.details_edit.DetailsEditViewModel
 import com.poulastaa.lms.presentation.profile.edit.details_edit.DetailsRootScreen
+import com.poulastaa.lms.presentation.profile.edit.details_edit.head.HeadDetailsEditRootScreen
 import com.poulastaa.lms.presentation.store_details.StoreDetailsRootScreen
 
 @Composable
@@ -110,11 +110,14 @@ fun Navigation(
                             val route =
                                 Screens.EditAddress.route + "$type/$house/$street/$city/$zip/$state"
 
-                            Log.d("route", route)
-
-
                             navController.navigate(
                                 route = route
+                            )
+                        }
+
+                        Screens.EditHeadDetails -> {
+                            navController.navigate(
+                                route = it.screen.route
                             )
                         }
 
@@ -125,6 +128,12 @@ fun Navigation(
                     navController.popBackStack()
                 }
             )
+        }
+
+        composable(route = Screens.EditHeadDetails.route) {
+            HeadDetailsEditRootScreen {
+                navController.popBackStack()
+            }
         }
 
         composable(

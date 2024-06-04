@@ -24,7 +24,7 @@ fun Route.getApproveLeave(service: ServiceRepository) {
                 val pageSize =
                     call.parameters["pageSize"] ?: return@get call.respondRedirect(EndPoints.UnAuthorised.route)
 
-                val response = service.getApproveLeaveAsDepartment(
+                val response = service.getApproveLeave(
                     email = payload.email,
                     page = page.toInt(),
                     pageSize = pageSize.toInt()

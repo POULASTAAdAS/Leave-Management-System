@@ -69,16 +69,21 @@ select * from path;
 
 select * from principal;
 
+select * from teacher;
+
+select * from principal;
+
+select * from loginemail;
+delete from loginemail;
 
 
 
+select * from leavestatus;
+
+select * from leaveaction;
 
 
-
-
-
-
-
+select * from leavestatus where actionId is null or actionId = 3;
 
 
 

@@ -1,5 +1,6 @@
 package com.poulastaa.domain.repository
 
+import com.poulastaa.data.model.EndPoints
 import com.poulastaa.data.model.GetTeacherRes
 import com.poulastaa.data.model.TeacherDetails
 import com.poulastaa.data.model.auth.req.ReqAddress
@@ -12,6 +13,7 @@ import com.poulastaa.data.model.convertors.TeacherDetailsEntry
 import com.poulastaa.data.model.details.TeacherAddress
 import com.poulastaa.data.model.details.UpdateAddressReq
 import com.poulastaa.data.model.details.UpdateDetailsReq
+import com.poulastaa.data.model.details.UpdateHeadDetailsReq
 import com.poulastaa.data.model.table.address.AddressTypeTable
 import com.poulastaa.data.model.table.address.TeacherDetailsTable
 import com.poulastaa.data.model.table.department.DepartmentHeadTable
@@ -51,6 +53,10 @@ class TeacherRepositoryImpl : TeacherRepository {
         Teacher.find {
             TeacherTable.email eq email
         }.singleOrNull()
+    }
+
+    private suspend fun getPrincipal() = dbQuery {
+        Principal.all().first()
     }
 
     private suspend fun findPrinciple(email: String) = dbQuery {
@@ -352,6 +358,22 @@ class TeacherRepositoryImpl : TeacherRepository {
         true
     }
 
+    override suspend fun updateHeadDetails(email: String, req: UpdateHeadDetailsReq): Boolean = coroutineScope {
+        val principal = getPrincipal()
+
+        if (principal.email == email) {
+            dbQuery {
+                principal.name = req.name
+                principal.email = req.email
+
+            }
+
+            true
+        } else {
+            false
+        }
+    }
+
     override suspend fun updateAddress(email: String, req: UpdateAddressReq): Boolean = coroutineScope {
         val teacher = findTeacher(email) ?: return@coroutineScope false
 
@@ -390,28 +412,42 @@ class TeacherRepositoryImpl : TeacherRepository {
         email: String,
         fileNameWithPath: String
     ): Boolean {
-        val teacher = findTeacher(email) ?: return false
+        val teacher = findTeacher(email)
 
-        dbQuery {
-            TeacherDetailsTable.update(
-                where = {
-                    TeacherDetailsTable.teacherId eq teacher.id
+        val principal = getPrincipal()
+
+        if (teacher != null) {
+            dbQuery {
+                TeacherDetailsTable.update(
+                    where = {
+                        TeacherDetailsTable.teacherId eq teacher.id
+                    }
+                ) {
+                    it[this.profilePic] = fileNameWithPath
                 }
-            ) {
-                it[this.profilePic] = fileNameWithPath
             }
+        } else if (principal.email == email) {
+            dbQuery {
+                principal.profilePic = fileNameWithPath
+            }
+        } else {
+            return false
         }
 
         return true
     }
 
     override suspend fun getProfilePic(email: String): String? = dbQuery {
-        val teacher = findTeacher(email) ?: return@dbQuery null
+        val teacher = findTeacher(email)
 
-        TeacherDetailsTable.select {
-            TeacherDetailsTable.teacherId eq teacher.id
-        }.singleOrNull()?.let {
-            it[TeacherDetailsTable.profilePic]
+        if (teacher != null) {
+            TeacherDetailsTable.select {
+                TeacherDetailsTable.teacherId eq teacher.id
+            }.singleOrNull()?.let {
+                it[TeacherDetailsTable.profilePic]
+            }
+        } else {
+            getPrincipal().profilePic
         }
     }
 

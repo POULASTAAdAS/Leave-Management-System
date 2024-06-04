@@ -22,6 +22,8 @@ sealed class Screens(val route: String) {
     data object DefineDepartmentInCharge : Screens("/defineDepartmentInCharge")
     data object Add : Screens("/add")
 
+    data object EditHeadDetails : Screens("/profile/editHeadDetails")
+
     data object EditDetails : Screens("/profile/editDetails") {
         enum class Args(val title: String) {
             NAME("name"),

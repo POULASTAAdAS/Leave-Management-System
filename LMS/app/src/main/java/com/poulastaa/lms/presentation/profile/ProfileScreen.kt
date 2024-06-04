@@ -1,7 +1,6 @@
 package com.poulastaa.lms.presentation.profile
 
 import android.content.Context
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -47,6 +46,7 @@ import coil.compose.AsyncImage
 import coil.imageLoader
 import coil.request.ImageRequest
 import com.poulastaa.lms.R
+import com.poulastaa.lms.data.model.home.UserType
 import com.poulastaa.lms.presentation.profile.components.ProfileIconItemView
 import com.poulastaa.lms.presentation.profile.components.ProfileItemEditableHeader
 import com.poulastaa.lms.presentation.profile.components.ProfileItemHeader
@@ -85,26 +85,51 @@ fun ProfileRootScreen(
     }
 
     LaunchedEffect(
-        key1 = true,
-        viewModel.state.name.isEmpty()
+        key1 = Unit,
     ) {
-        viewModel.startJob()
+        viewModel.updateNameAndEmailIfChangedForHead()
     }
 
-    if (!viewModel.state.isInternet) ProfileErr {
-        navigateBack()
-        viewModel.cancelJob()
-    }
-    else if (viewModel.state.isMakingApiCall) ProfileLoading()
-    else ProfileScreen(
-        state = viewModel.state,
-        onEvent = viewModel::onEvent,
-        context = context,
-        navigateBack = {
-            navigateBack()
-            viewModel.cancelJob()
+    when (viewModel.state.userType) {
+        UserType.PRINCIPLE -> {
+            PrincipalProfile(
+                state = viewModel.state,
+                onEvent = viewModel::onEvent,
+                context = context,
+                navigateBack = {
+                    navigateBack()
+                    viewModel.cancelJob()
+                }
+            )
         }
-    )
+
+        UserType.NON -> {
+            ProfileErr {
+                navigateBack()
+            }
+        }
+
+        UserType.LOAD -> ProfileLoading()
+
+        else -> {
+            LaunchedEffect(
+                key1 = true,
+                viewModel.state.name.isEmpty()
+            ) {
+                viewModel.startJob()
+            }
+
+            ProfileScreen(
+                state = viewModel.state,
+                onEvent = viewModel::onEvent,
+                context = context,
+                navigateBack = {
+                    navigateBack()
+                    viewModel.cancelJob()
+                }
+            )
+        }
+    }
 
     BackHandler {
         navigateBack()
@@ -198,9 +223,6 @@ private fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(MaterialTheme.dimens.large1))
 
-
-            Log.d("home Address ui", state.homeAddress.toString())
-
             Address(
                 address = state.homeAddress,
                 label = stringResource(id = R.string.home_address_header)
@@ -210,6 +232,57 @@ private fun ProfileScreen(
 
 
             Spacer(modifier = Modifier.height(MaterialTheme.dimens.large1))
+        }
+    }
+}
+
+@Composable
+private fun PrincipalProfile(
+    state: ProfileUiState,
+    context: Context,
+    onEvent: (ProfileUiEvent) -> Unit,
+    navigateBack: () -> Unit
+) {
+    ScreenWrapper(
+        verticalArrangement = Arrangement.Top
+    ) {
+        Back {
+            navigateBack()
+        }
+        ProfileCard(
+            profilePicUrl = state.profilePicUrl,
+            gender = "M",
+            isProfilePicUpdating = state.isProfilePicUpdating,
+            name = state.name,
+            cookie = state.cookie,
+            context = context,
+            onClick = onEvent
+        )
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.onBackground
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 10.dp
+            )
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(MaterialTheme.dimens.small3)
+            ) {
+                ProfileItemEditableHeader(label = stringResource(id = R.string.personal_details)) {
+                    onEvent(ProfileUiEvent.DetailsEditClick)
+                }
+
+                ProfileIconItemView(
+                    text = state.personalDetails.email,
+                    icon = OutlineEmailIcon
+                )
+            }
         }
     }
 }
@@ -531,7 +604,7 @@ private fun Address(
 @Composable
 private fun Preview() {
     TestThem {
-        ProfileScreen(state = ProfileUiState(
+        PrincipalProfile(state = ProfileUiState(
             isProfilePicUpdating = false,
             gender = "M"
         ), context = LocalContext.current, onEvent = {}) {
