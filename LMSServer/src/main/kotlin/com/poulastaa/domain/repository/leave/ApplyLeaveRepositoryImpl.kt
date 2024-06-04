@@ -18,11 +18,9 @@ import com.poulastaa.domain.dao.leave.LeaveReq
 import com.poulastaa.domain.dao.leave.LeaveType
 import com.poulastaa.domain.dao.utils.Path
 import com.poulastaa.domain.dao.utils.PendingEnd
-import com.poulastaa.domain.dao.utils.Principal
 import com.poulastaa.domain.dao.utils.Status
 import com.poulastaa.plugins.dbQuery
 import com.poulastaa.utils.toTeacherDetails
-import com.sun.jdi.ByteValue
 import kotlinx.coroutines.*
 import org.jetbrains.exposed.sql.*
 import java.time.LocalDate
@@ -127,7 +125,9 @@ class ApplyLeaveRepositoryImpl(
             }
 
             TeacherType.PERMANENT -> {
-                when (LeaveType.PermanentType.valueOf(req.leaveType)) {
+                val type = LeaveType.PermanentType.valueOf(req.leaveType.uppercase().replace(' ', '_'))
+
+                when (type) {
                     LeaveType.PermanentType.CASUAL_LEAVE -> {
                         val leaveType = leaveUtils.getLeaveType(
                             type = LeaveType.PermanentType.CASUAL_LEAVE.value
@@ -367,6 +367,7 @@ class ApplyLeaveRepositoryImpl(
     }
 
 
+    // sac teacher
     private suspend fun applyCasualLeaveForSACTeacher(req: LeaveEntry) = coroutineScope {
         if (req.totalDays > 4.0) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
@@ -418,12 +419,12 @@ class ApplyLeaveRepositoryImpl(
         if (leaveBalance < req.totalDays) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
         // check if conflict with casual leave
-        val isCasualEmpty = checkIfConflictWithOtherLeave(
+        val isEntry = checkConflictCheckWithOtherLeave(
             teacherId = req.teacherId.value,
-            toDate = req.toDate,
-            leaveType = LeaveType.ScatType.CASUAL_LEAVE.value
+            leaveType = LeaveType.PermanentType.CASUAL_LEAVE.value,
+            fromDate = req.fromDate
         ).await()
-        if (!isCasualEmpty) return@coroutineScope ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS.name
+        if (isEntry) return@coroutineScope ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS.name
 
         // check if conflict with other medial leaves
         recentEntryDef.await()?.let {
@@ -515,6 +516,8 @@ class ApplyLeaveRepositoryImpl(
         (leaveBalance - req.totalDays).toString()
     }
 
+
+    // permanent teacher
     private suspend fun applyCasualLeave(req: LeaveEntry) = coroutineScope {
         if (req.totalDays > 7.0) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
@@ -526,20 +529,20 @@ class ApplyLeaveRepositoryImpl(
         }
 
         // checking if conflict with other leaves
-        val isEmptyDef = async {
+        val isEntryDef = async {
             dbQuery {
                 LeaveReq.find {
                     LeaveReqTable.teacherId eq req.teacherId and
                             (LeaveReqTable.toDate greaterEq req.fromDate)
-                }.empty()
+                }.empty().not()
             }
         }
 
         val leaveBalance = leaveBalanceDef.await()?.toDouble() ?: return@coroutineScope ApplyLeaveStatus.REJECTED.name
         if (leaveBalance < req.totalDays) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
-        val isEmpty = isEmptyDef.await()
-        if (!isEmpty) return@coroutineScope ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS.name
+        val isEntry = isEntryDef.await()
+        if (isEntry) return@coroutineScope ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS.name
 
 
 
@@ -555,16 +558,16 @@ class ApplyLeaveRepositoryImpl(
             )
         }
 
-        val isConflictWithQuarantineLeaveDef = checkIfConflictWithOtherLeave(
+        val isConflictWithQuarantineLeaveDef = checkConflictCheckWithOtherLeave(
             teacherId = req.teacherId.value,
-            toDate = req.toDate,
-            leaveType = LeaveType.PermanentType.QUARANTINE_LEAVE.value
+            leaveType = LeaveType.PermanentType.QUARANTINE_LEAVE.value,
+            fromDate = req.fromDate
         )
 
-        val isConflictWithCasualLeaveDef = checkIfConflictWithOtherLeave(
+        val isConflictWithCasualLeaveDef = checkConflictCheckWithOtherLeave(
             teacherId = req.teacherId.value,
-            toDate = req.toDate,
-            leaveType = LeaveType.PermanentType.CASUAL_LEAVE.value
+            leaveType = LeaveType.PermanentType.CASUAL_LEAVE.value,
+            fromDate = req.fromDate
         )
 
         val recentEntryDef = getRecentEntry(
@@ -575,8 +578,8 @@ class ApplyLeaveRepositoryImpl(
         val leaveBalance = leaveBalanceDef.await()?.toDouble() ?: return@coroutineScope ApplyLeaveStatus.REJECTED.name
         if (leaveBalance < req.totalDays) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
-        val isConflictWithQuarantineLeave = !isConflictWithQuarantineLeaveDef.await()
-        val isConflictWithCasualLeave = !isConflictWithCasualLeaveDef.await()
+        val isConflictWithQuarantineLeave = isConflictWithQuarantineLeaveDef.await()
+        val isConflictWithCasualLeave = isConflictWithCasualLeaveDef.await()
         val recentEntry = recentEntryDef.await()
 
         if (isConflictWithQuarantineLeave || isConflictWithCasualLeave) return@coroutineScope ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS.name
@@ -671,16 +674,16 @@ class ApplyLeaveRepositoryImpl(
             )
         }
 
-        val conflictWithCasualLeaveDef = checkIfConflictWithOtherLeave(
+        val conflictWithCasualLeaveDef = checkConflictCheckWithOtherLeave(
             teacherId = req.teacherId.value,
-            toDate = req.toDate,
-            leaveType = LeaveType.PermanentType.CASUAL_LEAVE.value
+            leaveType = LeaveType.PermanentType.CASUAL_LEAVE.value,
+            fromDate = req.fromDate
         )
 
         val leaveBalance = leaveBalanceDef.await()?.toDouble() ?: return@coroutineScope ApplyLeaveStatus.REJECTED.name
         if (leaveBalance < req.totalDays) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
-        val conflictWithCasualLeave = !conflictWithCasualLeaveDef.await()
+        val conflictWithCasualLeave = conflictWithCasualLeaveDef.await()
         if (conflictWithCasualLeave) return@coroutineScope ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS.name
 
         handleNewLeaveEntry(req, true)
@@ -697,10 +700,10 @@ class ApplyLeaveRepositoryImpl(
             )
         }
 
-        val isConflictWithCasualLeaveDef = checkIfConflictWithOtherLeave(
+        val isConflictWithCasualLeaveDef = checkConflictCheckWithOtherLeave(
             teacherId = req.teacherId.value,
-            toDate = req.toDate,
-            leaveType = LeaveType.PermanentType.LEAVE_NOT_DUE.value
+            leaveType = LeaveType.PermanentType.LEAVE_NOT_DUE.value,
+            fromDate = req.fromDate
         )
 
 
@@ -712,7 +715,7 @@ class ApplyLeaveRepositoryImpl(
         val leaveBalance = leaveBalanceDef.await()?.toDouble() ?: return@coroutineScope ApplyLeaveStatus.REJECTED.name
         if (leaveBalance < req.totalDays) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
-        val isConflictWithCasualLeave = !isConflictWithCasualLeaveDef.await()
+        val isConflictWithCasualLeave = isConflictWithCasualLeaveDef.await()
         val recentEntry = recentEntryDef.await()
 
         if (isConflictWithCasualLeave) return@coroutineScope ApplyLeaveStatus.REJECTED.name
@@ -735,10 +738,10 @@ class ApplyLeaveRepositoryImpl(
             )
         }
 
-        val isConflictWithCasualLeaveDef = checkIfConflictWithOtherLeave(
+        val isConflictWithCasualLeaveDef = checkConflictCheckWithOtherLeave(
             teacherId = req.teacherId.value,
-            toDate = req.toDate,
-            leaveType = LeaveType.PermanentType.SPECIAL_DISABILITY_LEAVE.value
+            leaveType = LeaveType.PermanentType.SPECIAL_DISABILITY_LEAVE.value,
+            fromDate = req.fromDate
         )
 
 
@@ -750,7 +753,7 @@ class ApplyLeaveRepositoryImpl(
         val leaveBalance = leaveBalanceDef.await()?.toDouble() ?: return@coroutineScope ApplyLeaveStatus.REJECTED.name
         if (leaveBalance < req.totalDays) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
-        val isConflictWithCasualLeave = !isConflictWithCasualLeaveDef.await()
+        val isConflictWithCasualLeave = isConflictWithCasualLeaveDef.await()
         if (isConflictWithCasualLeave) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
         val recentEntry = recentEntryDef.await()
@@ -760,6 +763,26 @@ class ApplyLeaveRepositoryImpl(
 
         handleNewLeaveEntry(req, true)
         (leaveBalance - req.totalDays).toString()
+    }
+
+    private suspend fun checkConflictCheckWithOtherLeave(
+        teacherId: Int,
+        leaveType: String,
+        fromDate: LocalDate
+    ) = coroutineScope {
+        async {
+            dbQuery {
+                val leaveId = leaveUtils.getLeaveType(
+                    type = leaveType
+                ).id
+
+                LeaveReq.find {
+                    LeaveReqTable.teacherId eq teacherId and
+                            (LeaveReqTable.leaveTypeId eq leaveId) and
+                            (LeaveReqTable.toDate greaterEq fromDate)
+                }.empty().not()
+            }
+        }
     }
 
     private suspend fun handleNewLeaveEntry(
@@ -794,28 +817,6 @@ class ApplyLeaveRepositoryImpl(
                 it[this.departmentId] = req.departmentId
                 it[this.cause] = ""
                 it[this.actionId] = null
-            }
-        }
-    }
-
-    private suspend fun checkIfConflictWithOtherLeave(
-        teacherId: Int,
-        toDate: LocalDate,
-        leaveType: String
-    ) = coroutineScope {
-        async {
-            val leaveId = dbQuery {
-                leaveUtils.getLeaveType(
-                    type = leaveType
-                ).id
-            }
-
-            dbQuery {
-                LeaveReq.find {
-                    LeaveReqTable.teacherId eq teacherId and (LeaveReqTable.leaveTypeId eq leaveId.value) and
-                            (LeaveReqTable.toDate greaterEq toDate) and
-                            (LeaveReqTable.fromDate greaterEq toDate)
-                }.empty()
             }
         }
     }
@@ -911,6 +912,12 @@ class ApplyLeaveRepositoryImpl(
                 it[this.pendingEndId] = pendingEnd.id
                 it[this.cause] = req.cause
                 it[this.actionId] = action.id
+            }
+        }
+
+        if (actionType == LeaveAction.TYPE.REJECT) {
+            CoroutineScope(Dispatchers.IO).launch {
+                // todo return balance
             }
         }
 

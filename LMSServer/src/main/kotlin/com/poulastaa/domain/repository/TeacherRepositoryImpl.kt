@@ -425,8 +425,8 @@ class TeacherRepositoryImpl : TeacherRepository {
             TeacherTypeTable.id eq id
         }.singleOrNull()?.let {
             when (it.type) {
-                com.poulastaa.data.model.constants.TeacherType.SACT.name -> com.poulastaa.data.model.constants.TeacherType.SACT
-                com.poulastaa.data.model.constants.TeacherType.PERMANENT.name -> com.poulastaa.data.model.constants.TeacherType.PERMANENT
+                com.poulastaa.data.model.constants.TeacherType.SACT.value -> com.poulastaa.data.model.constants.TeacherType.SACT
+                com.poulastaa.data.model.constants.TeacherType.PERMANENT.value -> com.poulastaa.data.model.constants.TeacherType.PERMANENT
                 else -> null
             }
         }

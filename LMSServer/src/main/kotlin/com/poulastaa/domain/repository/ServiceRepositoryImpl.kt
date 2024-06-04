@@ -223,13 +223,11 @@ class ServiceRepositoryImpl(
                 )
             }
 
-            val sendMailToHead = async { // todo need work breaking
-                val pathDef = async {
-                    dbQuery {
-                        Path.find {
-                            PathTable.type eq req.path
-                        }.single()
-                    }
+            val sendMailToHead = async {
+                val path = dbQuery {
+                    Path.find {
+                        PathTable.type eq req.path
+                    }.single()
                 }
 
                 val teacherDetails = dbQuery {
@@ -250,12 +248,10 @@ class ServiceRepositoryImpl(
                     }.single()
                 }
 
-                val email = when (Path.PathType.valueOf(pathDef.await().type)) {
-                    Path.PathType.PRINCIPLE -> dbQuery { Principal.all().first().email }
-
-                    Path.PathType.HEAD_CLARK -> dbQuery { HeadClark.all().first().email }
-
-                    Path.PathType.DEPARTMENT_HEAD -> dbQuery { teacher.getTeacherOnId(departmentHead.teacherId.value).email }
+                val email = when {
+                    path.type.startsWith("P") -> dbQuery { Principal.all().first().email }
+                    path.type.startsWith("H") -> dbQuery { HeadClark.all().first().email }
+                    else -> dbQuery { teacher.getTeacherOnId(departmentHead.teacherId.value).email }
                 }
 
                 leaveReqNotificationToHead(

@@ -52,19 +52,22 @@ select * from leavestatus where departmentid = 6 and actionid is null;
 select * from status;
 
 
+select * from teachertype;
 
 
 
 
+select * from leavereq where teacherId = 1;
+
+select * from leavestatus;
+
+select * from status;
 
 
+select * from path;
 
 
-
-
-
-
-
+select * from principal;
 
 
 

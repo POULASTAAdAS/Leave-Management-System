@@ -4,7 +4,6 @@ import com.poulastaa.data.model.leave.ApplyLeaveReq
 import com.poulastaa.data.model.leave.ApplyLeaveRes
 import com.poulastaa.data.model.leave.HandleLeaveReq
 import com.poulastaa.domain.dao.leave.LeaveAction
-import org.jetbrains.exposed.dao.id.EntityID
 
 interface ApplyLeaveRepository {
     suspend fun applyLeave(
