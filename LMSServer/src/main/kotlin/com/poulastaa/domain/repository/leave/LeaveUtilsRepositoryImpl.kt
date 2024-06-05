@@ -229,76 +229,110 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
         pageSize: Int,
         isPrinciple: Boolean,
     ): List<ViewLeaveSingleRes> = coroutineScope {
-        if (isPrinciple) {
-            dbQuery {
-                val pendingEndId = PendingEnd.find {
-                    PendingEndTable.type eq PendingEnd.TYPE.NOT_PENDING.value
-                }.single().id
+        val join = LeaveReqTable
+            .join(
+                otherTable = LeaveStatusTable,
+                joinType = JoinType.INNER,
+                additionalConstraint = {
+                    LeaveReqTable.id eq LeaveStatusTable.leaveId
+                }
+            ).join(
+                otherTable = TeacherDetailsTable,
+                joinType = JoinType.INNER,
+                additionalConstraint = {
+                    TeacherDetailsTable.teacherId eq LeaveReqTable.teacherId
+                }
+            ).join(
+                otherTable = LeaveTypeTable,
+                joinType = JoinType.INNER,
+                additionalConstraint = {
+                    LeaveTypeTable.id eq LeaveReqTable.leaveTypeId
+                }
+            ).join(
+                otherTable = StatusTable,
+                joinType = JoinType.INNER,
+                additionalConstraint = {
+                    StatusTable.id eq LeaveStatusTable.statusId
+                }
+            ).join(
+                otherTable = DepartmentTable,
+                joinType = JoinType.INNER,
+                additionalConstraint = {
+                    DepartmentTable.id eq LeaveStatusTable.departmentId
+                }
+            )
+            .slice(
+                TeacherDetailsTable.name,
+                LeaveTypeTable.type,
+                LeaveReqTable.reqDate,
+                LeaveReqTable.fromDate,
+                LeaveReqTable.toDate,
+                StatusTable.type,
+                LeaveStatusTable.cause,
+                DepartmentTable.name
+            )
 
-                LeaveReqTable
-                    .join(
-                        otherTable = LeaveStatusTable,
-                        joinType = JoinType.INNER,
-                        additionalConstraint = {
-                            LeaveReqTable.id eq LeaveStatusTable.leaveId
-                        }
-                    ).join(
-                        otherTable = TeacherDetailsTable,
-                        joinType = JoinType.INNER,
-                        additionalConstraint = {
-                            TeacherDetailsTable.teacherId eq LeaveReqTable.teacherId
-                        }
-                    ).join(
-                        otherTable = LeaveTypeTable,
-                        joinType = JoinType.INNER,
-                        additionalConstraint = {
-                            LeaveTypeTable.id eq LeaveReqTable.leaveTypeId
-                        }
-                    ).join(
-                        otherTable = StatusTable,
-                        joinType = JoinType.INNER,
-                        additionalConstraint = {
-                            StatusTable.id eq LeaveStatusTable.statusId
-                        }
-                    ).join(
-                        otherTable = DepartmentTable,
-                        joinType = JoinType.INNER,
-                        additionalConstraint = {
-                            DepartmentTable.id eq LeaveStatusTable.departmentId
-                        }
-                    )
-                    .slice(
-                        TeacherDetailsTable.name,
-                        LeaveTypeTable.type,
-                        LeaveReqTable.reqDate,
-                        LeaveReqTable.fromDate,
-                        LeaveReqTable.toDate,
-                        StatusTable.type,
-                        LeaveStatusTable.cause,
-                        DepartmentTable.name
-                    ).select {
+        when (isPrinciple) {
+            true -> {
+                val pendingEndId = dbQuery {
+                    PendingEnd.find {
+                        PendingEndTable.type eq PendingEnd.TYPE.NOT_PENDING.value
+                    }.single().id
+                }
+
+                dbQuery {
+                    join.select {
                         LeaveStatusTable.pendingEndId eq pendingEndId
                     }.orderBy(DepartmentTable.id, SortOrder.ASC)
-                    .asSequence()
+                }
+            }
+
+            false -> {
+                val teacher = dbQuery {
+                    Teacher.find {
+                        TeacherTable.email eq email
+                    }.singleOrNull()
+                } ?: return@coroutineScope emptyList()
+
+                val departmentId = dbQuery {
+                    DepartmentHead.find {
+                        DepartmentHeadTable.teacherId eq teacher.id
+                    }.singleOrNull()?.departmentId
+                } ?: return@coroutineScope emptyList()
+
+                dbQuery {
+                    val pendingEndId = PendingEnd.find {
+                        PendingEndTable.type eq PendingEnd.TYPE.NOT_PENDING.value
+                    }.single().id
+
+
+                    join.select {
+                        LeaveStatusTable.pendingEndId eq pendingEndId and (DepartmentTable.id eq departmentId)
+                    }.orderBy(DepartmentTable.id, SortOrder.ASC)
+                }
+            }
+        }.let {
+            dbQuery {
+                it.asSequence()
                     .drop(if (page == 1) 0 else page * pageSize)
                     .take(pageSize)
-                    .map {
+                    .map { row ->
                         ViewLeaveEntry(
-                            name = it[TeacherDetailsTable.name],
-                            leaveType = it[LeaveTypeTable.type],
-                            reqData = it[LeaveReqTable.reqDate].format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
-                            fromDate = it[LeaveReqTable.fromDate].toString(),
-                            toDate = it[LeaveReqTable.fromDate].toString(),
+                            name = row[TeacherDetailsTable.name],
+                            leaveType = row[LeaveTypeTable.type],
+                            reqData = row[LeaveReqTable.reqDate].format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
+                            fromDate = row[LeaveReqTable.fromDate].toString(),
+                            toDate = row[LeaveReqTable.fromDate].toString(),
                             totalDays = (ChronoUnit.DAYS.between(
-                                it[LeaveReqTable.fromDate],
-                                it[LeaveReqTable.toDate]
+                                row[LeaveReqTable.fromDate],
+                                row[LeaveReqTable.toDate]
                             ) + 1).toString(),
-                            status = it[StatusTable.type],
-                            cause = it[LeaveStatusTable.cause],
-                            department = it[DepartmentTable.name].trim()
+                            status = row[StatusTable.type],
+                            cause = row[LeaveStatusTable.cause],
+                            department = row[DepartmentTable.name].trim()
                         )
-                    }.groupBy {
-                        it.department
+                    }.groupBy { grp ->
+                        grp.department
                     }.map { entry ->
                         ViewLeaveSingleRes(
                             department = entry.key,
@@ -317,26 +351,6 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
                         )
                     }.toList()
             }
-        } else {
-            val teacher = dbQuery {
-                Teacher.find {
-                    TeacherTable.email eq email
-                }.singleOrNull()
-            } ?: return@coroutineScope emptyList()
-
-            val departmentId = dbQuery {
-                DepartmentHead.find {
-                    DepartmentHeadTable.teacherId eq teacher.id
-                }.singleOrNull()?.departmentId
-            } ?: return@coroutineScope emptyList()
-
-
-            dbQuery {
-
-            }
-
-            emptyList()
         }
     }
 }
-

@@ -13,4 +13,6 @@ interface DataStoreRepository {
 
     suspend fun storeLocalUser(user: LocalUser)
     suspend fun readUser(): Flow<LocalUser>
+
+    suspend fun clearAll()
 }

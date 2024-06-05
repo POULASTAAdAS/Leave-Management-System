@@ -96,13 +96,13 @@ fun LeaveViewCard(
                     .horizontalScroll(rememberScrollState()),
             ) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.dimens.medium1),
+                    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.dimens.medium2),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     repeat(headingList.size) {
                         Text(
                             modifier = Modifier
-                                .widthIn(min = 90.dp)
+                                .widthIn(min = 100.dp)
                                 .align(Alignment.CenterVertically),
                             text = headingList[it],
                             fontWeight = FontWeight.SemiBold,
@@ -137,6 +137,9 @@ fun LeaveViewCard(
                         ItemText(text = leaveViewCard.listOfLeave[it].leaveType)
 
                         ItemText(text = leaveViewCard.listOfLeave[it].status)
+
+                        Spacer(modifier = Modifier.height(1.dp))
+                        Spacer(modifier = Modifier.height(1.dp))
 
                         ItemText(text = leaveViewCard.listOfLeave[it].cause)
                     }

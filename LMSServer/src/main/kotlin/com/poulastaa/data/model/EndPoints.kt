@@ -29,5 +29,13 @@ sealed class EndPoints(val route: String) {
 
     data object GetViewLeaves : EndPoints(route = "/api/auth/viewLeaves")
 
+    data object IsStillDepartmentHead : EndPoints(route = "/api/auth/isStillDepartmentHead")
+    data object GetDepartmentInCharge : EndPoints(route = "/api/auth/getDepartmentInCharge")
+    data object UpdateDepartmentHead : EndPoints(route = "/api/auth/updateDepartmentHead")
+
+    data object AddTeachers : EndPoints(route = "/api/auth/addTeachers")
+
+    data object GetReport : EndPoints(route = "/api/auth/getReport")
+
     data object UnAuthorised : EndPoints(route = "/api/unauthorised")
 }

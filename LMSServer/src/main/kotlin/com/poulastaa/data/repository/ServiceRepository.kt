@@ -6,6 +6,7 @@ import com.poulastaa.data.model.auth.res.AuthRes
 import com.poulastaa.data.model.auth.res.EmailVerificationRes
 import com.poulastaa.data.model.auth.res.SetDetailsRes
 import com.poulastaa.data.model.auth.res.VerifiedMailStatus
+import com.poulastaa.data.model.department.GetDepartmentInChargeRes
 import com.poulastaa.data.model.details.UpdateAddressReq
 import com.poulastaa.data.model.details.UpdateDetailsReq
 import com.poulastaa.data.model.details.UpdateHeadDetailsReq
@@ -63,4 +64,13 @@ interface ServiceRepository {
         page: Int,
         pageSize: Int,
     ): List<ViewLeaveSingleRes>
+
+    suspend fun isStillDepartmentInCharge(
+        email: String
+    ): Boolean
+
+    suspend fun getDepartmentInCharge(
+        email: String,
+        departmentName: String
+    ): GetDepartmentInChargeRes
 }

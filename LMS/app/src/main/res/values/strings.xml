@@ -104,6 +104,10 @@
     <string name="submit">submit</string>
     <string name="coming_soon">Comming soon.</string>
     <string name="leave_view_heading">Approved, Rejected Leave</string>
+    <string name="current_head">Current Department Head</string>
+    <string name="select_new_teacher">Select New Teacher</string>
+    <string name="promoted_to_department_head">You have been promoted to Department In-charge.Please Login again.</string>
+    <string name="demoted_from_department_head">You have been demoted from Department In-Charge.Please Login again.</string>
 
     <array name="com_google_android_gms_fonts_certs">
         <item>@array/com_google_android_gms_fonts_certs_dev</item>

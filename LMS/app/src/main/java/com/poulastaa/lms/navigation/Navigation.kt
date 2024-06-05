@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.poulastaa.lms.presentation.auth.AuthRootScreen
+import com.poulastaa.lms.presentation.define_in_charge.DefneInChargeRootScreen
 import com.poulastaa.lms.presentation.home.type.HomeRootScreenType
 import com.poulastaa.lms.presentation.leave_apply.ApplyLeaveRootScreen
 import com.poulastaa.lms.presentation.leave_approval.ApproveLeaveRootScreen
@@ -28,7 +29,7 @@ import com.poulastaa.lms.presentation.store_details.StoreDetailsRootScreen
 @Composable
 fun Navigation(
     navController: NavHostController,
-    startDestination: String = Screens.Auth.route
+    startDestination: String = Screens.Auth.route,
 ) {
     NavHost(navController = navController, startDestination = startDestination) {
         composable(route = Screens.Auth.route) {
@@ -297,7 +298,9 @@ fun Navigation(
         }
 
         composable(route = Screens.DefineDepartmentInCharge.route) {
-
+            DefneInChargeRootScreen {
+                navController.popBackStack()
+            }
         }
 
         composable(route = Screens.Add.route) {

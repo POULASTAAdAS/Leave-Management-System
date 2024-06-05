@@ -3,6 +3,8 @@ package com.poulastaa.plugins
 import com.poulastaa.data.model.auth.UserSession
 import com.poulastaa.data.repository.ServiceRepository
 import com.poulastaa.routes.auth.*
+import com.poulastaa.routes.department.checkIfDepartmentHead
+import com.poulastaa.routes.department.getDepartmentInCharge
 import com.poulastaa.routes.details.*
 import com.poulastaa.routes.leave.*
 import io.ktor.server.application.*
@@ -43,6 +45,9 @@ fun Application.configureRouting() {
         getApproveLeave(service)
         handleLeave(service)
         viewLeaves(service)
+
+        checkIfDepartmentHead(service)
+        getDepartmentInCharge(service)
 
         unAuth()
 

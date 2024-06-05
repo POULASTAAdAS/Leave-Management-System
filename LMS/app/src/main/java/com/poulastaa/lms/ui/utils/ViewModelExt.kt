@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 
 fun ViewModel.storeUser(
     ds: DataStoreRepository,
-    localUser: LocalUser
+    localUser: LocalUser,
 ) {
     viewModelScope.launch(Dispatchers.IO) {
         ds.storeLocalUser(localUser)
@@ -26,6 +26,12 @@ fun ViewModel.storeSignInState(state: Screens, ds: DataStoreRepository) {
 fun ViewModel.storeCookie(cookie: String, ds: DataStoreRepository) {
     viewModelScope.launch(Dispatchers.IO) {
         ds.storeCookie(cookie)
+    }
+}
+
+fun ViewModel.clearDs(ds: DataStoreRepository) {
+    viewModelScope.launch {
+        ds.clearAll()
     }
 }
 

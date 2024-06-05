@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class DataStoreRepositoryImpl @Inject constructor(
-    private val dataStore: DataStore<Preferences>
+    private val dataStore: DataStore<Preferences>,
 ) : DataStoreRepository {
     private object PreferencesKeys {
         val SIGN_IN_STATE = stringPreferencesKey(name = "sign_in_state")
@@ -79,5 +79,9 @@ class DataStoreRepositoryImpl @Inject constructor(
                 profilePicUrl = BuildConfig.BASE_URL + EndPoints.GetProfilePic.route
             )
         } ?: LocalUser()
+    }
+
+    override suspend fun clearAll() {
+        dataStore.edit { it.clear() }
     }
 }

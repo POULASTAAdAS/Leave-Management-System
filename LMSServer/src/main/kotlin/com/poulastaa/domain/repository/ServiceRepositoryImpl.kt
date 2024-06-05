@@ -4,14 +4,17 @@ import com.poulastaa.data.model.EndPoints
 import com.poulastaa.data.model.GetTeacherRes
 import com.poulastaa.data.model.auth.req.SetDetailsReq
 import com.poulastaa.data.model.auth.res.*
+import com.poulastaa.data.model.department.DepartmentTeacher
+import com.poulastaa.data.model.department.GetDepartmentInChargeRes
 import com.poulastaa.data.model.details.UpdateAddressReq
 import com.poulastaa.data.model.details.UpdateDetailsReq
 import com.poulastaa.data.model.details.UpdateHeadDetailsReq
 import com.poulastaa.data.model.leave.*
+import com.poulastaa.data.model.table.address.TeacherDetailsTable
 import com.poulastaa.data.model.table.department.DepartmentHeadTable
 import com.poulastaa.data.model.table.department.DepartmentTable
-import com.poulastaa.data.model.table.designation.DesignationTeacherTypeRelation
 import com.poulastaa.data.model.table.leave.LeaveTypeTable
+import com.poulastaa.data.model.table.teacher.TeacherTypeTable
 import com.poulastaa.data.model.table.utils.PathTable
 import com.poulastaa.data.repository.JWTRepository
 import com.poulastaa.data.repository.TeacherRepository
@@ -21,6 +24,7 @@ import com.poulastaa.domain.dao.department.Department
 import com.poulastaa.domain.dao.department.DepartmentHead
 import com.poulastaa.domain.dao.leave.LeaveAction
 import com.poulastaa.domain.dao.leave.LeaveType
+import com.poulastaa.domain.dao.teacher.TeacherType
 import com.poulastaa.domain.dao.utils.HeadClark
 import com.poulastaa.domain.dao.utils.Path
 import com.poulastaa.domain.dao.utils.Principal
@@ -30,7 +34,9 @@ import com.poulastaa.utils.Constants.LOGIN_VERIFICATION_MAIL_TOKEN_CLAIM_KEY
 import com.poulastaa.utils.Constants.SIGNUP_VERIFICATION_MAIL_TOKEN_CLAIM_KEY
 import com.poulastaa.utils.sendEmail
 import kotlinx.coroutines.*
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.upperCase
 import java.io.File
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -463,6 +469,69 @@ class ServiceRepositoryImpl(
                 isPrinciple = false
             )
         }
+    }
+
+    override suspend fun isStillDepartmentInCharge(email: String): Boolean = dbQuery {
+        val teacher = teacher.getTeacher(email) ?: return@dbQuery false
+
+        dbQuery {
+            DepartmentHead.find {
+                DepartmentHeadTable.teacherId eq teacher.id
+            }.empty().not()
+        }
+    }
+
+    override suspend fun getDepartmentInCharge(
+        email: String,
+        departmentName: String
+    ): GetDepartmentInChargeRes = coroutineScope {
+        val department = dbQuery {
+            Department.find {
+                DepartmentTable.name.upperCase() eq departmentName.trim().uppercase()
+            }.singleOrNull()
+        } ?: return@coroutineScope GetDepartmentInChargeRes()
+
+        val departmentHeadId = dbQuery {
+            DepartmentHead.find {
+                DepartmentHeadTable.departmentId eq department.id
+            }.singleOrNull()?.teacherId?.value
+        } ?: return@coroutineScope GetDepartmentInChargeRes()
+
+        val teacherTypeId = dbQuery {
+            TeacherType.find {
+                TeacherTypeTable.type eq "Permenent"
+            }.single().id
+        }
+
+        val allTeacher = dbQuery {
+            TeacherDetailsTable
+                .slice(
+                    TeacherDetailsTable.teacherId,
+                    TeacherDetailsTable.name
+                )
+                .select {
+                    TeacherDetailsTable.departmentId eq department.id and
+                            (TeacherDetailsTable.teacherTypeId eq teacherTypeId)
+                }.map {
+                    DepartmentTeacher(
+                        id = it[TeacherDetailsTable.teacherId].value,
+                        name = it[TeacherDetailsTable.name]
+                    )
+                }
+        }
+
+        val currentHead = allTeacher.first {
+            it.id == departmentHeadId
+        }
+
+        val newList = allTeacher.filterNot {
+            it.id == departmentHeadId
+        }
+
+        GetDepartmentInChargeRes(
+            current = currentHead.name,
+            others = newList
+        )
     }
 
     private fun validateEmail(email: String) =

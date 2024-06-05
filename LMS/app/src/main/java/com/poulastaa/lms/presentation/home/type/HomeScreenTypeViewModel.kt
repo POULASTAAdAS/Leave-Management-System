@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeScreenTypeViewModel @Inject constructor(
-    private val ds: DataStoreRepository
+    private val ds: DataStoreRepository,
 ) : ViewModel() {
     var state by mutableStateOf(HomeScreenTypeUiState())
         private set
