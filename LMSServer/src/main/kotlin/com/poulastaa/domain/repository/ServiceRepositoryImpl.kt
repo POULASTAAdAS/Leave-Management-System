@@ -10,6 +10,7 @@ import com.poulastaa.data.model.details.UpdateHeadDetailsReq
 import com.poulastaa.data.model.leave.*
 import com.poulastaa.data.model.table.department.DepartmentHeadTable
 import com.poulastaa.data.model.table.department.DepartmentTable
+import com.poulastaa.data.model.table.designation.DesignationTeacherTypeRelation
 import com.poulastaa.data.model.table.leave.LeaveTypeTable
 import com.poulastaa.data.model.table.utils.PathTable
 import com.poulastaa.data.repository.JWTRepository
@@ -29,6 +30,7 @@ import com.poulastaa.utils.Constants.LOGIN_VERIFICATION_MAIL_TOKEN_CLAIM_KEY
 import com.poulastaa.utils.Constants.SIGNUP_VERIFICATION_MAIL_TOKEN_CLAIM_KEY
 import com.poulastaa.utils.sendEmail
 import kotlinx.coroutines.*
+import org.jetbrains.exposed.sql.select
 import java.io.File
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -399,7 +401,7 @@ class ServiceRepositoryImpl(
                 content = """
                     Hello ${details.name}
                     Your ${leaveType.type} from ${leave.fromDate} to ${leave.toDate} of total ${
-                     ChronoUnit.DAYS.between(
+                    ChronoUnit.DAYS.between(
                         leave.fromDate,
                         leave.toDate
                     ) + 1L
@@ -436,6 +438,31 @@ class ServiceRepositoryImpl(
         }
 
         true
+    }
+
+    override suspend fun viewLeave(
+        email: String,
+        page: Int,
+        pageSize: Int,
+    ): List<ViewLeaveSingleRes> = coroutineScope {
+        val principal = getPrinciple()
+
+
+        if (principal.email == email) {
+            leave.leaveUtils.viewLeave(
+                email = email,
+                page = page,
+                pageSize = pageSize,
+                isPrinciple = true
+            )
+        } else {
+            leave.leaveUtils.viewLeave(
+                email = email,
+                page = page,
+                pageSize = pageSize,
+                isPrinciple = false
+            )
+        }
     }
 
     private fun validateEmail(email: String) =

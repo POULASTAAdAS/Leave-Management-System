@@ -42,6 +42,7 @@ fun Application.configureRouting() {
 
         getApproveLeave(service)
         handleLeave(service)
+        viewLeaves(service)
 
         unAuth()
 

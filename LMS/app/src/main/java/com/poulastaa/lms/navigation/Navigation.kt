@@ -14,6 +14,7 @@ import com.poulastaa.lms.presentation.leave_apply.ApplyLeaveRootScreen
 import com.poulastaa.lms.presentation.leave_approval.ApproveLeaveRootScreen
 import com.poulastaa.lms.presentation.leave_history.LeaveHistoryRootScreen
 import com.poulastaa.lms.presentation.leave_status.LeaveStatusRootScreen
+import com.poulastaa.lms.presentation.leave_view.LeaveViewRootScreen
 import com.poulastaa.lms.presentation.profile.ProfileRootScreen
 import com.poulastaa.lms.presentation.profile.edit.address_edit.AddressEditRootScreen
 import com.poulastaa.lms.presentation.profile.edit.address_edit.AddressEditUiEvent
@@ -286,7 +287,9 @@ fun Navigation(
         }
 
         composable(route = Screens.ViewLeave.route) {
-
+            LeaveViewRootScreen {
+                navController.popBackStack()
+            }
         }
 
         composable(route = Screens.ViewReport.route) {

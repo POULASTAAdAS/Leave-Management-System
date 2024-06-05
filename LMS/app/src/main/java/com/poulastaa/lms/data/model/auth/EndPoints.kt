@@ -25,4 +25,6 @@ sealed class EndPoints(val route: String) {
 
     data object GetApproveLeaves : EndPoints(route = "/api/auth/getApproveLeaves")
     data object HandleLeave : EndPoints(route = "/api/auth/handleLeave")
+
+    data object GetViewLeaves : EndPoints(route = "/api/auth/viewLeaves")
 }

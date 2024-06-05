@@ -2,6 +2,7 @@ package com.poulastaa.data.repository.leave
 
 import com.poulastaa.data.model.leave.LeaveApproveRes
 import com.poulastaa.data.model.leave.LeaveHistoryRes
+import com.poulastaa.data.model.leave.ViewLeaveSingleRes
 import com.poulastaa.domain.dao.leave.LeaveReq
 import com.poulastaa.domain.dao.leave.LeaveType
 import org.jetbrains.exposed.dao.id.EntityID
@@ -35,4 +36,11 @@ interface LeaveUtilsRepository {
     ): List<LeaveApproveRes>
 
     suspend fun getLeaveOnId(leaveId: Long): LeaveReq
+
+    suspend fun viewLeave(
+        email: String,
+        page: Int,
+        pageSize: Int,
+        isPrinciple: Boolean
+    ): List<ViewLeaveSingleRes>
 }

@@ -57,4 +57,10 @@ interface ServiceRepository {
         req: HandleLeaveReq,
         email: String
     ): Boolean
+
+    suspend fun viewLeave(
+        email: String,
+        page: Int,
+        pageSize: Int,
+    ): List<ViewLeaveSingleRes>
 }

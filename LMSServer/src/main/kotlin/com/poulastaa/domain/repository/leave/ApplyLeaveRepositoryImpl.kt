@@ -842,7 +842,6 @@ class ApplyLeaveRepositoryImpl(
         }
     }
 
-
     override suspend fun handleLeave(
         req: HandleLeaveReq,
         isPrincipal: Boolean

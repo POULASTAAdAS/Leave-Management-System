@@ -1,7 +1,6 @@
 package com.poulastaa.lms.presentation.leave_history
 
 data class LeaveHistoryUiState(
-    val isMakingApiCall: Boolean = false,
     val header: List<String> = listOf(
         "Request Date",
         "Leave Type",
