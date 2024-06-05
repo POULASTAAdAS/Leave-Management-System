@@ -8,6 +8,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.poulastaa.lms.presentation.add_teacher.AddTeacherRootScreen
 import com.poulastaa.lms.presentation.auth.AuthRootScreen
 import com.poulastaa.lms.presentation.define_in_charge.DefneInChargeRootScreen
 import com.poulastaa.lms.presentation.home.type.HomeRootScreenType
@@ -304,7 +305,9 @@ fun Navigation(
         }
 
         composable(route = Screens.Add.route) {
-
+            AddTeacherRootScreen {
+                navController.popBackStack()
+            }
         }
     }
 }

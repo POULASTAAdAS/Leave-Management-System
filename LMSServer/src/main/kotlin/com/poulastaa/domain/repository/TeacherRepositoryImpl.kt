@@ -47,6 +47,7 @@ import kotlinx.coroutines.*
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateStatement
+import kotlin.time.measureTime
 
 class TeacherRepositoryImpl : TeacherRepository {
     private suspend fun findTeacher(email: String) = dbQuery {
@@ -410,7 +411,7 @@ class TeacherRepositoryImpl : TeacherRepository {
 
     override suspend fun storeProfilePic(
         email: String,
-        fileNameWithPath: String
+        fileNameWithPath: String,
     ): Boolean {
         val teacher = findTeacher(email)
 
@@ -471,7 +472,7 @@ class TeacherRepositoryImpl : TeacherRepository {
     private suspend fun updateBothAddress(
         id: Int,
         req: UpdateAddressReq,
-        oldEntry: TeacherAddress
+        oldEntry: TeacherAddress,
     ) = dbQuery {
         TeacherAddressTable.update(
             where = {
@@ -485,7 +486,7 @@ class TeacherRepositoryImpl : TeacherRepository {
     private fun TeacherAddressTable.updateTeacherEntry(
         it: UpdateStatement,
         req: UpdateAddressReq,
-        oldEntry: TeacherAddress
+        oldEntry: TeacherAddress,
     ) {
         it[this.houseNumb] = req.houseNo ?: oldEntry.houseNum
         it[this.street] = req.street ?: oldEntry.street
@@ -616,13 +617,13 @@ class TeacherRepositoryImpl : TeacherRepository {
     private suspend fun setLeaveBalance(
         teacherTypeId: Int,
         teacherId: Int,
-        gender: Char
+        gender: Char,
     ) = coroutineScope {
         fun insertLeaveBalance(
             teacherId: Int,
             teacherTypeId: Int,
             leaveTypeId: Int,
-            balance: Double
+            balance: Double,
         ) {
             LeaveBalanceTable.insertIgnore { statement ->
                 statement[this.teacherId] = teacherId
@@ -920,6 +921,20 @@ class TeacherRepositoryImpl : TeacherRepository {
                 else -> LeaveType.ScatType.STUDY_LEAVE to it.id.value
             }
         }
+    }
+
+    override suspend fun addTeacher(email: String): Boolean = dbQuery {
+        val oldTeacher = Teacher.find {
+            TeacherTable.email eq email
+        }.singleOrNull()
+
+        if (oldTeacher != null) return@dbQuery false
+
+        Teacher.new {
+            this.email = email
+        }
+
+        true
     }
 
     private suspend fun getPermanentTeacherLeaveType() = dbQuery {

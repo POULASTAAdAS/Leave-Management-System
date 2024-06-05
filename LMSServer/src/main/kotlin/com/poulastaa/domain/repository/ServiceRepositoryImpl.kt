@@ -2,6 +2,7 @@ package com.poulastaa.domain.repository
 
 import com.poulastaa.data.model.EndPoints
 import com.poulastaa.data.model.GetTeacherRes
+import com.poulastaa.data.model.auth.req.AddTeacherReq
 import com.poulastaa.data.model.auth.req.SetDetailsReq
 import com.poulastaa.data.model.auth.res.*
 import com.poulastaa.data.model.department.DepartmentTeacher
@@ -44,10 +45,10 @@ import java.time.temporal.ChronoUnit
 class ServiceRepositoryImpl(
     private val jwtRepo: JWTRepository,
     private val teacher: TeacherRepository,
-    private val leave: LeaveWrapper
+    private val leave: LeaveWrapper,
 ) : ServiceRepository {
     override suspend fun auth(email: String): AuthRes {
-        if (!validateEmail(email)) return AuthRes()
+        if (!isValidEmail(email)) return AuthRes()
 
         val response = teacher.getTeacherDetailsStatus(email)
 
@@ -148,15 +149,15 @@ class ServiceRepositoryImpl(
 
     override suspend fun updateDetails(
         email: String,
-        req: UpdateDetailsReq
+        req: UpdateDetailsReq,
     ): Boolean {
-        if (req.email.isNotEmpty() && !validateEmail(req.email)) return false
+        if (req.email.isNotEmpty() && !isValidEmail(req.email)) return false
 
         return teacher.updateDetails(email, req)
     }
 
     override suspend fun updateHeadDetails(email: String, req: UpdateHeadDetailsReq): Boolean {
-        if (req.email.isNotEmpty() && !validateEmail(req.email)) return false
+        if (req.email.isNotEmpty() && !isValidEmail(req.email)) return false
 
         return teacher.updateHeadDetails(email, req)
     }
@@ -182,7 +183,7 @@ class ServiceRepositoryImpl(
     private fun sendEmailVerificationMail(
         toEmail: String,
         token: String,
-        route: String
+        route: String,
     ) {
         CoroutineScope(Dispatchers.IO).launch {
             sendEmail( // verification mail
@@ -219,7 +220,7 @@ class ServiceRepositoryImpl(
 
     override suspend fun handleLeaveReq(
         req: ApplyLeaveReq,
-        filePath: String?
+        filePath: String?,
     ): ApplyLeaveRes {
         val response = leave.applyLeave.applyLeave(
             req = req,
@@ -293,7 +294,7 @@ class ServiceRepositoryImpl(
     override suspend fun getLeaveHistory(
         email: String,
         page: Int,
-        pageSize: Int
+        pageSize: Int,
     ): List<LeaveHistoryRes> {
         val teacher = teacher.getTeacher(email) ?: return emptyList()
 
@@ -307,7 +308,7 @@ class ServiceRepositoryImpl(
     override suspend fun getApproveLeave(
         email: String,
         page: Int,
-        pageSize: Int
+        pageSize: Int,
     ): List<LeaveApproveRes> = coroutineScope {
         val teacher = teacher.getTeacher(email)
 
@@ -483,7 +484,7 @@ class ServiceRepositoryImpl(
 
     override suspend fun getDepartmentInCharge(
         email: String,
-        departmentName: String
+        departmentName: String,
     ): GetDepartmentInChargeRes = coroutineScope {
         val department = dbQuery {
             Department.find {
@@ -534,7 +535,33 @@ class ServiceRepositoryImpl(
         )
     }
 
-    private fun validateEmail(email: String) =
+    override suspend fun addTeacher(req: AddTeacherReq): Boolean {
+        if (!isValidEmail(req.email)) return false
+
+        val status = teacher.addTeacher(req.email)
+
+        if (status) {
+            CoroutineScope(Dispatchers.IO).launch {
+                sendEmail(
+                    to = req.email,
+                    subject = "You can now logIn in our Leave Management System app",
+                    content = """
+                        Your given email has been added to our database.
+                        You can now Login through our app and manager all your leaves.
+                        
+                        This is an auto-generated mail. Please do not reply to this message.
+            
+                        Regards,
+                        ${System.getenv("college")}
+                    """
+                )
+            }
+        }
+
+        return status
+    }
+
+    private fun isValidEmail(email: String) =
         email.matches(Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\$"))
 
     private fun SetDetailsReq.validateDetails(): Boolean {
@@ -575,7 +602,7 @@ class ServiceRepositoryImpl(
         fromDate: String,
         toDate: String,
         totalDays: String,
-        reqDateTime: String
+        reqDateTime: String,
     ) {
         val subject = "Leave Request Accepted"
         val messageContent = """
@@ -602,7 +629,7 @@ class ServiceRepositoryImpl(
         totalDays: String,
         reqDateTime: String,
         department: String,
-        name: String
+        name: String,
     ) {
         val subject = "A Leave Request is made by $name"
         val messageContent = """
@@ -625,7 +652,7 @@ class ServiceRepositoryImpl(
     private fun leaveUpdateLetter(
         to: String,
         subject: String,
-        content: String
+        content: String,
     ) {
         sendEmail(
             to = to,

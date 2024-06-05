@@ -2,6 +2,7 @@ package com.poulastaa.data.repository
 
 import com.poulastaa.data.model.GetTeacherRes
 import com.poulastaa.data.model.TeacherDetails
+import com.poulastaa.data.model.auth.req.AddTeacherReq
 import com.poulastaa.data.model.auth.req.SetDetailsReq
 import com.poulastaa.data.model.auth.res.AuthStatus
 import com.poulastaa.data.model.auth.res.SetDetailsRes
@@ -46,4 +47,8 @@ interface TeacherRepository {
     suspend fun getTeacherTypeOnId(id: Int): TeacherType?
 
     suspend fun getSACTTeacherLeaveType(): List<Pair<LeaveType.ScatType, Int>>
+
+    suspend fun addTeacher(
+        email: String
+    ): Boolean
 }

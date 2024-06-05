@@ -1,6 +1,7 @@
 package com.poulastaa.data.repository
 
 import com.poulastaa.data.model.GetTeacherRes
+import com.poulastaa.data.model.auth.req.AddTeacherReq
 import com.poulastaa.data.model.auth.req.SetDetailsReq
 import com.poulastaa.data.model.auth.res.AuthRes
 import com.poulastaa.data.model.auth.res.EmailVerificationRes
@@ -39,24 +40,24 @@ interface ServiceRepository {
 
     suspend fun handleLeaveReq(
         req: ApplyLeaveReq,
-        filePath: String?
+        filePath: String?,
     ): ApplyLeaveRes
 
     suspend fun getLeaveHistory(
         email: String,
         page: Int,
-        pageSize: Int
+        pageSize: Int,
     ): List<LeaveHistoryRes>
 
     suspend fun getApproveLeave(
         email: String,
         page: Int,
-        pageSize: Int
+        pageSize: Int,
     ): List<LeaveApproveRes>
 
     suspend fun handleLeave(
         req: HandleLeaveReq,
-        email: String
+        email: String,
     ): Boolean
 
     suspend fun viewLeave(
@@ -66,11 +67,15 @@ interface ServiceRepository {
     ): List<ViewLeaveSingleRes>
 
     suspend fun isStillDepartmentInCharge(
-        email: String
+        email: String,
     ): Boolean
 
     suspend fun getDepartmentInCharge(
         email: String,
-        departmentName: String
+        departmentName: String,
     ): GetDepartmentInChargeRes
+
+    suspend fun addTeacher(
+        req: AddTeacherReq,
+    ): Boolean
 }

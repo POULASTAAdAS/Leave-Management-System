@@ -192,7 +192,3 @@ select * from teachertype;
 
 
 
-
-
-
-
