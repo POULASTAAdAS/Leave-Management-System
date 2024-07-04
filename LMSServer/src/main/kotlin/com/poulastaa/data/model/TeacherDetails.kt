@@ -12,5 +12,5 @@ data class TeacherDetails(
     val joiningDate: String,
     val dob: String,
     val exp: String,
-    val gender: String
+    val gender: String,
 )

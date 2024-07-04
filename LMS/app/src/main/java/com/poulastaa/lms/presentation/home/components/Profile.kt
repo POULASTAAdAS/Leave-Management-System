@@ -13,10 +13,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.poulastaa.lms.R
+import com.poulastaa.lms.ui.theme.TestThem
 
 @Composable
 fun Profile(
@@ -24,7 +26,7 @@ fun Profile(
     url: String? = null,
     cookie: String,
     sex: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     IconButton(
         modifier = modifier
@@ -60,5 +62,15 @@ fun Profile(
                 .background(color = MaterialTheme.colorScheme.primary),
             contentScale = ContentScale.Crop
         )
+    }
+}
+
+@Preview
+@Composable
+private fun Preview() {
+    TestThem {
+        Profile(cookie = "", sex = "M") {
+
+        }
     }
 }

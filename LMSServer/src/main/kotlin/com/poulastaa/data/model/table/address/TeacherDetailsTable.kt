@@ -1,9 +1,9 @@
 package com.poulastaa.data.model.table.address
 
 import com.poulastaa.data.model.table.department.DepartmentTable
+import com.poulastaa.data.model.table.designation.DesignationTable
 import com.poulastaa.data.model.table.teacher.TeacherTable
 import com.poulastaa.data.model.table.teacher.TeacherTypeTable
-import com.poulastaa.data.model.table.designation.DesignationTable
 import com.poulastaa.data.model.table.utils.QualificationTable
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.Table

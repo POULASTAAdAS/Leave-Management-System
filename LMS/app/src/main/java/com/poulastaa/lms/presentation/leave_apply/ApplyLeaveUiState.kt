@@ -36,9 +36,9 @@ data class ApplyLeaveUiState(
     val addressDuringLeaveOutStation: Holder = Holder(),
     val addressDuringLeave: ListHolder = ListHolder(
         all = listOf(
-            "Present",
-            "Home",
-            "OutStation"
+            "Present Address",
+            "Home Address",
+            "Out Station Address"
         )
     ),
     val path: ListHolder = ListHolder()

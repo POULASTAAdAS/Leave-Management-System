@@ -9,4 +9,6 @@ sealed interface ProfileUiEvent {
 
     data object OnPresentAddressEditClick : ProfileUiEvent
     data object OnHomeAddressEditClick : ProfileUiEvent
+
+    data object LogOut : ProfileUiEvent
 }

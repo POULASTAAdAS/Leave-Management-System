@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 data class UpdateHeadDetailsReq(
     val type: String,
     val email: String,
-    val name: String
+    val name: String,
 )

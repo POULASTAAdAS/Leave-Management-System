@@ -30,11 +30,11 @@ import java.time.temporal.ChronoUnit
 
 class ApplyLeaveRepositoryImpl(
     private val teacher: TeacherRepository,
-    private val leaveUtils: LeaveUtilsRepository
+    private val leaveUtils: LeaveUtilsRepository,
 ) : ApplyLeaveRepository {
     override suspend fun applyLeave(
         req: ApplyLeaveReq,
-        doc: String?
+        doc: String?,
     ): ApplyLeaveRes {
         val teacher = teacher.getTeacher(req.email) ?: return ApplyLeaveRes()
         val teacherDetails = this.teacher.getTeacherDetails(req.email, teacher.id.value) ?: return ApplyLeaveRes()
@@ -438,7 +438,7 @@ class ApplyLeaveRepositoryImpl(
 
     private suspend fun applyStudyLeave(
         req: LeaveEntry,
-        isPermanent: Boolean
+        isPermanent: Boolean,
     ) = coroutineScope {
         if (req.totalDays > 360.0) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
@@ -768,7 +768,7 @@ class ApplyLeaveRepositoryImpl(
     private suspend fun checkConflictCheckWithOtherLeave(
         teacherId: Int,
         leaveType: String,
-        fromDate: LocalDate
+        fromDate: LocalDate,
     ) = coroutineScope {
         async {
             dbQuery {
@@ -787,7 +787,7 @@ class ApplyLeaveRepositoryImpl(
 
     private suspend fun handleNewLeaveEntry(
         req: LeaveEntry,
-        isPermanent: Boolean
+        isPermanent: Boolean,
     ) = coroutineScope {
         val newEntry = dbQuery {
             LeaveReq.new {
@@ -823,7 +823,7 @@ class ApplyLeaveRepositoryImpl(
 
     private suspend fun getRecentEntry(
         type: String,
-        teacherId: Int
+        teacherId: Int,
     ) = coroutineScope {
         async {
             dbQuery {
@@ -844,7 +844,7 @@ class ApplyLeaveRepositoryImpl(
 
     override suspend fun handleLeave(
         req: HandleLeaveReq,
-        isPrincipal: Boolean
+        isPrincipal: Boolean,
     ): Pair<LeaveAction.TYPE, Int> = coroutineScope {
         val actionType = when {
             req.action.startsWith("Accept") -> LeaveAction.TYPE.FORWARD

@@ -5,7 +5,7 @@ import java.time.LocalDate
 
 data class SetDetailsEntry(
     val details: TeacherDetailsEntry,
-    val address: List<AddressEntry>
+    val address: List<AddressEntry>,
 )
 
 data class TeacherDetailsEntry(
@@ -23,7 +23,7 @@ data class TeacherDetailsEntry(
     val departmentId: EntityID<Int>,
     val joiningDate: LocalDate,
     val qualificationId: EntityID<Int>,
-    val exp: String
+    val exp: String,
 )
 
 data class AddressEntry(
@@ -33,5 +33,5 @@ data class AddressEntry(
     val street: String,
     val city: String,
     val zipCode: Int,
-    val state: String
+    val state: String,
 )

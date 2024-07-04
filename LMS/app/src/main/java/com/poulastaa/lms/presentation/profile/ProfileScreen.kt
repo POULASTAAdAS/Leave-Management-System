@@ -8,6 +8,8 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -54,6 +57,7 @@ import com.poulastaa.lms.presentation.profile.components.ProfileItemView
 import com.poulastaa.lms.presentation.utils.ScreenWrapper
 import com.poulastaa.lms.ui.theme.ArrowBackIcon
 import com.poulastaa.lms.ui.theme.EditIcon
+import com.poulastaa.lms.ui.theme.LogoutIcon
 import com.poulastaa.lms.ui.theme.OutlineEmailIcon
 import com.poulastaa.lms.ui.theme.OutlineHouseIcon
 import com.poulastaa.lms.ui.theme.OutlinePhoneIcon
@@ -66,7 +70,7 @@ import com.poulastaa.lms.ui.utils.ObserveAsEvent
 fun ProfileRootScreen(
     viewModel: ProfileViewModel = hiltViewModel(),
     navigate: (ProfileUiAction.OnNavigate) -> Unit,
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -139,7 +143,7 @@ fun ProfileRootScreen(
 
 @Composable
 private fun ProfileErr(
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
 ) {
     ScreenWrapper(
         verticalArrangement = Arrangement.Top
@@ -179,7 +183,7 @@ private fun ProfileScreen(
     state: ProfileUiState,
     context: Context,
     onEvent: (ProfileUiEvent) -> Unit,
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
 ) {
     ScreenWrapper(
         verticalArrangement = Arrangement.Top
@@ -230,6 +234,11 @@ private fun ProfileScreen(
                 onEvent(ProfileUiEvent.OnHomeAddressEditClick)
             }
 
+            Spacer(modifier = Modifier.height(MaterialTheme.dimens.large1))
+
+            LogOut {
+
+            }
 
             Spacer(modifier = Modifier.height(MaterialTheme.dimens.large1))
         }
@@ -241,7 +250,7 @@ private fun PrincipalProfile(
     state: ProfileUiState,
     context: Context,
     onEvent: (ProfileUiEvent) -> Unit,
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
 ) {
     ScreenWrapper(
         verticalArrangement = Arrangement.Top
@@ -289,7 +298,7 @@ private fun PrincipalProfile(
 
 @Composable
 private fun Back(
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth()
@@ -316,7 +325,7 @@ private fun ProfileCard(
     gender: String,
     context: Context,
     name: String,
-    onClick: (ProfileUiEvent) -> Unit
+    onClick: (ProfileUiEvent) -> Unit,
 ) {
     context.imageLoader.memoryCache?.clear()
 
@@ -337,7 +346,7 @@ private fun ProfileCard(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 20.dp
+            defaultElevation = 10.dp
         )
     ) {
         Column(
@@ -427,7 +436,7 @@ private fun ProfileCard(
 @Composable
 private fun PersonalDetails(
     personalDetails: PersonalDetails,
-    onClick: (ProfileUiEvent) -> Unit
+    onClick: (ProfileUiEvent) -> Unit,
 ) {
     Card(
         modifier = Modifier
@@ -506,7 +515,7 @@ private fun PersonalDetails(
 
 @Composable
 private fun OtherDetails(
-    otherDetails: OtherDetails
+    otherDetails: OtherDetails,
 ) {
     Card(
         modifier = Modifier
@@ -563,7 +572,7 @@ private fun OtherDetails(
 private fun Address(
     address: ProfileUiAddress,
     label: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Card(
         modifier = Modifier
@@ -600,11 +609,45 @@ private fun Address(
 }
 
 
+@Composable
+fun LogOut(
+    onClick: () -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(
+                onClick = onClick,
+                interactionSource = remember {
+                    MutableInteractionSource()
+                },
+                indication = null
+            ),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.onBackground
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 10.dp
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(MaterialTheme.dimens.small3)
+        ) {
+            ProfileIconItemView(
+                text = stringResource(id = R.string.logout),
+                icon = LogoutIcon
+            )
+        }
+    }
+}
+
 @Preview
 @Composable
 private fun Preview() {
     TestThem {
-        PrincipalProfile(state = ProfileUiState(
+        ProfileScreen(state = ProfileUiState(
             isProfilePicUpdating = false,
             gender = "M"
         ), context = LocalContext.current, onEvent = {}) {

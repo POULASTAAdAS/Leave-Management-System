@@ -419,7 +419,7 @@ class ApplyLeaveViewModel @Inject constructor(
             isErr = true
         }
 
-        if (state.addressDuringLeave.selected == "OutStation" &&
+        if (state.addressDuringLeave.selected == "Out Station Address" &&
             state.addressDuringLeaveOutStation.data.isEmpty()
         ) {
             viewModelScope.launch {

@@ -50,12 +50,12 @@
     <string name="err_cant_contain_blank_sapce">Can\'t contain blank space</string>
     <string name="error_phone_number_not_valid">Please enter a valid phone number</string>
     <string name="error_field_are_empty_or_invalid">Please fill all the fields appropriately.</string>
-    <string name="home_headline_part_1">Welcome to</string>
+    <string name="home_headline_part_1">Welcome to LMS</string>
     <string name="home_headline_part_2">Bhirab Ganguly College\'s</string>
-    <string name="home_headline_part_3">Leave Management System.</string>
+    <string name="home_headline_part_3">(Leave Management System)</string>
     <string name="apply_leave">Apply Leave</string>
     <string name="leave_status">Approved,\nPending,\nRejected Leave</string>
-    <string name="leave_history">Leave Status</string>
+    <string name="leave_history">Leave Balance</string>
     <string name="report">Report</string>
     <string name="view">View</string>
     <string name="approve_leave">Approve Leave</string>
@@ -102,7 +102,7 @@
     <string name="action">Action</string>
     <string name="cause">cause</string>
     <string name="submit">submit</string>
-    <string name="coming_soon">Comming soon.</string>
+    <string name="coming_soon">Coming soon.</string>
     <string name="leave_view_heading">Approved, Rejected Leave</string>
     <string name="current_head">Current Department Head</string>
     <string name="select_new_teacher">Select New Teacher</string>
@@ -110,6 +110,9 @@
     <string name="demoted_from_department_head">You have been demoted from Department In-Charge.Please Login again.</string>
     <string name="new_teacher_added">New Teacher Added</string>
     <string name="add_teacher">Add New Teacher</string>
+    <string name="logout">Logout</string>
+    <string name="college_name">Bhirab Ganguly College</string>
+    <string name="profile">Profile</string>
 
     <array name="com_google_android_gms_fonts_certs">
         <item>@array/com_google_android_gms_fonts_certs_dev</item>

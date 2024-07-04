@@ -17,7 +17,7 @@ data class SetDetailsReq(
     val joiningDate: String,
     val exp: String,
     val qualification: String,
-    val address: List<Pair<AddressType, ReqAddress>> = emptyList()
+    val address: List<Pair<AddressType, ReqAddress>> = emptyList(),
 )
 
 @Serializable

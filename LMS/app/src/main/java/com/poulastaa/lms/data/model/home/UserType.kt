@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class UserType {
     PRINCIPLE,
+    HEAD_CLARK,
     PERMANENT,
     SACT,
     NON,

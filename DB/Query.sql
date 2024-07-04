@@ -1,7 +1,7 @@
 SET SQL_SAFE_UPDATES = 0;
-use lmscopy;
+use lms;
 
-SELECT CONCAT('"', name, '",') AS name FROM department;
+SELECT CONCAT('"', type, '",') AS type FROM designation;
 
 
 select * from leavereq;
@@ -26,27 +26,24 @@ update teacher set emailVerified = 0 where id = 2;
 
 select * from teachertype;
 
+select * from designation;
+select* from department;
+
+select * from headclark;
 
 
+delete from teacherdetails where teacherId = 2;
 
+select * from teacherdetails;
+select * from leavebalance;
+select * from leavereq;
+select * from leavestatus;
 
+select * from DesignationTeacherTypeRelation;
 
+select * from designation;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+select * from departmenthead;
 
 
 

@@ -29,7 +29,7 @@ fun Application.configureRouting() {
         checkSignUpVerificationMailStatus(service)
         checkLoginVerificationMailStatus(service)
 
-        setDetailsReq(service)
+        setDetails(service)
         getDetails(service)
 
         updateDetails(service)

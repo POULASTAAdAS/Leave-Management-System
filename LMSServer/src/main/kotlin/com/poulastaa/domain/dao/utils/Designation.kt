@@ -9,8 +9,4 @@ class Designation(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<Designation>(DesignationTable)
 
     val type by DesignationTable.type
-
-    enum class TYPE {
-
-    }
 }

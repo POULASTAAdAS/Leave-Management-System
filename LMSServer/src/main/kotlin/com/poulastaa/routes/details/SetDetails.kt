@@ -11,8 +11,8 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Route.setDetailsReq(
-    service: ServiceRepository
+fun Route.setDetails(
+    service: ServiceRepository,
 ) {
     route(EndPoints.SetDetails.route) {
         post {

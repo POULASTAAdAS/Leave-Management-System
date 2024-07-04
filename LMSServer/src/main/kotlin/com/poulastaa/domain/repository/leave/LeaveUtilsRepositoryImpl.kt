@@ -34,7 +34,7 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
 
     override suspend fun getLeaveBalance(
         teacherId: Int,
-        type: String
+        type: String,
     ): String? = dbQuery {
         val entry = getLeaveType(type)
 
@@ -48,7 +48,7 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
     override suspend fun getHistoryLeaves(
         teacherId: Int,
         page: Int,
-        pageSize: Int
+        pageSize: Int,
     ): List<LeaveHistoryRes> = coroutineScope {
         dbQuery {
             LeaveReq.find {
@@ -109,7 +109,7 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
     }
 
     override suspend fun getPendingEndId(
-        isPermanent: Boolean
+        isPermanent: Boolean,
     ): EntityID<Int> = dbQuery {
         PendingEnd.find {
             PendingEndTable.type eq if (isPermanent) PendingEnd.TYPE.PRINCIPLE_LEVEL.value else PendingEnd.TYPE.DEPARTMENT_LEVEL.value
@@ -126,7 +126,7 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
         departmentId: Int,
         teacherHeadId: Int,
         page: Int,
-        pageSize: Int
+        pageSize: Int,
     ): List<LeaveApproveRes> =
         coroutineScope {
             val leaveId = dbQuery {

@@ -5,8 +5,8 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 
-class LeaveReq(id : EntityID<Long>): LongEntity(id) {
-    companion object: LongEntityClass<LeaveReq>(LeaveReqTable)
+class LeaveReq(id: EntityID<Long>) : LongEntity(id) {
+    companion object : LongEntityClass<LeaveReq>(LeaveReqTable)
 
     var teacherId by LeaveReqTable.teacherId
     var leaveTypeId by LeaveReqTable.leaveTypeId

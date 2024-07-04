@@ -11,7 +11,7 @@ import java.util.*
 fun sendEmail(
     to: String,
     subject: String,
-    content: String
+    content: String,
 ): Boolean {
     val props = Properties().apply {
         this["mail.smtp.host"] = SMS_EMAIL_GOOGLE_SMTP_HOST

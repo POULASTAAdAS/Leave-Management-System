@@ -1,7 +1,7 @@
 insert into principal value (1 , 'Principal' , 'principalbgc56@gmail.com' , null);
 insert into headclark value (1 ,'Head Clark' , 'headclerkbgc56@gmail.com');
 
-insert into Department values
+insert ignore into Department values
 (1,'ASP(Advertisement and Sales Promotion)'),
 (2,'Bengali'),
 (3,'Botany'),
@@ -26,16 +26,19 @@ insert into Department values
 (22,'Sanskrit'),
 (23,'Sociology'),
 (24,'Urdu'),
-(25,'Zoology');
+(25,'Zoology'),
+(26,'Other');
 
 
 insert ignore into TeacherType values
 (1 ,'Permenent'),
-(2 ,'SACT');
+(2 ,'SACT'),
+(3 ,'Non Teach');
 
 insert ignore into teacher (email) values
 ('sacteacherone@gmail.com'),
 ('poulastaadas2@gmail.com'),
+('nonteach56@gmail.com'),
 ('permanentteacherone@gmail.com');
 
 insert ignore into DepartmentHead (teacherId,departmentId ) values
@@ -47,7 +50,17 @@ insert ignore into Designation (`type`) values
 ('Assistant Professor-III'),
 ('Associate Professor'),
 ('SACT-I'),
-('SACT-II');
+('SACT-II'),
+('Lab. Attendant'),
+('Accountant'),
+('Elec. Cum Caretaker'),
+('Clerk'),
+('Typist'),
+('Lab. Attendant'),
+('Gen./Pump Operator Cum Mechanic'),
+('Mali'),
+('Guard'),
+('Peon');
 
 
 insert ignore into DesignationTeacherTypeRelation values
@@ -67,7 +80,9 @@ insert ignore into Qualification (`type`) values
 ('MBA'),
 ('MSC'),
 ('MCA'),
-('MLib');
+('MLib'),
+('Other');
+
 
 
 

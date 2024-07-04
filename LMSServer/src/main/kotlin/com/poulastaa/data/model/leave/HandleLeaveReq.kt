@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 data class HandleLeaveReq(
     val leaveId: Long,
     val action: String,
-    val cause: String
+    val cause: String,
 )

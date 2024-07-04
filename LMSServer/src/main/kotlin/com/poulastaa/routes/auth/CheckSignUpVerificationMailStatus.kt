@@ -9,7 +9,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 fun Route.checkSignUpVerificationMailStatus(
-    service: ServiceRepository
+    service: ServiceRepository,
 ) {
     route(EndPoints.SignUpEmailVerificationCheck.route) {
         get {
@@ -26,7 +26,7 @@ fun Route.checkSignUpVerificationMailStatus(
 }
 
 fun Route.checkLoginVerificationMailStatus(
-    service: ServiceRepository
+    service: ServiceRepository,
 ) {
     route(EndPoints.LogInEmailVerificationCheck.route) {
         get {

@@ -41,7 +41,7 @@ dependencies {
     testImplementation("io.ktor:ktor-server-tests-jvm")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 
-     implementation("io.ktor:ktor-server-auth-jwt-jvm")
+    implementation("io.ktor:ktor-server-auth-jwt-jvm")
 
     // koin
     implementation("io.insert-koin:koin-ktor:$koin_ktor")

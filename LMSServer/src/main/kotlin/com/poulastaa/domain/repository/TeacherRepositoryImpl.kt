@@ -1,6 +1,5 @@
 package com.poulastaa.domain.repository
 
-import com.poulastaa.data.model.EndPoints
 import com.poulastaa.data.model.GetTeacherRes
 import com.poulastaa.data.model.TeacherDetails
 import com.poulastaa.data.model.auth.req.ReqAddress
@@ -18,13 +17,14 @@ import com.poulastaa.data.model.table.address.AddressTypeTable
 import com.poulastaa.data.model.table.address.TeacherDetailsTable
 import com.poulastaa.data.model.table.department.DepartmentHeadTable
 import com.poulastaa.data.model.table.department.DepartmentTable
-import com.poulastaa.data.model.table.teacher.TeacherAddressTable
-import com.poulastaa.data.model.table.teacher.TeacherTable
 import com.poulastaa.data.model.table.designation.DesignationTable
 import com.poulastaa.data.model.table.designation.DesignationTeacherTypeRelation
 import com.poulastaa.data.model.table.leave.LeaveBalanceTable
 import com.poulastaa.data.model.table.leave.LeaveTypeTable
+import com.poulastaa.data.model.table.teacher.TeacherAddressTable
+import com.poulastaa.data.model.table.teacher.TeacherTable
 import com.poulastaa.data.model.table.teacher.TeacherTypeTable
+import com.poulastaa.data.model.table.utils.HeadClarkTable
 import com.poulastaa.data.model.table.utils.LogInEmailTable
 import com.poulastaa.data.model.table.utils.PrincipalTable
 import com.poulastaa.data.model.table.utils.QualificationTable
@@ -34,11 +34,8 @@ import com.poulastaa.domain.dao.department.DepartmentHead
 import com.poulastaa.domain.dao.leave.LeaveType
 import com.poulastaa.domain.dao.teacher.Teacher
 import com.poulastaa.domain.dao.teacher.TeacherType
+import com.poulastaa.domain.dao.utils.*
 import com.poulastaa.plugins.dbQuery
-import com.poulastaa.domain.dao.utils.Designation
-import com.poulastaa.domain.dao.utils.LogInEmail
-import com.poulastaa.domain.dao.utils.Principal
-import com.poulastaa.domain.dao.utils.Qualification
 import com.poulastaa.utils.Constants.VERIFICATION_MAIL_TOKEN_TIME
 import com.poulastaa.utils.toLocalDate
 import com.poulastaa.utils.toTeacherAddress
@@ -47,7 +44,6 @@ import kotlinx.coroutines.*
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateStatement
-import kotlin.time.measureTime
 
 class TeacherRepositoryImpl : TeacherRepository {
     private suspend fun findTeacher(email: String) = dbQuery {
@@ -66,6 +62,12 @@ class TeacherRepositoryImpl : TeacherRepository {
         }.firstOrNull()
     }
 
+    private suspend fun findHeadClark(email: String) = dbQuery {
+        HeadClark.find {
+            HeadClarkTable.email eq email
+        }.singleOrNull()
+    }
+
     override suspend fun getTeacher(email: String): Teacher? = findTeacher(email)
 
     override suspend fun getTeacherOnId(id: Int): Teacher = dbQuery {
@@ -77,14 +79,22 @@ class TeacherRepositoryImpl : TeacherRepository {
     override suspend fun getTeacherDetailsStatus(email: String): Pair<AuthStatus, Any> = coroutineScope {
         val teacherDef = async { findTeacher(email) }
         val principleDef = async { findPrinciple(email) }
+        val headClarkDef = async { findHeadClark(email) }
 
         val teacher = teacherDef.await()
         val principal = principleDef.await()
+        val headClark = headClarkDef.await()
 
         if (principal != null) {
             handleLoginEntry(email) // using loginIn entry to verify principle
             return@coroutineScope AuthStatus.PRINCIPLE_FOUND to principal
         }
+
+        if (headClark != null) {
+            handleLoginEntry(email)
+            return@coroutineScope AuthStatus.HEAD_CLARK_FOUND to headClark
+        }
+
         if (teacher == null) return@coroutineScope AuthStatus.EMAIL_NOT_REGISTERED to Unit
 
         val response = dbQuery {
@@ -140,7 +150,6 @@ class TeacherRepositoryImpl : TeacherRepository {
                 }.empty()
             }
         }
-
 
         val department = departmentDef.await() ?: return@withContext User()
         val designation = designationDef.await() ?: return@withContext User()
@@ -199,7 +208,6 @@ class TeacherRepositoryImpl : TeacherRepository {
                     )
                 }
             } ?: return VerifiedMailStatus.USER_NOT_FOUND to Pair("", "")
-
 
             VerifiedMailStatus.VERIFIED to entry
         } catch (_: Exception) {
@@ -333,7 +341,7 @@ class TeacherRepositoryImpl : TeacherRepository {
                     TeacherDetailsTable.teacherId eq teacher.id
                 }
             ) {
-                if (details.name.uppercase() != req.name && req.name.isNotEmpty()) it[this.name] = req.name
+                if (req.name.isNotEmpty()) it[this.name] = req.name
                 if (details.phoneOne != req.phoneOne && req.phoneOne.isNotEmpty()) it[this.phone_1] = req.phoneOne
                 if (details.phoneTwo != req.phoneTwo && req.phoneTwo.isNotEmpty()) it[this.phone_2] = req.phoneTwo
             }
@@ -407,7 +415,6 @@ class TeacherRepositoryImpl : TeacherRepository {
 
         true
     }
-
 
     override suspend fun storeProfilePic(
         email: String,
@@ -496,7 +503,6 @@ class TeacherRepositoryImpl : TeacherRepository {
     }
 
 
-    // private fun
     private suspend fun checkIfDetailsAlreadyFilled(id: Int) = dbQuery {
         TeacherDetailsTable.select {
             TeacherDetailsTable.teacherId eq id

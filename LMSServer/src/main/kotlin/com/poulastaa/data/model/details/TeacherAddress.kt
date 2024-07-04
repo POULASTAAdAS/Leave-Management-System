@@ -5,5 +5,5 @@ data class TeacherAddress(
     val street: String,
     val zipCode: String,
     val city: String,
-    val state: String
+    val state: String,
 )

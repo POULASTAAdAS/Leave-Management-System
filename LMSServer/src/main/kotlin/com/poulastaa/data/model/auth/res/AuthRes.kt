@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class AuthRes(
     val authStatus: AuthStatus = AuthStatus.EMAIL_NOT_REGISTERED,
-    val user: User = User()
+    val user: User = User(),
 )
 
 

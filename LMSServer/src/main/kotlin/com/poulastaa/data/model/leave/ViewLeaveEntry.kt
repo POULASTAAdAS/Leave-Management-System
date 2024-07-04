@@ -9,5 +9,5 @@ data class ViewLeaveEntry(
     val totalDays: String,
     val status: String,
     val cause: String,
-    val department: String
+    val department: String,
 )

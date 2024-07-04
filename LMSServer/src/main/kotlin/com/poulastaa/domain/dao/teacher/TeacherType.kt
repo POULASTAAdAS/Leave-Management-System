@@ -11,7 +11,7 @@ class TeacherType(id: EntityID<Int>) : IntEntity(id) {
     val type by TeacherTypeTable.type
 
 
-    enum class TYPE{
+    enum class TYPE {
         SACT,
         PERMANENT
     }

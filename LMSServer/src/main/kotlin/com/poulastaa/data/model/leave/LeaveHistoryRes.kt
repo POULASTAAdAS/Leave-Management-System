@@ -10,5 +10,5 @@ data class LeaveHistoryRes(
     val fromDate: String,
     val toDate: String,
     val pendingEnd: String,
-    val totalDays: String
+    val totalDays: String,
 )

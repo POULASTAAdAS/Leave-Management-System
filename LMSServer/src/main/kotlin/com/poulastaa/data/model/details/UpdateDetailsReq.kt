@@ -8,5 +8,5 @@ data class UpdateDetailsReq(
     val email: String,
     val phoneOne: String,
     val phoneTwo: String,
-    val qualification: String
+    val qualification: String,
 )

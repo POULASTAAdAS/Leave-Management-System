@@ -10,7 +10,7 @@ import org.jetbrains.exposed.dao.id.EntityID
 interface LeaveUtilsRepository {
     suspend fun getLeaveBalance(
         teacherId: Int,
-        type: String
+        type: String,
     ): String?
 
     suspend fun getLeaveType(type: String): LeaveType
@@ -18,7 +18,7 @@ interface LeaveUtilsRepository {
     suspend fun getHistoryLeaves(
         teacherId: Int,
         page: Int,
-        pageSize: Int
+        pageSize: Int,
     ): List<LeaveHistoryRes>
 
     suspend fun getPendingEndId(isPermanent: Boolean): EntityID<Int>
@@ -27,12 +27,12 @@ interface LeaveUtilsRepository {
         departmentId: Int,
         teacherHeadId: Int,
         page: Int,
-        pageSize: Int
+        pageSize: Int,
     ): List<LeaveApproveRes>
 
     suspend fun getApproveLeaveAsHead(
         page: Int,
-        pageSize: Int
+        pageSize: Int,
     ): List<LeaveApproveRes>
 
     suspend fun getLeaveOnId(leaveId: Long): LeaveReq
@@ -41,6 +41,6 @@ interface LeaveUtilsRepository {
         email: String,
         page: Int,
         pageSize: Int,
-        isPrinciple: Boolean
+        isPrinciple: Boolean,
     ): List<ViewLeaveSingleRes>
 }

@@ -40,7 +40,7 @@ class ProfileViewModel @Inject constructor(
     private val ds: DataStoreRepository,
     private val cookieManager: CookieManager,
     private val gson: Gson,
-    private val client: OkHttpClient
+    private val client: OkHttpClient,
 ) : ViewModel() {
     var state by mutableStateOf(ProfileUiState())
         private set
@@ -72,7 +72,8 @@ class ProfileViewModel @Inject constructor(
                 name = user.name,
                 personalDetails = state.personalDetails.copy(
                     email = user.email
-                )
+                ),
+                gender = user.sex
             )
         }
     }
@@ -233,6 +234,17 @@ class ProfileViewModel @Inject constructor(
                     )
                 }
             }
+
+            ProfileUiEvent.LogOut -> {
+                viewModelScope.launch(Dispatchers.IO) {
+                    ds.clearAll()
+                    _uiEvent.send(
+                        ProfileUiAction.OnNavigate(
+                            screen = Screens.Auth
+                        )
+                    )
+                }
+            }
         }
     }
 
@@ -306,7 +318,6 @@ class ProfileViewModel @Inject constructor(
 
                 state = state.copy(
                     name = response.name,
-                    gender = response.gender,
                     personalDetails = state.personalDetails.copy(
                         email = response.email,
                         phoneOne = response.phoneOne,
@@ -315,7 +326,7 @@ class ProfileViewModel @Inject constructor(
                     ),
                     otherDetails = state.otherDetails.copy(
                         department = response.department,
-                        exp = response.exp,
+                        exp = response.exp.replace("/", "-"),
                         joiningDate = response.joiningDate
                     ),
                     homeAddress = homeAddress,

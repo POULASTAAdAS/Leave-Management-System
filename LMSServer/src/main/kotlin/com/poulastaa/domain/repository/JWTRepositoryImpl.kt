@@ -15,7 +15,7 @@ import java.security.spec.PKCS8EncodedKeySpec
 import java.util.*
 
 class JWTRepositoryImpl(
-    private val application: Application
+    private val application: Application,
 ) : JWTRepository {
     private val issuer = getConfigProperty("jwt.issuer")
     private val audience = getConfigProperty("jwt.audience")
@@ -28,7 +28,7 @@ class JWTRepositoryImpl(
         sub: String,
         email: String,
         claimName: String,
-        validationTime: Long
+        validationTime: Long,
     ): String = generateJWTToken(
         sub = sub,
         claimName = claimName,
@@ -40,7 +40,7 @@ class JWTRepositoryImpl(
         sub: String,
         email: String,
         claimName: String,
-        validationTime: Long
+        validationTime: Long,
     ): String = generateJWTToken(
         sub = sub,
         claimName = claimName,
@@ -50,7 +50,7 @@ class JWTRepositoryImpl(
 
     override fun verifyJWTToken(
         token: String,
-        claim: String
+        claim: String,
     ): String? {
         if (invalidTokenList.contains(token)) return VerifiedMailStatus.TOKEN_USED.name
 
@@ -67,7 +67,7 @@ class JWTRepositoryImpl(
         sub: String,
         claimName: String,
         email: String,
-        validationTime: Long
+        validationTime: Long,
     ): String {
         val publicKey = provideJWKProvider().get("6f8856ed-9189-488f-9011-0ff4b6c08edc").publicKey
 

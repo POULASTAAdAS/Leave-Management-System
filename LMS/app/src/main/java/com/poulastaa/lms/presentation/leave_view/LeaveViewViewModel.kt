@@ -7,7 +7,6 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
-import com.poulastaa.lms.data.model.leave.ViewLeaveInfoRes
 import com.poulastaa.lms.data.model.leave.ViewLeaveSingleRes
 import com.poulastaa.lms.data.remote.ViewLeavePagingSource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,11 +31,15 @@ class LeaveViewViewModel @Inject constructor(
     var leave = _leave.asStateFlow()
         private set
 
+    init {
+
+    }
+
     fun loadLeave() { // handling pager is fucking pain
         viewModelScope.launch {
             Pager(
                 config = PagingConfig(
-                    pageSize = 30,
+                    pageSize = 20,
                     enablePlaceholders = false
                 ),
                 initialKey = 1

@@ -14,7 +14,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 
 fun Route.getDetails(
-    service: ServiceRepository
+    service: ServiceRepository,
 ) {
     authenticate(SESSION_AUTH) {
         route(EndPoints.GetDetails.route) {

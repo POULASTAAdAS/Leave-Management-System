@@ -1,12 +1,17 @@
 {
-    "configurations": [
-        
-        {
-            "name": "ApplicationKt (1)",
-            "type": "command",
-            "workingDir": "D:\\LMS-College-Project\\LMSServer",
-            "program": "C:\\Program Files\\Java\\jdk-18.0.2.1\\bin\\java.exe",
-            "args": ["-Dfile.encoding=UTF-8", "-Dsun.stdout.encoding=UTF-8", "-Dsun.stderr.encoding=UTF-8", "@C:\\Users\\anshu\\AppData\\Local\\Temp\\idea_arg_file413360573", "com.poulastaa.ApplicationKt"]
-        }
-    ]
+  "configurations": [
+    {
+      "name": "ApplicationKt (1)",
+      "type": "command",
+      "workingDir": "D:\\LMS-College-Project\\LMSServer",
+      "program": "C:\\Program Files\\Java\\jdk-18.0.2.1\\bin\\java.exe",
+      "args": [
+        "-Dfile.encoding=UTF-8",
+        "-Dsun.stdout.encoding=UTF-8",
+        "-Dsun.stderr.encoding=UTF-8",
+        "@C:\\Users\\anshu\\AppData\\Local\\Temp\\idea_arg_file413360573",
+        "com.poulastaa.ApplicationKt"
+      ]
+    }
+  ]
 }

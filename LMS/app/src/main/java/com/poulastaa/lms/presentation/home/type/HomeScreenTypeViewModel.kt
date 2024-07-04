@@ -1,6 +1,7 @@
 package com.poulastaa.lms.presentation.home.type
 
 import android.os.Build
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -33,6 +34,8 @@ class HomeScreenTypeViewModel @Inject constructor(
                 state = state.copy(
                     user = it
                 )
+
+                Log.d("user", it.toString())
             }
         }
 

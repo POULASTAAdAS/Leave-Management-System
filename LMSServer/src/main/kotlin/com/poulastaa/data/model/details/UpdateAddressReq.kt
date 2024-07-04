@@ -12,5 +12,5 @@ data class UpdateAddressReq(
     val street: String? = null,
     val zipCode: String? = null,
     val city: String? = null,
-    val state: String? = null
+    val state: String? = null,
 )

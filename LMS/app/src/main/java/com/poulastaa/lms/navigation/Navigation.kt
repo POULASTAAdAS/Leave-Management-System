@@ -124,6 +124,11 @@ fun Navigation(
                             )
                         }
 
+                        Screens.Auth -> {
+                            navController.popBackStack()
+                            navController.navigate(it.screen.route)
+                        }
+
                         else -> Unit
                     }
                 },

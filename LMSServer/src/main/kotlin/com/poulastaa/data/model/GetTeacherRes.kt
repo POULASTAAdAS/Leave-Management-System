@@ -18,5 +18,5 @@ data class GetTeacherRes(
     val joiningDate: String = "",
     val designation: String = "",
 
-    val address: List<Pair<AddressType, ReqAddress>> = emptyList()
+    val address: List<Pair<AddressType, ReqAddress>> = emptyList(),
 )

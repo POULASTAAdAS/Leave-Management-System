@@ -18,8 +18,8 @@ import com.poulastaa.data.model.table.leave.LeaveTypeTable
 import com.poulastaa.data.model.table.teacher.TeacherTypeTable
 import com.poulastaa.data.model.table.utils.PathTable
 import com.poulastaa.data.repository.JWTRepository
-import com.poulastaa.data.repository.TeacherRepository
 import com.poulastaa.data.repository.ServiceRepository
+import com.poulastaa.data.repository.TeacherRepository
 import com.poulastaa.data.repository.leave.LeaveWrapper
 import com.poulastaa.domain.dao.department.Department
 import com.poulastaa.domain.dao.department.DepartmentHead
@@ -73,7 +73,6 @@ class ServiceRepositoryImpl(
                 val token = jwtRepo.generateSignUpVerificationMailToken(email = email)
                 sendEmailVerificationMail(email, token, EndPoints.VerifySignUpEmail.route)
 
-
                 AuthRes(
                     authStatus = response.first
                 )
@@ -91,7 +90,25 @@ class ServiceRepositoryImpl(
                 )
             }
 
-            else -> AuthRes()
+            AuthStatus.EMAIL_NOT_REGISTERED -> {
+                AuthRes()
+            }
+
+            AuthStatus.HEAD_CLARK_FOUND -> {
+                val token = jwtRepo.generateLogInVerificationMailToken(email = email)
+                sendEmailVerificationMail(email, token, EndPoints.VerifyLogInEmail.route)
+
+                val headClark = response.second as HeadClark
+
+                AuthRes(
+                    authStatus = response.first,
+                    user = User(
+                        name = headClark.name,
+                        email = headClark.email,
+                        profilePicUrl = System.getenv("BASE_URL") + EndPoints.GetProfilePic.route
+                    )
+                )
+            }
         }
     }
 

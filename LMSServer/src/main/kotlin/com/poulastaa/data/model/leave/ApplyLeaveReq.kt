@@ -11,5 +11,5 @@ data class ApplyLeaveReq(
     val totalDays: String,
     val reason: String,
     val addressDuringLeave: String,
-    val path: String
+    val path: String,
 )

@@ -1,6 +1,5 @@
 package com.poulastaa.lms.presentation.auth
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -49,7 +48,7 @@ class AuthViewModel @Inject constructor(
     private val ds: DataStoreRepository,
     private val gson: Gson,
     private val emailValidator: PatternValidator,
-    private val client: OkHttpClient
+    private val client: OkHttpClient,
 ) : ViewModel() {
     var state by mutableStateOf(AuthUiState())
         private set
@@ -197,8 +196,6 @@ class AuthViewModel @Inject constructor(
 
                     when (response.data.authStatus) {
                         AuthStatus.PRINCIPLE_FOUND -> {
-                            Log.d("response", response.data.user.toString())
-
                             emailVerificationJob = emailVerificationCheck(
                                 email,
                                 EndPoints.LogInEmailVerificationCheck.route,
@@ -215,6 +212,22 @@ class AuthViewModel @Inject constructor(
 
                             state = state.copy(
                                 route = EndPoints.LogInEmailVerificationCheck.route
+                            )
+                        }
+
+                        AuthStatus.HEAD_CLARK_FOUND -> {
+                            emailVerificationJob = emailVerificationCheck(
+                                email,
+                                EndPoints.LogInEmailVerificationCheck.route,
+                                isLogIn = true,
+                                user = response.data.user.let {
+                                    LocalUser(
+                                        name = it.name,
+                                        email = it.email,
+                                        profilePicUrl = BuildConfig.BASE_URL + EndPoints.GetProfilePic.route,
+                                        userType = UserType.HEAD_CLARK
+                                    )
+                                }
                             )
                         }
 
@@ -263,7 +276,7 @@ class AuthViewModel @Inject constructor(
         email: String,
         route: String,
         isLogIn: Boolean,
-        user: LocalUser = LocalUser()
+        user: LocalUser = LocalUser(),
     ) = viewModelScope.launch {
         for (i in 1..70) {
             delay(3000L)

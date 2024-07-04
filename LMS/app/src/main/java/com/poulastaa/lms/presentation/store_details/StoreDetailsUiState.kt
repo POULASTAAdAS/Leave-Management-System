@@ -15,7 +15,7 @@ data class StoreDetailsUiState(
     val bDay: DialogHolder = DialogHolder(),
 
     val gender: ListHolder = ListHolder(
-        all = listOf("M", "F", "O")
+        all = listOf("Male", "Female", "Other")
     ),
     val designation: ListHolder = ListHolder(
         all = listOf(
@@ -24,7 +24,15 @@ data class StoreDetailsUiState(
             "Assistant Professor-III",
             "Associate Professor",
             "SACT-I",
-            "SACT-II"
+            "SACT-II",
+            "Clerk",
+            "Elec. Cum Caretaker",
+            "Gen./Pump Operator Cum Mechanic",
+            "Guard",
+            "Lab. Attendant",
+            "Mali",
+            "Peon",
+            "Typist"
         )
     ),
     val department: ListHolder = ListHolder(
@@ -53,7 +61,8 @@ data class StoreDetailsUiState(
             "Sanskrit",
             "Sociology",
             "Urdu",
-            "Zoology"
+            "Zoology",
+            "Other"
         )
     ),
 
@@ -68,7 +77,8 @@ data class StoreDetailsUiState(
             "MCA",
             "MLib",
             "MSC",
-            "Ph.D"
+            "Ph.D",
+            "Other"
         )
     ),
 
@@ -77,20 +87,20 @@ data class StoreDetailsUiState(
     val presentAddress: HolderAddress = HolderAddress(),
     val homeAddress: HolderAddress = HolderAddress(),
 
-    val isMakingApiCall: Boolean = false
+    val isMakingApiCall: Boolean = false,
 )
 
 data class Holder(
     val data: String = "",
     val isErr: Boolean = false,
-    val errText: UiText = UiText.DynamicString("")
+    val errText: UiText = UiText.DynamicString(""),
 )
 
 data class DialogHolder(
     val data: String = "",
     val isDialogOpen: Boolean = false,
     val isErr: Boolean = false,
-    val errText: UiText = UiText.DynamicString("")
+    val errText: UiText = UiText.DynamicString(""),
 )
 
 @Stable
@@ -99,7 +109,7 @@ data class ListHolder(
     val selected: String = "",
     val all: List<String> = emptyList(),
     val isErr: Boolean = false,
-    val errText: UiText = UiText.DynamicString("")
+    val errText: UiText = UiText.DynamicString(""),
 )
 
 data class HolderAddress(
@@ -114,5 +124,5 @@ data class HolderAddress(
     ),
     val country: Holder = Holder(
         data = "India"
-    )
+    ),
 )

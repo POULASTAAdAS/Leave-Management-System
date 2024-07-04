@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ViewLeaveSingleRes(
     val department: String = "",
-    val listOfLeave: List<ViewLeaveInfoRes> = emptyList()
+    val listOfLeave: List<ViewLeaveInfoRes> = emptyList(),
 )
 
 @Serializable
@@ -17,5 +17,5 @@ data class ViewLeaveInfoRes(
     val toDate: String = "",
     val totalDays: String = "",
     val status: String = "",
-    val cause: String = ""
+    val cause: String = "",
 )

@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ApplyLeaveRes(
     val status: ApplyLeaveStatus = ApplyLeaveStatus.REJECTED,
-    val newBalance: String = ""
+    val newBalance: String = "",
 )

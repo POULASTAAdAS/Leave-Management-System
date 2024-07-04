@@ -20,7 +20,7 @@ fun provideDatabase() = module {
         LeaveUtilsRepositoryImpl()
     }
 
-     single<ApplyLeaveRepository> {
+    single<ApplyLeaveRepository> {
         ApplyLeaveRepositoryImpl(
             teacher = get(),
             leaveUtils = get()

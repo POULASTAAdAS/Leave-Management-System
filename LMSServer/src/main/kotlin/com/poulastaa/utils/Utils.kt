@@ -1,7 +1,6 @@
 package com.poulastaa.utils
 
 import com.poulastaa.data.model.TeacherDetails
-import com.poulastaa.data.model.convertors.TeacherProfileEntry
 import com.poulastaa.data.model.details.TeacherAddress
 import com.poulastaa.data.model.table.address.TeacherDetailsTable
 import com.poulastaa.data.model.table.teacher.TeacherAddressTable

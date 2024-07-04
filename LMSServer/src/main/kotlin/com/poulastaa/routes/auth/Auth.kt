@@ -4,16 +4,14 @@ import com.poulastaa.data.model.EndPoints
 import com.poulastaa.data.model.auth.req.AuthReq
 import com.poulastaa.data.model.auth.res.AuthStatus
 import com.poulastaa.data.repository.ServiceRepository
-import com.poulastaa.utils.Constants
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 fun Route.authenUser(
-    service: ServiceRepository
+    service: ServiceRepository,
 ) {
     route(EndPoints.Auth.route) {
         post {

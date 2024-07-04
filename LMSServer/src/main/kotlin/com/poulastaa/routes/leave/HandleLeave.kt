@@ -15,7 +15,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 
 fun Route.handleLeave(
-    service: ServiceRepository
+    service: ServiceRepository,
 ) {
     authenticate(SESSION_AUTH) {
         route(EndPoints.HandleLeave.route) {

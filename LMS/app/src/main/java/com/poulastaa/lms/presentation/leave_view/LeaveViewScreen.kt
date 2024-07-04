@@ -2,10 +2,7 @@ package com.poulastaa.lms.presentation.leave_view
 
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -25,7 +21,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -39,7 +34,6 @@ import androidx.paging.PagingState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.poulastaa.lms.R
-import com.poulastaa.lms.presentation.leave_view.components.LeaveViewCard
 import com.poulastaa.lms.ui.theme.ArrowBackIcon
 import com.poulastaa.lms.ui.theme.TestThem
 import com.poulastaa.lms.ui.theme.dimens
@@ -63,10 +57,6 @@ fun LeaveViewRootScreen(
     navigateBack: () -> Unit,
 ) {
     val context = LocalContext.current
-
-    LaunchedEffect(key1 = Unit) {
-        viewModel.loadLeave()
-    }
 
     ObserveAsEvent(flow = viewModel.uiEvent) {
         when (it) {
@@ -140,27 +130,7 @@ private fun LeaveViewScreen(
 
             Spacer(modifier = Modifier.heightIn(MaterialTheme.dimens.medium1))
 
-            if (leave.itemCount > 0)
-                LazyColumn(
-                    modifier = Modifier,
-                    contentPadding = PaddingValues(bottom = MaterialTheme.dimens.medium1),
-                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.dimens.small3)
-                ) {
-                    val data: ArrayList<ViewLeaveSingleData> = ArrayList()
 
-                    items(leave.itemCount) { index ->
-                        leave[index]?.let { item ->
-                            LeaveViewCard(
-                                modifier = Modifier.clickable {
-                                    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    onEvent(LeaveViewUiEvent.DepartmentToggle(item.department))
-                                },
-                                headingList = headingList,
-                                leaveViewCard = item
-                            )
-                        }
-                    }
-                }
         }
     }
 }

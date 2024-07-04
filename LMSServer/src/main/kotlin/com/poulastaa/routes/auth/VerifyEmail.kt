@@ -11,7 +11,7 @@ import io.ktor.server.routing.*
 import java.io.File
 
 fun Route.verifySignUpEmail(
-    service: ServiceRepository
+    service: ServiceRepository,
 ) {
     route(EndPoints.VerifySignUpEmail.route) {
         get {
@@ -25,7 +25,7 @@ fun Route.verifySignUpEmail(
 }
 
 fun Route.verifyLogInEmail(
-    service: ServiceRepository
+    service: ServiceRepository,
 ) {
     route(EndPoints.VerifyLogInEmail.route) {
         get {
@@ -42,7 +42,7 @@ fun Route.verifyLogInEmail(
 
 private suspend fun res(
     status: VerifiedMailStatus,
-    call: ApplicationCall
+    call: ApplicationCall,
 ) {
     when (status) {
         VerifiedMailStatus.VERIFIED -> call.respondText(emailVerifiedRes(), ContentType.Text.Html)

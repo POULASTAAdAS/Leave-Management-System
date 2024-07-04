@@ -9,14 +9,14 @@ interface JWTRepository {
         sub: String = "VerificationMail",
         email: String,
         claimName: String = SIGNUP_VERIFICATION_MAIL_TOKEN_CLAIM_KEY,
-        validationTime: Long = VERIFICATION_MAIL_TOKEN_TIME
+        validationTime: Long = VERIFICATION_MAIL_TOKEN_TIME,
     ): String
 
     fun generateLogInVerificationMailToken(
         sub: String = "VerificationMail",
         email: String,
         claimName: String = LOGIN_VERIFICATION_MAIL_TOKEN_CLAIM_KEY,
-        validationTime: Long = VERIFICATION_MAIL_TOKEN_TIME
+        validationTime: Long = VERIFICATION_MAIL_TOKEN_TIME,
     ): String
 
     fun verifyJWTToken(token: String, claim: String): String?

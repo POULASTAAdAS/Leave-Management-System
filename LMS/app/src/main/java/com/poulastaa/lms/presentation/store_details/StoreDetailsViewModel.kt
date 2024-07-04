@@ -44,7 +44,7 @@ class StoreDetailsViewModel @Inject constructor(
     private val cookieManager: CookieManager,
     private val ds: DataStoreRepository,
     private val gson: Gson,
-    private val client: OkHttpClient
+    private val client: OkHttpClient,
 ) : ViewModel() {
     var state by mutableStateOf(StoreDetailsUiState())
         private set
@@ -585,8 +585,9 @@ class StoreDetailsViewModel @Inject constructor(
                                         designation = state.designation.selected.trim(),
                                         isDepartmentInCharge = response.data.isDepartmentInCharge,
                                         userType = if (state.designation.selected.startsWith("S")) UserType.SACT
-                                        else UserType.PERMANENT,
-                                        sex = state.gender.selected.trim()
+                                        else if (state.designation.selected.startsWith("A")) UserType.PERMANENT
+                                        else UserType.NON,
+                                        sex = state.gender.selected.trim()[0].toString()
                                     )
 
                                     storeUser(ds, localUser)

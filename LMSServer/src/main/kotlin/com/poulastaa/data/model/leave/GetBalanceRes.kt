@@ -4,5 +4,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class GetBalanceRes(
-    val balance: String = "-1"
+    val balance: String = "-1",
 )

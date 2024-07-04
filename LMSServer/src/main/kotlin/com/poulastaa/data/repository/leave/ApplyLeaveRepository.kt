@@ -8,11 +8,11 @@ import com.poulastaa.domain.dao.leave.LeaveAction
 interface ApplyLeaveRepository {
     suspend fun applyLeave(
         req: ApplyLeaveReq,
-        doc: String?
+        doc: String?,
     ): ApplyLeaveRes
 
     suspend fun handleLeave(
         req: HandleLeaveReq,
-        isPrincipal: Boolean
-    ): Pair<LeaveAction.TYPE , Int>
+        isPrincipal: Boolean,
+    ): Pair<LeaveAction.TYPE, Int>
 }

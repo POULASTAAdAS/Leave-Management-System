@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class UserSession(
     val name: String,
-    val email: String
+    val email: String,
 ) : Principal

@@ -1,6 +1,7 @@
 package com.poulastaa.lms.ui.theme
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ExitToApp
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Email
@@ -131,3 +132,7 @@ val OutlineJoiningDateIcon: ImageVector
 val OutlineExpIcon: ImageVector
     @Composable
     get() = ImageVector.vectorResource(id = R.drawable.ic_outline_exp)
+
+val LogoutIcon: ImageVector
+    @Composable
+    get() = Icons.AutoMirrored.Outlined.ExitToApp
