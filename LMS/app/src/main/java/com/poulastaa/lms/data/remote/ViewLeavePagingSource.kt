@@ -17,9 +17,16 @@ class ViewLeavePagingSource @Inject constructor(
     private val client: OkHttpClient,
     private val cookieManager: CookieManager,
     private val gson: Gson,
-    private val ds: DataStoreRepository
+    private val ds: DataStoreRepository,
 ) : PagingSource<Int, ViewLeaveSingleRes>() {
-    override fun getRefreshKey(state: PagingState<Int, ViewLeaveSingleRes>): Int? = state.anchorPosition
+    private var department: String = "All"
+
+    fun setDepartment(department: String) {
+        this.department = department
+    }
+
+    override fun getRefreshKey(state: PagingState<Int, ViewLeaveSingleRes>): Int? =
+        state.anchorPosition
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, ViewLeaveSingleRes> {
         val cookie = ds.readCookie().first()
@@ -29,6 +36,7 @@ class ViewLeavePagingSource @Inject constructor(
         val response = client.get<List<ViewLeaveSingleRes>>(
             route = EndPoints.GetViewLeaves.route,
             params = listOf(
+                "department" to department,
                 "page" to page.toString(),
                 "pageSize" to pageSize.toString()
             ),

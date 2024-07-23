@@ -19,7 +19,7 @@ import com.poulastaa.domain.dao.leave.LeaveType
 import com.poulastaa.domain.dao.utils.Path
 import com.poulastaa.domain.dao.utils.PendingEnd
 import com.poulastaa.domain.dao.utils.Status
-import com.poulastaa.plugins.dbQuery
+import com.poulastaa.plugins.query
 import com.poulastaa.utils.toTeacherDetails
 import kotlinx.coroutines.*
 import org.jetbrains.exposed.sql.*
@@ -40,7 +40,7 @@ class ApplyLeaveRepositoryImpl(
         val teacherDetails = this.teacher.getTeacherDetails(req.email, teacher.id.value) ?: return ApplyLeaveRes()
         val teacherType = this.teacher.getTeacherTypeOnId(teacherDetails.teacherTypeId) ?: return ApplyLeaveRes()
 
-        val path = dbQuery {
+        val path = query {
             Path.find {
                 PathTable.type eq req.path
             }.singleOrNull()
@@ -346,7 +346,7 @@ class ApplyLeaveRepositoryImpl(
                 ApplyLeaveStatus.SOMETHING_WENT_WRONG.name -> ApplyLeaveRes(status = ApplyLeaveStatus.SOMETHING_WENT_WRONG)
                 else -> {
                     CoroutineScope(Dispatchers.IO).launch {
-                        dbQuery {
+                        query {
                             LeaveBalanceTable.update(
                                 where = {
                                     LeaveBalanceTable.teacherId eq teacher.id and (LeaveBalanceTable.leaveTypeId eq leaveType.id)
@@ -380,7 +380,7 @@ class ApplyLeaveRepositoryImpl(
 
         // checking if conflict with other leaves
         val isEmptyDef = async {
-            dbQuery {
+            query {
                 LeaveReq.find {
                     LeaveReqTable.teacherId eq req.teacherId and
                             (LeaveReqTable.toDate greaterEq req.fromDate)
@@ -450,7 +450,7 @@ class ApplyLeaveRepositoryImpl(
         }
 
         val serviceYearsDef = async {
-            dbQuery {
+            query {
                 TeacherDetailsTable.select {
                     TeacherDetailsTable.teacherId eq req.teacherId
                 }.single().toTeacherDetails("")
@@ -464,7 +464,7 @@ class ApplyLeaveRepositoryImpl(
         }
 
         val oldStudyLeaveEntryDef = async {
-            dbQuery {
+            query {
                 val studyLeaveType = leaveUtils.getLeaveType(
                     type = LeaveType.ScatType.STUDY_LEAVE.value
                 )
@@ -530,7 +530,7 @@ class ApplyLeaveRepositoryImpl(
 
         // checking if conflict with other leaves
         val isEntryDef = async {
-            dbQuery {
+            query {
                 LeaveReq.find {
                     LeaveReqTable.teacherId eq req.teacherId and
                             (LeaveReqTable.toDate greaterEq req.fromDate)
@@ -604,7 +604,7 @@ class ApplyLeaveRepositoryImpl(
         }
 
         val serviceYearsDef = async {
-            dbQuery {
+            query {
                 TeacherDetailsTable.select {
                     TeacherDetailsTable.teacherId eq req.teacherId
                 }.single().toTeacherDetails("")
@@ -771,7 +771,7 @@ class ApplyLeaveRepositoryImpl(
         fromDate: LocalDate,
     ) = coroutineScope {
         async {
-            dbQuery {
+            query {
                 val leaveId = leaveUtils.getLeaveType(
                     type = leaveType
                 ).id
@@ -789,7 +789,7 @@ class ApplyLeaveRepositoryImpl(
         req: LeaveEntry,
         isPermanent: Boolean,
     ) = coroutineScope {
-        val newEntry = dbQuery {
+        val newEntry = query {
             LeaveReq.new {
                 this.teacherId = req.teacherId
                 this.leaveTypeId = req.leaveTypeId
@@ -809,7 +809,7 @@ class ApplyLeaveRepositoryImpl(
         val statusId = statusIdDef.await()
         val pendingEndId = pendingEndIdDef.await()
 
-        dbQuery {
+        query {
             LeaveStatusTable.insert {
                 it[this.leaveId] = newEntry.id.value
                 it[this.statusId] = statusId
@@ -826,7 +826,7 @@ class ApplyLeaveRepositoryImpl(
         teacherId: Int,
     ) = coroutineScope {
         async {
-            dbQuery {
+            query {
                 val leaveType = leaveUtils.getLeaveType(
                     type = type
                 )
@@ -853,7 +853,7 @@ class ApplyLeaveRepositoryImpl(
         }
 
         val actionDef = async {
-            dbQuery {
+            query {
                 LeaveAction.find {
                     LeaveActionTable.type.upperCase() eq actionType.value.uppercase()
                 }.single()
@@ -867,7 +867,7 @@ class ApplyLeaveRepositoryImpl(
         }
 
         val statusDef = async {
-            dbQuery {
+            query {
                 Status.find {
                     StatusTable.type.upperCase() eq statusType.value.uppercase()
                 }.single()
@@ -881,7 +881,7 @@ class ApplyLeaveRepositoryImpl(
         }
 
         val pendingEndDef = async {
-            dbQuery {
+            query {
                 PendingEnd.find {
                     PendingEndTable.type.upperCase() eq pendingType.value.uppercase()
                 }.single()
@@ -889,7 +889,7 @@ class ApplyLeaveRepositoryImpl(
         }
 
         val teacherIdDef = async {
-            dbQuery {
+            query {
                 LeaveReq.find {
                     LeaveReqTable.id eq req.leaveId
                 }.single().teacherId.value
@@ -901,7 +901,7 @@ class ApplyLeaveRepositoryImpl(
         val pendingEnd = pendingEndDef.await()
         val teacherId = teacherIdDef.await()
 
-        dbQuery {
+        query {
             LeaveStatusTable.update(
                 where = {
                     LeaveStatusTable.leaveId eq req.leaveId

@@ -13,6 +13,8 @@ import com.poulastaa.data.model.details.TeacherAddress
 import com.poulastaa.data.model.details.UpdateAddressReq
 import com.poulastaa.data.model.details.UpdateDetailsReq
 import com.poulastaa.data.model.details.UpdateHeadDetailsReq
+import com.poulastaa.data.model.other.TeacherLeaveBalance
+import com.poulastaa.data.model.other.UpdateLeaveBalanceReq
 import com.poulastaa.data.model.table.address.AddressTypeTable
 import com.poulastaa.data.model.table.address.TeacherDetailsTable
 import com.poulastaa.data.model.table.department.DepartmentHeadTable
@@ -35,7 +37,7 @@ import com.poulastaa.domain.dao.leave.LeaveType
 import com.poulastaa.domain.dao.teacher.Teacher
 import com.poulastaa.domain.dao.teacher.TeacherType
 import com.poulastaa.domain.dao.utils.*
-import com.poulastaa.plugins.dbQuery
+import com.poulastaa.plugins.query
 import com.poulastaa.utils.Constants.VERIFICATION_MAIL_TOKEN_TIME
 import com.poulastaa.utils.toLocalDate
 import com.poulastaa.utils.toTeacherAddress
@@ -44,25 +46,26 @@ import kotlinx.coroutines.*
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateStatement
+import java.time.LocalDate
 
 class TeacherRepositoryImpl : TeacherRepository {
-    private suspend fun findTeacher(email: String) = dbQuery {
+    private suspend fun findTeacher(email: String) = query {
         Teacher.find {
             TeacherTable.email eq email
         }.singleOrNull()
     }
 
-    private suspend fun getPrincipal() = dbQuery {
+    private suspend fun getPrincipal() = query {
         Principal.all().first()
     }
 
-    private suspend fun findPrinciple(email: String) = dbQuery {
+    private suspend fun findPrinciple(email: String) = query {
         Principal.find {
             PrincipalTable.email eq email
         }.firstOrNull()
     }
 
-    private suspend fun findHeadClark(email: String) = dbQuery {
+    private suspend fun findHeadClark(email: String) = query {
         HeadClark.find {
             HeadClarkTable.email eq email
         }.singleOrNull()
@@ -70,7 +73,7 @@ class TeacherRepositoryImpl : TeacherRepository {
 
     override suspend fun getTeacher(email: String): Teacher? = findTeacher(email)
 
-    override suspend fun getTeacherOnId(id: Int): Teacher = dbQuery {
+    override suspend fun getTeacherOnId(id: Int): Teacher = query {
         Teacher.find {
             TeacherTable.id eq id
         }.single()
@@ -97,7 +100,7 @@ class TeacherRepositoryImpl : TeacherRepository {
 
         if (teacher == null) return@coroutineScope AuthStatus.EMAIL_NOT_REGISTERED to Unit
 
-        val response = dbQuery {
+        val response = query {
             TeacherDetailsTable.select {
                 TeacherDetailsTable.teacherId eq teacher.id
             }.singleOrNull()
@@ -115,7 +118,7 @@ class TeacherRepositoryImpl : TeacherRepository {
     override suspend fun getTeacherWithDetails(email: String): User = withContext(Dispatchers.IO) {
         val teacher = findTeacher(email) ?: return@withContext User()
 
-        val (designationId, departmentId) = dbQuery {
+        val (designationId, departmentId) = query {
             TeacherDetailsTable.select {
                 TeacherDetailsTable.teacherId eq teacher.id
             }.singleOrNull()?.let {
@@ -128,7 +131,7 @@ class TeacherRepositoryImpl : TeacherRepository {
 
 
         val departmentDef = async {
-            dbQuery {
+            query {
                 Department.find {
                     DepartmentTable.id eq departmentId
                 }.singleOrNull()?.name
@@ -136,7 +139,7 @@ class TeacherRepositoryImpl : TeacherRepository {
         }
 
         val designationDef = async {
-            dbQuery {
+            query {
                 Designation.find {
                     DesignationTable.id eq designationId
                 }.singleOrNull()
@@ -144,7 +147,7 @@ class TeacherRepositoryImpl : TeacherRepository {
         }
 
         val isDepartmentInChargeDef = async {
-            dbQuery {
+            query {
                 DepartmentHead.find {
                     DepartmentHeadTable.teacherId eq teacher.id
                 }.empty()
@@ -155,7 +158,7 @@ class TeacherRepositoryImpl : TeacherRepository {
         val designation = designationDef.await() ?: return@withContext User()
         val isDepartmentHead = !isDepartmentInChargeDef.await()
 
-        dbQuery {
+        query {
             TeacherDetailsTable.select {
                 TeacherDetailsTable.teacherId eq teacher.id
             }.singleOrNull()?.let {
@@ -174,7 +177,7 @@ class TeacherRepositoryImpl : TeacherRepository {
     override suspend fun updateSignUpVerificationStatus(email: String): VerifiedMailStatus {
         return try {
             val user = findTeacher(email) ?: return VerifiedMailStatus.USER_NOT_FOUND
-            if (!user.emailVerified) dbQuery {
+            if (!user.emailVerified) query {
                 user.emailVerified = true
             }
 
@@ -186,19 +189,19 @@ class TeacherRepositoryImpl : TeacherRepository {
 
     override suspend fun updateLogInVerificationStatus(email: String): Pair<VerifiedMailStatus, Pair<String, String>> {
         return try {
-            val user = dbQuery {
+            val user = query {
                 LogInEmail.find {
                     LogInEmailTable.email eq email
                 }.singleOrNull()
             } ?: return VerifiedMailStatus.USER_NOT_FOUND to Pair("", "")
 
-            if (!user.emailVerified) dbQuery {
+            if (!user.emailVerified) query {
                 user.emailVerified = true
             }
 
             val teacher = findTeacher(email) ?: return VerifiedMailStatus.USER_NOT_FOUND to Pair("", "")
 
-            val entry = dbQuery {
+            val entry = query {
                 TeacherDetailsTable.select {
                     TeacherDetailsTable.teacherId eq teacher.id
                 }.singleOrNull()?.let {
@@ -215,19 +218,19 @@ class TeacherRepositoryImpl : TeacherRepository {
         }
     }
 
-    override suspend fun signupEmailVerificationCheck(email: String): Boolean = dbQuery {
+    override suspend fun signupEmailVerificationCheck(email: String): Boolean = query {
         Teacher.find {
             TeacherTable.email eq email
         }.singleOrNull()?.emailVerified ?: false
     }
 
 
-    override suspend fun loginEmailVerificationCheck(email: String): Boolean = dbQuery {
+    override suspend fun loginEmailVerificationCheck(email: String): Boolean = query {
         val response = LogInEmail.find {
             LogInEmailTable.email eq email
         }.singleOrNull()?.emailVerified ?: false
 
-        return@dbQuery response
+        return@query response
     }
 
     override suspend fun saveTeacherDetails(req: SetDetailsReq): SetDetailsRes = withContext(Dispatchers.IO) {
@@ -269,7 +272,7 @@ class TeacherRepositoryImpl : TeacherRepository {
     override suspend fun getTeacherDetailsRes(email: String): GetTeacherRes? = coroutineScope {
         val teacher = findTeacher(email) ?: return@coroutineScope null
 
-        val teacherDetails = dbQuery {
+        val teacherDetails = query {
             TeacherDetailsTable.select {
                 TeacherDetailsTable.teacherId eq teacher.id
             }.singleOrNull()?.let {
@@ -324,7 +327,7 @@ class TeacherRepositoryImpl : TeacherRepository {
         val teacher = findTeacher(email) ?: return@coroutineScope false
 
         val emailDef = async {
-            if (teacher.email.uppercase() != req.email && req.email.isNotEmpty()) dbQuery {
+            if (teacher.email.uppercase() != req.email && req.email.isNotEmpty()) query {
                 teacher.email = req.email
             }
         }
@@ -335,7 +338,7 @@ class TeacherRepositoryImpl : TeacherRepository {
         val details = detailsDef.await() ?: return@coroutineScope false
         emailDef.await()
 
-        dbQuery {
+        query {
             TeacherDetailsTable.update(
                 where = {
                     TeacherDetailsTable.teacherId eq teacher.id
@@ -352,7 +355,7 @@ class TeacherRepositoryImpl : TeacherRepository {
             val qualification = qualificationDef.await() ?: return@coroutineScope false
 
 
-            dbQuery {
+            query {
                 TeacherDetailsTable.update(
                     where = {
                         TeacherDetailsTable.teacherId eq teacher.id
@@ -371,7 +374,7 @@ class TeacherRepositoryImpl : TeacherRepository {
         val principal = getPrincipal()
 
         if (principal.email == email) {
-            dbQuery {
+            query {
                 principal.name = req.name
                 principal.email = req.email
 
@@ -387,14 +390,14 @@ class TeacherRepositoryImpl : TeacherRepository {
         val teacher = findTeacher(email) ?: return@coroutineScope false
 
 
-        val addressType = dbQuery {
+        val addressType = query {
             com.poulastaa.domain.dao.address.AddressType.find {
                 AddressTypeTable.type eq req.type.name
             }.singleOrNull()
         } ?: return@coroutineScope false
 
 
-        val oldEntry = dbQuery {
+        val oldEntry = query {
             TeacherAddressTable.select {
                 TeacherAddressTable.addressTypeId eq addressType.id and (TeacherAddressTable.teacherId eq teacher.id)
             }.singleOrNull()?.toTeacherAddress()
@@ -402,7 +405,7 @@ class TeacherRepositoryImpl : TeacherRepository {
 
         if (req.otherType) updateBothAddress(teacher.id.value, req, oldEntry)
         else {
-            dbQuery {
+            query {
                 TeacherAddressTable.update(
                     where = {
                         TeacherAddressTable.addressTypeId eq addressType.id and (TeacherAddressTable.teacherId eq teacher.id)
@@ -425,7 +428,7 @@ class TeacherRepositoryImpl : TeacherRepository {
         val principal = getPrincipal()
 
         if (teacher != null) {
-            dbQuery {
+            query {
                 TeacherDetailsTable.update(
                     where = {
                         TeacherDetailsTable.teacherId eq teacher.id
@@ -435,7 +438,7 @@ class TeacherRepositoryImpl : TeacherRepository {
                 }
             }
         } else if (principal.email == email) {
-            dbQuery {
+            query {
                 principal.profilePic = fileNameWithPath
             }
         } else {
@@ -445,7 +448,7 @@ class TeacherRepositoryImpl : TeacherRepository {
         return true
     }
 
-    override suspend fun getProfilePic(email: String): String? = dbQuery {
+    override suspend fun getProfilePic(email: String): String? = query {
         val teacher = findTeacher(email)
 
         if (teacher != null) {
@@ -464,7 +467,7 @@ class TeacherRepositoryImpl : TeacherRepository {
         email = email
     )
 
-    override suspend fun getTeacherTypeOnId(id: Int): com.poulastaa.data.model.constants.TeacherType? = dbQuery {
+    override suspend fun getTeacherTypeOnId(id: Int): com.poulastaa.data.model.constants.TeacherType? = query {
         TeacherType.find {
             TeacherTypeTable.id eq id
         }.singleOrNull()?.let {
@@ -480,7 +483,7 @@ class TeacherRepositoryImpl : TeacherRepository {
         id: Int,
         req: UpdateAddressReq,
         oldEntry: TeacherAddress,
-    ) = dbQuery {
+    ) = query {
         TeacherAddressTable.update(
             where = {
                 TeacherAddressTable.teacherId eq id
@@ -503,13 +506,13 @@ class TeacherRepositoryImpl : TeacherRepository {
     }
 
 
-    private suspend fun checkIfDetailsAlreadyFilled(id: Int) = dbQuery {
+    private suspend fun checkIfDetailsAlreadyFilled(id: Int) = query {
         TeacherDetailsTable.select {
             TeacherDetailsTable.teacherId eq id
         }.empty()
     }
 
-    private suspend fun getDepartmentHead(id: Int) = dbQuery {
+    private suspend fun getDepartmentHead(id: Int) = query {
         !DepartmentHead.find {
             DepartmentHeadTable.teacherId eq id
         }.empty()
@@ -517,7 +520,7 @@ class TeacherRepositoryImpl : TeacherRepository {
 
     private suspend fun SetDetailsReq.toDetailsEntry(teacherId: EntityID<Int>): SetDetailsEntry? = coroutineScope {
         val designationDef = async {
-            dbQuery {
+            query {
                 Designation.find {
                     DesignationTable.type.upperCase() eq this@toDetailsEntry.designation.uppercase()
                 }.singleOrNull()
@@ -525,7 +528,7 @@ class TeacherRepositoryImpl : TeacherRepository {
         }
 
         val departmentIdDef = async {
-            dbQuery {
+            query {
                 Department.find {
                     DepartmentTable.name.upperCase() eq this@toDetailsEntry.department.uppercase()
                 }.singleOrNull()?.id
@@ -544,7 +547,7 @@ class TeacherRepositoryImpl : TeacherRepository {
         val dbo = this@toDetailsEntry.dbo.toLocalDate() ?: return@coroutineScope null
         val joiningDate = this@toDetailsEntry.joiningDate.toLocalDate() ?: return@coroutineScope null
 
-        val teacherTypeId = dbQuery {
+        val teacherTypeId = query {
             DesignationTeacherTypeRelation
                 .slice(DesignationTeacherTypeRelation.teacherTypeId)
                 .select {
@@ -639,7 +642,7 @@ class TeacherRepositoryImpl : TeacherRepository {
             }
         }
 
-        dbQuery {
+        query {
             TeacherType.find {
                 TeacherTypeTable.id eq teacherTypeId
             }.single()
@@ -660,7 +663,7 @@ class TeacherRepositoryImpl : TeacherRepository {
 
                     getSACTTeacherLeaveType().map { (leaveType, leaveTypeId) ->
                         async {
-                            dbQuery {
+                            query {
                                 when (leaveType) {
                                     LeaveType.ScatType.CASUAL_LEAVE -> insertLeaveBalance(
                                         teacherId = teacherId,
@@ -703,7 +706,7 @@ class TeacherRepositoryImpl : TeacherRepository {
 
                     getPermanentTeacherLeaveType().map { (leaveType, leaveTypeId) ->
                         async {
-                            dbQuery {
+                            query {
                                 when (leaveType) {
                                     LeaveType.PermanentType.CASUAL_LEAVE -> insertLeaveBalance(
                                         teacherId = teacherId,
@@ -800,7 +803,7 @@ class TeacherRepositoryImpl : TeacherRepository {
         }
     }
 
-    private suspend fun TeacherDetailsEntry.setDetails() = dbQuery {
+    private suspend fun TeacherDetailsEntry.setDetails() = query {
         TeacherDetailsTable.insertIgnore {
             it[this.teacherId] = this@setDetails.teacherId
             it[this.teacherTypeId] = this@setDetails.teacherTypeId
@@ -818,7 +821,7 @@ class TeacherRepositoryImpl : TeacherRepository {
         }
     }
 
-    private suspend fun AddressEntry.setAddress() = dbQuery {
+    private suspend fun AddressEntry.setAddress() = query {
         TeacherAddressTable.insertIgnore {
             it[this.teacherId] = this@setAddress.teacherId
             it[this.addressTypeId] = this@setAddress.addressTypeId
@@ -833,7 +836,7 @@ class TeacherRepositoryImpl : TeacherRepository {
     private fun handleLoginEntry(email: String) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val isEntry = dbQuery {
+                val isEntry = query {
                     LogInEmail.find {
                         LogInEmailTable.email eq email
                     }.singleOrNull()
@@ -841,7 +844,7 @@ class TeacherRepositoryImpl : TeacherRepository {
 
                 if (isEntry != null) return@launch
 
-                val entry = dbQuery {
+                val entry = query {
                     LogInEmail.new {
                         this.email = email
                     }
@@ -849,7 +852,7 @@ class TeacherRepositoryImpl : TeacherRepository {
 
                 delay(VERIFICATION_MAIL_TOKEN_TIME)
 
-                dbQuery {
+                query {
                     entry.delete()
                 }
             } catch (_: Exception) {
@@ -858,25 +861,25 @@ class TeacherRepositoryImpl : TeacherRepository {
         }
     }
 
-    private suspend fun getDepartmentOnId(id: Int) = dbQuery {
+    private suspend fun getDepartmentOnId(id: Int) = query {
         Department.find {
             DepartmentTable.id eq id
         }.single()
     }
 
-    private suspend fun getDesignationOnId(id: Int) = dbQuery {
+    private suspend fun getDesignationOnId(id: Int) = query {
         Designation.find {
             DesignationTable.id eq id
         }.single()
     }
 
-    private suspend fun getQualification(id: Int) = dbQuery {
+    private suspend fun getQualification(id: Int) = query {
         Qualification.find {
             QualificationTable.id eq id
         }.single()
     }
 
-    private suspend fun getAddressOnTeacherId(id: Int) = dbQuery {
+    private suspend fun getAddressOnTeacherId(id: Int) = query {
         TeacherAddressTable.select {
             TeacherAddressTable.teacherId eq id
         }.map {
@@ -895,27 +898,27 @@ class TeacherRepositoryImpl : TeacherRepository {
         }
     }
 
-    private suspend fun getAddressTypeOnId(id: Int) = dbQuery {
+    private suspend fun getAddressTypeOnId(id: Int) = query {
         com.poulastaa.domain.dao.address.AddressType.find {
             AddressTypeTable.id eq id
         }.single().type
     }
 
-    private suspend fun getTeacherDetailsOnTeacherId(id: Int, email: String) = dbQuery {
-        dbQuery {
+    private suspend fun getTeacherDetailsOnTeacherId(id: Int, email: String) = query {
+        query {
             TeacherDetailsTable.select {
                 TeacherDetailsTable.teacherId eq id
             }.singleOrNull()?.toTeacherDetails(email)
         }
     }
 
-    private suspend fun getQualificationOnType(type: String) = dbQuery {
+    private suspend fun getQualificationOnType(type: String) = query {
         Qualification.find {
             QualificationTable.type.upperCase() eq type.uppercase()
         }.singleOrNull()
     }
 
-    override suspend fun getSACTTeacherLeaveType() = dbQuery {
+    override suspend fun getSACTTeacherLeaveType() = query {
         LeaveType.find {
             LeaveTypeTable.type inList LeaveType.ScatType.entries.map {
                 it.value
@@ -929,12 +932,12 @@ class TeacherRepositoryImpl : TeacherRepository {
         }
     }
 
-    override suspend fun addTeacher(email: String): Boolean = dbQuery {
+    override suspend fun addTeacher(email: String): Boolean = query {
         val oldTeacher = Teacher.find {
             TeacherTable.email eq email
         }.singleOrNull()
 
-        if (oldTeacher != null) return@dbQuery false
+        if (oldTeacher != null) return@query false
 
         Teacher.new {
             this.email = email
@@ -943,7 +946,90 @@ class TeacherRepositoryImpl : TeacherRepository {
         true
     }
 
-    private suspend fun getPermanentTeacherLeaveType() = dbQuery {
+    override suspend fun getDepartmentHead(department: String): Teacher? = coroutineScope {
+        val dep = getDepartment(department) ?: return@coroutineScope null
+
+        val departmentHead = query {
+            DepartmentHead.find {
+                DepartmentHeadTable.departmentId eq dep.id
+            }.firstOrNull()
+        } ?: return@coroutineScope null
+
+        query {
+            Teacher.find {
+                TeacherTable.id eq departmentHead.teacherId
+            }.first()
+        }
+    }
+
+
+    override suspend fun updateDepartmentHead(teacher: String, department: String): Boolean {
+        val dep = getDepartment(department) ?: return false
+
+        val teacherId = query {
+            TeacherDetailsTable.select {
+                TeacherDetailsTable.name eq teacher
+            }.singleOrNull()?.let {
+                it[TeacherDetailsTable.teacherId]
+            }
+        } ?: return false
+
+        query { // updated department head
+            DepartmentHead.find {
+                DepartmentHeadTable.departmentId eq dep.id
+            }.first().teacherId = teacherId
+        }
+
+        return true
+    }
+
+    override suspend fun getTeacherLeaveBalance(teacherId: Int): List<TeacherLeaveBalance> {
+        return coroutineScope {
+            query {
+                LeaveBalanceTable.select {
+                    LeaveBalanceTable.teacherId eq teacherId and (LeaveBalanceTable.year eq LocalDate.now().year)
+                }.map {
+                    it[LeaveBalanceTable.leaveTypeId] to it[LeaveBalanceTable.leaveBalance]
+                }.map {
+                    async {
+                        query {
+                            LeaveType.find {
+                                LeaveTypeTable.id eq it.first
+                            }.first() to it.second
+                        }
+                    }
+                }.awaitAll()
+            }.map {
+                TeacherLeaveBalance(
+                    id = it.first.id.value,
+                    name = it.first.type,
+                    balance = it.second.toString()
+                )
+            }
+        }
+    }
+
+    override suspend fun updateLeaveBalance(req: UpdateLeaveBalanceReq): Boolean {
+        query {
+            LeaveBalanceTable.update(
+                where = {
+                    LeaveBalanceTable.leaveTypeId eq req.leaveId and (LeaveBalanceTable.teacherId eq req.teacherId) and (LeaveBalanceTable.year eq LocalDate.now().year)
+                }
+            ) {
+                it[this.leaveBalance] = req.value.toDouble()
+            }
+        }
+
+        return true
+    }
+
+    private suspend fun getDepartment(department: String) = query {
+        Department.find {
+            DepartmentTable.name eq department
+        }.firstOrNull()
+    }
+
+    private suspend fun getPermanentTeacherLeaveType() = query {
         LeaveType.find {
             LeaveTypeTable.type inList LeaveType.PermanentType.entries.map {
                 it.value

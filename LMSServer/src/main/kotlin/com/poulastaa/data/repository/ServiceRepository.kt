@@ -12,6 +12,9 @@ import com.poulastaa.data.model.details.UpdateAddressReq
 import com.poulastaa.data.model.details.UpdateDetailsReq
 import com.poulastaa.data.model.details.UpdateHeadDetailsReq
 import com.poulastaa.data.model.leave.*
+import com.poulastaa.data.model.other.GetDepartmentTeacher
+import com.poulastaa.data.model.other.TeacherLeaveBalance
+import com.poulastaa.data.model.other.UpdateLeaveBalanceReq
 import java.io.File
 
 
@@ -61,6 +64,7 @@ interface ServiceRepository {
     ): Boolean
 
     suspend fun viewLeave(
+        department: String,
         email: String,
         page: Int,
         pageSize: Int,
@@ -78,4 +82,15 @@ interface ServiceRepository {
     suspend fun addTeacher(
         req: AddTeacherReq,
     ): Boolean
+
+    suspend fun updateDepartmentHead(
+        teacher: String,
+        department: String,
+    ): Boolean
+
+    suspend fun getDepartmentTeacher(department: String): GetDepartmentTeacher
+
+    suspend fun getTeacherLeaveBalance(teacherId: Int): List<TeacherLeaveBalance>
+
+    suspend fun updateLeaveBalance(req: UpdateLeaveBalanceReq): Boolean
 }

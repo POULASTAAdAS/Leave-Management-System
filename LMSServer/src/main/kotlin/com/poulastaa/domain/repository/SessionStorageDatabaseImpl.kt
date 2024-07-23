@@ -2,22 +2,22 @@ package com.poulastaa.domain.repository
 
 import com.poulastaa.data.model.table.session.SessionStorageTable
 import com.poulastaa.domain.dao.session.SessionStorageDB
-import com.poulastaa.plugins.dbQuery
+import com.poulastaa.plugins.query
 import io.ktor.server.sessions.*
 
 class SessionStorageDatabaseImpl : SessionStorage {
     override suspend fun write(id: String, value: String) {
-        val session = dbQuery {
+        val session = query {
             SessionStorageDB.find {
                 SessionStorageTable.sessionId eq id
             }.firstOrNull()
         }
 
-        if (session != null) dbQuery {
+        if (session != null) query {
             session.value = value
         }
         else {
-            dbQuery {
+            query {
                 SessionStorageDB.new {
                     this.sessionId = id
                     this.value = value
@@ -28,7 +28,7 @@ class SessionStorageDatabaseImpl : SessionStorage {
 
 
     override suspend fun read(id: String): String {
-        return dbQuery {
+        return query {
             SessionStorageDB.find {
                 SessionStorageTable.sessionId eq id
             }.firstOrNull()?.value ?: throw NoSuchElementException("Session $id not found")
@@ -36,7 +36,7 @@ class SessionStorageDatabaseImpl : SessionStorage {
     }
 
     override suspend fun invalidate(id: String) {
-        dbQuery {
+        query {
             SessionStorageDB.find {
                 SessionStorageTable.sessionId eq id
             }.firstOrNull()?.delete()

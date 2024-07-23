@@ -12,5 +12,6 @@ sealed interface HomePrincipleUiEvent {
     data object OnAddClick : HomePrincipleUiEvent
 
     data object OnViewLeaveClick : HomePrincipleUiEvent
+    data object OnUpdateLeaveBalanceClick : HomePrincipleUiEvent
     data object OnViewReportClick : HomePrincipleUiEvent
 }

@@ -113,6 +113,12 @@
     <string name="logout">Logout</string>
     <string name="college_name">Bhirab Ganguly College</string>
     <string name="profile">Profile</string>
+    <string name="select_department">"Select Department: "</string>
+    <string name="department_in_charge_updated">Success! New Department In-change has been appointed.</string>
+    <string name="update_balance">Update Leave Balance</string>
+    <string name="select_teacher">Select Teacher</string>
+    <string name="teacher">Teacher</string>
+    <string name="select_leave">Select Leave Type</string>
 
     <array name="com_google_android_gms_fonts_certs">
         <item>@array/com_google_android_gms_fonts_certs_dev</item>

@@ -16,7 +16,7 @@ import com.poulastaa.domain.dao.leave.LeaveType
 import com.poulastaa.domain.dao.teacher.Teacher
 import com.poulastaa.domain.dao.utils.PendingEnd
 import com.poulastaa.domain.dao.utils.Status
-import com.poulastaa.plugins.dbQuery
+import com.poulastaa.plugins.query
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -26,7 +26,7 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
 class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
-    override suspend fun getLeaveType(type: String) = dbQuery {
+    override suspend fun getLeaveType(type: String) = query {
         LeaveType.find {
             LeaveTypeTable.type.upperCase() eq type.uppercase()
         }.single()
@@ -35,7 +35,7 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
     override suspend fun getLeaveBalance(
         teacherId: Int,
         type: String,
-    ): String? = dbQuery {
+    ): String? = query {
         val entry = getLeaveType(type)
 
         LeaveBalanceTable.select {
@@ -50,7 +50,7 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
         page: Int,
         pageSize: Int,
     ): List<LeaveHistoryRes> = coroutineScope {
-        dbQuery {
+        query {
             LeaveReq.find {
                 LeaveReqTable.teacherId eq teacherId
             }.orderBy(LeaveReqTable.reqDate to SortOrder.DESC)
@@ -59,14 +59,14 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
                 .map {
                     async {
                         val leaveType = async {
-                            dbQuery {
+                            query {
                                 LeaveType.find {
                                     LeaveTypeTable.id eq it.leaveTypeId
                                 }.single().type
                             }
                         }
 
-                        val (leaveStatusId, pendingEndId) = dbQuery {
+                        val (leaveStatusId, pendingEndId) = query {
                             LeaveStatusTable.slice(
                                 LeaveStatusTable.statusId,
                                 LeaveStatusTable.pendingEndId
@@ -79,7 +79,7 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
                         }
 
                         val status = async {
-                            dbQuery {
+                            query {
                                 Status.find {
                                     StatusTable.id eq leaveStatusId
                                 }.single().type
@@ -87,7 +87,7 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
                         }
 
                         val pendingEnd = async {
-                            dbQuery {
+                            query {
                                 PendingEnd.find {
                                     PendingEndTable.id eq pendingEndId
                                 }.single().type
@@ -110,13 +110,13 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
 
     override suspend fun getPendingEndId(
         isPermanent: Boolean,
-    ): EntityID<Int> = dbQuery {
+    ): EntityID<Int> = query {
         PendingEnd.find {
             PendingEndTable.type eq if (isPermanent) PendingEnd.TYPE.PRINCIPLE_LEVEL.value else PendingEnd.TYPE.DEPARTMENT_LEVEL.value
         }.single().id
     }
 
-    override suspend fun getPendingStatusId(): EntityID<Int> = dbQuery {
+    override suspend fun getPendingStatusId(): EntityID<Int> = query {
         Status.find {
             StatusTable.type eq Status.TYPE.PENDING.value
         }.single().id
@@ -129,7 +129,7 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
         pageSize: Int,
     ): List<LeaveApproveRes> =
         coroutineScope {
-            val leaveId = dbQuery {
+            val leaveId = query {
                 LeaveStatusTable
                     .slice(LeaveStatusTable.leaveId)
                     .select {
@@ -141,7 +141,7 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
 
             if (leaveId.isEmpty()) return@coroutineScope emptyList()
 
-            dbQuery {
+            query {
                 LeaveReq.find {
                     LeaveReqTable.id inList leaveId and (LeaveReqTable.teacherId notInList listOf(teacherHeadId))
                 }.orderBy(LeaveReqTable.reqDate to SortOrder.ASC)
@@ -153,13 +153,13 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
         }
 
     override suspend fun getApproveLeaveAsHead(page: Int, pageSize: Int): List<LeaveApproveRes> = coroutineScope {
-        val forwardId = dbQuery {
+        val forwardId = query {
             LeaveAction.find {
                 LeaveActionTable.type eq LeaveAction.TYPE.FORWARD.value
             }.single().id
         }
 
-        val leaveId = dbQuery {
+        val leaveId = query {
             LeaveStatusTable
                 .slice(LeaveStatusTable.leaveId)
                 .select {
@@ -171,7 +171,7 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
 
         if (leaveId.isEmpty()) return@coroutineScope emptyList()
 
-        dbQuery {
+        query {
             LeaveReq.find {
                 LeaveReqTable.id inList leaveId
             }.orderBy(LeaveReqTable.reqDate to SortOrder.ASC)
@@ -182,7 +182,7 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
         }
     }
 
-    override suspend fun getLeaveOnId(leaveId: Long): LeaveReq = dbQuery {
+    override suspend fun getLeaveOnId(leaveId: Long): LeaveReq = query {
         LeaveReq.find {
             LeaveReqTable.id eq leaveId
         }.single()
@@ -192,7 +192,7 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
         this@toApproveLeaveRes.map {
             async {
                 val name = async {
-                    dbQuery {
+                    query {
                         TeacherDetailsTable
                             .slice(TeacherDetailsTable.name)
                             .select {
@@ -203,7 +203,7 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
                     }
                 }
                 val leaveType = async {
-                    dbQuery {
+                    query {
                         LeaveType.find {
                             LeaveTypeTable.id eq it.leaveTypeId
                         }.single().type
@@ -224,6 +224,7 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
     }
 
     override suspend fun viewLeave(
+        dpId: Int,
         email: String,
         page: Int,
         pageSize: Int,
@@ -274,13 +275,19 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
 
         when (isPrinciple) {
             true -> {
-                val pendingEndId = dbQuery {
+                val pendingEndId = query {
                     PendingEnd.find {
                         PendingEndTable.type eq PendingEnd.TYPE.NOT_PENDING.value
                     }.single().id
                 }
 
-                dbQuery {
+
+                if (dpId != -1) query {
+                    join.select {
+                        LeaveStatusTable.pendingEndId eq pendingEndId and (DepartmentTable.id eq dpId)
+                    }.orderBy(DepartmentTable.id, SortOrder.ASC)
+                }
+                else query {
                     join.select {
                         LeaveStatusTable.pendingEndId eq pendingEndId
                     }.orderBy(DepartmentTable.id, SortOrder.ASC)
@@ -288,19 +295,19 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
             }
 
             false -> {
-                val teacher = dbQuery {
+                val teacher = query {
                     Teacher.find {
                         TeacherTable.email eq email
                     }.singleOrNull()
                 } ?: return@coroutineScope emptyList()
 
-                val departmentId = dbQuery {
+                val departmentId = query {
                     DepartmentHead.find {
                         DepartmentHeadTable.teacherId eq teacher.id
                     }.singleOrNull()?.departmentId
                 } ?: return@coroutineScope emptyList()
 
-                dbQuery {
+                query {
                     val pendingEndId = PendingEnd.find {
                         PendingEndTable.type eq PendingEnd.TYPE.NOT_PENDING.value
                     }.single().id
@@ -312,7 +319,7 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
                 }
             }
         }.let {
-            dbQuery {
+            query {
                 it.asSequence()
                     .drop(if (page == 1) 0 else page * pageSize)
                     .take(pageSize)

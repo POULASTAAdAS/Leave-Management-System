@@ -21,7 +21,6 @@ fun Route.getDepartmentInCharge(
                 val payload =
                     call.sessions.get<UserSession>() ?: return@get call.respondRedirect(EndPoints.UnAuthorised.route)
 
-
                 val department =
                     call.parameters["department"] ?: return@get call.respondRedirect(EndPoints.UnAuthorised.route)
 

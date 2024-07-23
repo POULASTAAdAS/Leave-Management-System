@@ -38,6 +38,7 @@ interface LeaveUtilsRepository {
     suspend fun getLeaveOnId(leaveId: Long): LeaveReq
 
     suspend fun viewLeave(
+        dpId: Int,
         email: String,
         page: Int,
         pageSize: Int,

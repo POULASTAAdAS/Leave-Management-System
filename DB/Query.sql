@@ -42,16 +42,18 @@ select * from leavestatus;
 select * from DesignationTeacherTypeRelation;
 
 select * from designation;
-
+select * from leavetype;
 select * from departmenthead;
 
+select * From teacher;
+
+select * from principal;
+
+select * from teacher;
 
 
-
-
-
-
-
+select * from departmenthead;
+select * from sessionstorage;
 
 
 

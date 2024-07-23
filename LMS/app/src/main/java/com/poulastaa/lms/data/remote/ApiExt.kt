@@ -38,7 +38,7 @@ suspend inline fun <reified Response : Any> OkHttpClient.uploadFile(
     route: String,
     file: File,
     gson: Gson,
-    cookie: String
+    cookie: String,
 ): Result<Response, DataError.Network> {
     val requestBody = file.asRequestBody("application/octet-stream".toMediaTypeOrNull())
 
@@ -69,7 +69,7 @@ suspend inline fun <reified Response : Any> OkHttpClient.uploadFile(
 suspend inline fun <reified Request : Any, reified Response : Any> OkHttpClient.authPost(
     route: String,
     body: Request,
-    gson: Gson
+    gson: Gson,
 ): Result<Response, DataError.Network> {
     val url = constructRoute(route)
 
@@ -89,7 +89,7 @@ suspend inline fun <reified Request : Any, reified Response : Any> OkHttpClient.
 suspend inline fun <reified Response : Any> OkHttpClient.authGet(
     route: String,
     params: List<Pair<String, String>>,
-    gson: Gson
+    gson: Gson,
 ): Result<Response, DataError.Network> {
     val urlBuilder =
         constructRoute(route).toHttpUrlOrNull()?.newBuilder()
@@ -117,7 +117,7 @@ suspend inline fun <reified Response : Any> OkHttpClient.get(
     gson: Gson,
     cookie: String,
     cookieManager: CookieManager,
-    ds: DataStoreRepository
+    ds: DataStoreRepository,
 ): Result<Response, DataError.Network> {
     val urlBuilder =
         constructRoute(route).toHttpUrlOrNull()?.newBuilder()
@@ -149,7 +149,7 @@ suspend inline fun <reified Request : Any, reified Response : Any> OkHttpClient.
     gson: Gson,
     cookie: String,
     cookieManager: CookieManager,
-    ds: DataStoreRepository
+    ds: DataStoreRepository,
 ): Result<Response, DataError.Network> {
     val url = constructRoute(route)
 
@@ -184,7 +184,7 @@ suspend inline fun <reified Request : Any, reified Response : Any> OkHttpClient.
     body: Request,
     gson: Gson,
     cookie: String,
-    file: File?
+    file: File?,
 ): Result<Response, DataError.Network> {
     val url = constructRoute(route)
 
@@ -254,7 +254,7 @@ suspend inline fun <reified T> responseToResult(
     response: Response,
     cookieManager: CookieManager? = null,
     gson: Gson,
-    ds: DataStoreRepository? = null
+    ds: DataStoreRepository? = null,
 ): Result<T, DataError.Network> = withContext(Dispatchers.IO) {
     when (response.code) {
         in 200..299 -> {

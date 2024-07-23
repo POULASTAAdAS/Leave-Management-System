@@ -26,17 +26,13 @@ import com.poulastaa.lms.presentation.home.HomeUiAction
 import com.poulastaa.lms.presentation.home.components.HomeItemIconButton
 import com.poulastaa.lms.presentation.utils.HomeWrapperWithAppBar
 import com.poulastaa.lms.ui.theme.AddIcon
-import com.poulastaa.lms.ui.theme.ApplyLeaveIcon
 import com.poulastaa.lms.ui.theme.ApproveLeaveIcon
 import com.poulastaa.lms.ui.theme.DepartmentInChargeIcon
-import com.poulastaa.lms.ui.theme.LeaveHistoryIcon
-import com.poulastaa.lms.ui.theme.LeaveReportIcon
-import com.poulastaa.lms.ui.theme.LeaveStatusIcon
+import com.poulastaa.lms.ui.theme.OutlineDepartmentIcon
 import com.poulastaa.lms.ui.theme.TestThem
 import com.poulastaa.lms.ui.theme.ViewLeaveIcon
 import com.poulastaa.lms.ui.theme.dimens
 import com.poulastaa.lms.ui.utils.ObserveAsEvent
-import com.poulastaa.lms.ui.utils.UiText
 
 @Composable
 fun HomePrincipleRootScreen(
@@ -44,7 +40,7 @@ fun HomePrincipleRootScreen(
     user: LocalUser,
     cookie: String,
     viewModel: HomePrincipleViewModel = hiltViewModel(),
-    navigate: (Screens) -> Unit
+    navigate: (Screens) -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -77,7 +73,7 @@ private fun HomePrincipleScreen(
     user: LocalUser,
     cookie: String,
     context: Context,
-    onEvent: (HomePrincipleUiEvent) -> Unit
+    onEvent: (HomePrincipleUiEvent) -> Unit,
 ) {
     val hapticFeedback = LocalHapticFeedback.current
 
@@ -91,78 +87,78 @@ private fun HomePrincipleScreen(
             onEvent(HomePrincipleUiEvent.OnProfilePicClick)
         }
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.Top,
-            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.dimens.large1)
-        ) {
-            HomeItemIconButton(
-                modifier = Modifier
-                    .wrapContentSize()
-                    .weight(1f)
-                    .clickable(
-                        onClick = {
-                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                            Toast
-                                .makeText(
-                                    context,
-                                    UiText
-                                        .StringResource(R.string.coming_soon)
-                                        .asString(context),
-                                    Toast.LENGTH_LONG
-                                )
-                                .show()
-                        }
-                    ),
-                icon = ApplyLeaveIcon,
-                label = stringResource(id = R.string.apply_leave)
-            )
-
-            HomeItemIconButton(
-                modifier = Modifier
-                    .wrapContentSize()
-                    .weight(1f)
-                    .clickable(
-                        onClick = {
-                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                            Toast
-                                .makeText(
-                                    context,
-                                    UiText
-                                        .StringResource(R.string.coming_soon)
-                                        .asString(context),
-                                    Toast.LENGTH_LONG
-                                )
-                                .show()
-                        }
-                    ),
-                icon = LeaveStatusIcon,
-                label = stringResource(id = R.string.leave_status),
-                fontSize = MaterialTheme.typography.bodySmall.fontSize
-            )
-
-            HomeItemIconButton(
-                modifier = Modifier
-                    .wrapContentSize()
-                    .weight(1f)
-                    .clickable(
-                        onClick = {
-                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                            Toast
-                                .makeText(
-                                    context,
-                                    UiText
-                                        .StringResource(R.string.coming_soon)
-                                        .asString(context),
-                                    Toast.LENGTH_LONG
-                                )
-                                .show()
-                        }
-                    ),
-                icon = LeaveHistoryIcon,
-                label = stringResource(id = R.string.leave_history),
-            )
-        }
+//        Row(
+//            modifier = Modifier.fillMaxWidth(),
+//            verticalAlignment = Alignment.Top,
+//            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.dimens.large1)
+//        ) {
+//            HomeItemIconButton(
+//                modifier = Modifier
+//                    .wrapContentSize()
+//                    .weight(1f)
+//                    .clickable(
+//                        onClick = {
+//                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+//                            Toast
+//                                .makeText(
+//                                    context,
+//                                    UiText
+//                                        .StringResource(R.string.coming_soon)
+//                                        .asString(context),
+//                                    Toast.LENGTH_LONG
+//                                )
+//                                .show()
+//                        }
+//                    ),
+//                icon = ApplyLeaveIcon,
+//                label = stringResource(id = R.string.apply_leave)
+//            )
+//
+//            HomeItemIconButton(
+//                modifier = Modifier
+//                    .wrapContentSize()
+//                    .weight(1f)
+//                    .clickable(
+//                        onClick = {
+//                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+//                            Toast
+//                                .makeText(
+//                                    context,
+//                                    UiText
+//                                        .StringResource(R.string.coming_soon)
+//                                        .asString(context),
+//                                    Toast.LENGTH_LONG
+//                                )
+//                                .show()
+//                        }
+//                    ),
+//                icon = LeaveStatusIcon,
+//                label = stringResource(id = R.string.leave_status),
+//                fontSize = MaterialTheme.typography.bodySmall.fontSize
+//            )
+//
+//            HomeItemIconButton(
+//                modifier = Modifier
+//                    .wrapContentSize()
+//                    .weight(1f)
+//                    .clickable(
+//                        onClick = {
+//                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+//                            Toast
+//                                .makeText(
+//                                    context,
+//                                    UiText
+//                                        .StringResource(R.string.coming_soon)
+//                                        .asString(context),
+//                                    Toast.LENGTH_LONG
+//                                )
+//                                .show()
+//                        }
+//                    ),
+//                icon = LeaveHistoryIcon,
+//                label = stringResource(id = R.string.leave_history),
+//            )
+//        }
 
         Spacer(modifier = Modifier.height(MaterialTheme.dimens.medium2))
 
@@ -243,12 +239,25 @@ private fun HomePrincipleScreen(
                     .clickable(
                         onClick = {
                             hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                            onEvent(HomePrincipleUiEvent.OnViewReportClick)
+                            onEvent(HomePrincipleUiEvent.OnUpdateLeaveBalanceClick)
                         }
                     ),
-                icon = LeaveReportIcon,
-                label = stringResource(id = R.string.report),
+                icon = OutlineDepartmentIcon,
+                label = stringResource(id = R.string.update_balance)
             )
+
+//            HomeItemIconButton(
+//                modifier = Modifier
+//                    .weight(1f)
+//                    .clickable(
+//                        onClick = {
+//                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+//                            onEvent(HomePrincipleUiEvent.OnViewReportClick)
+//                        }
+//                    ),
+//                icon = LeaveReportIcon,
+//                label = stringResource(id = R.string.report),
+//            )
 
             Spacer(modifier = Modifier.weight(1f))
         }

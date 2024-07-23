@@ -237,7 +237,7 @@ private fun ProfileScreen(
             Spacer(modifier = Modifier.height(MaterialTheme.dimens.large1))
 
             LogOut {
-
+                onEvent(ProfileUiEvent.LogOut)
             }
 
             Spacer(modifier = Modifier.height(MaterialTheme.dimens.large1))

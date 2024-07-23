@@ -11,6 +11,8 @@ import com.poulastaa.data.model.constants.TeacherType
 import com.poulastaa.data.model.details.UpdateAddressReq
 import com.poulastaa.data.model.details.UpdateDetailsReq
 import com.poulastaa.data.model.details.UpdateHeadDetailsReq
+import com.poulastaa.data.model.other.TeacherLeaveBalance
+import com.poulastaa.data.model.other.UpdateLeaveBalanceReq
 import com.poulastaa.domain.dao.leave.LeaveType
 import com.poulastaa.domain.dao.teacher.Teacher
 
@@ -50,4 +52,15 @@ interface TeacherRepository {
     suspend fun addTeacher(
         email: String,
     ): Boolean
+
+    suspend fun getDepartmentHead(department: String): Teacher?
+
+    suspend fun updateDepartmentHead(
+        teacher: String,
+        department: String,
+    ): Boolean
+
+    suspend fun getTeacherLeaveBalance(teacherId: Int): List<TeacherLeaveBalance>
+
+    suspend fun updateLeaveBalance(req: UpdateLeaveBalanceReq): Boolean
 }

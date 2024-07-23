@@ -26,6 +26,7 @@ import com.poulastaa.lms.presentation.profile.edit.details_edit.DetailsEditViewM
 import com.poulastaa.lms.presentation.profile.edit.details_edit.DetailsRootScreen
 import com.poulastaa.lms.presentation.profile.edit.details_edit.head.HeadDetailsEditRootScreen
 import com.poulastaa.lms.presentation.store_details.StoreDetailsRootScreen
+import com.poulastaa.lms.presentation.update_balnce.UpdateLeaveBalanceRoot
 
 @Composable
 fun Navigation(
@@ -295,6 +296,12 @@ fun Navigation(
 
         composable(route = Screens.ViewLeave.route) {
             LeaveViewRootScreen {
+                navController.popBackStack()
+            }
+        }
+
+        composable(route = Screens.UpdateLeaveBalance.route) {
+            UpdateLeaveBalanceRoot {
                 navController.popBackStack()
             }
         }

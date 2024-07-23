@@ -9,8 +9,4 @@ class Department(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<Department>(DepartmentTable)
 
     val name by DepartmentTable.name
-
-    enum class TYPE {
-
-    }
 }

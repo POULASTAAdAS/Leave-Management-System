@@ -7,7 +7,7 @@ import com.poulastaa.routes.department.checkIfDepartmentHead
 import com.poulastaa.routes.department.getDepartmentInCharge
 import com.poulastaa.routes.details.*
 import com.poulastaa.routes.leave.*
-import com.poulastaa.routes.other.addTeacher
+import com.poulastaa.routes.other.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
 import io.ktor.server.routing.*
@@ -51,6 +51,11 @@ fun Application.configureRouting() {
         getDepartmentInCharge(service)
 
         addTeacher(service)
+        updateDepartmentInCharge(service)
+
+        getDepartmentTeacher(service)
+        getTeacherLeaveBalance(service)
+        updateTeacherLeaveBalance(service)
 
         unAuth()
 

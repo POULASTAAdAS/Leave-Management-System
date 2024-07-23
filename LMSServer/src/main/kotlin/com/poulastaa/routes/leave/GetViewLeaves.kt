@@ -22,9 +22,12 @@ fun Route.viewLeaves(service: ServiceRepository) {
                 val page = call.parameters["page"] ?: return@get call.respondRedirect(EndPoints.UnAuthorised.route)
                 val pageSize =
                     call.parameters["pageSize"] ?: return@get call.respondRedirect(EndPoints.UnAuthorised.route)
+                val department =
+                    call.parameters["department"] ?: return@get call.respondRedirect(EndPoints.UnAuthorised.route)
 
 
                 val response = service.viewLeave(
+                    department = department,
                     email = payload.email,
                     page = page.toInt(),
                     pageSize = pageSize.toInt()

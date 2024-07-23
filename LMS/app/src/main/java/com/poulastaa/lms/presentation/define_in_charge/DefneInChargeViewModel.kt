@@ -59,9 +59,9 @@ class DefneInChargeViewModel @Inject constructor(
                     )
                 )
 
-                viewModelScope.launch(Dispatchers.IO) {
+                viewModelScope.launch {
                     getDataJob?.cancel()
-                    getDataJob = getDataJob(department = state.departments.selected)
+                    getDataJob = getDataJob(state.departments.selected)
                 }
             }
 
@@ -88,6 +88,59 @@ class DefneInChargeViewModel @Inject constructor(
                 state = state.copy(
                     isDefiningHead = true
                 )
+
+                viewModelScope.launch(Dispatchers.IO) {
+                    val response = client.get<Boolean>(
+                        route = EndPoints.UpdateDepartmentHead.route,
+                        params = listOf(
+                            "department" to state.departments.selected,
+                            "teacher" to state.others.selected
+                        ),
+                        gson = gson,
+                        cookieManager = cookieManager,
+                        ds = ds,
+                        cookie = ds.readCookie().first()
+                    )
+
+                    when (response) {
+                        is Result.Error -> {
+                            when (response.error) {
+                                DataError.Network.NO_INTERNET -> {
+                                    _uiEvent.send(
+                                        DefneInChargeUiAction.EmitToast(
+                                            UiText.StringResource(R.string.error_internet)
+                                        )
+                                    )
+                                }
+
+                                else -> {
+                                    _uiEvent.send(
+                                        DefneInChargeUiAction.EmitToast(
+                                            UiText.StringResource(R.string.error_something_went_wrong)
+                                        )
+                                    )
+                                }
+                            }
+
+                            state = state.copy(
+                                isMakingApiCall = false
+                            )
+                        }
+
+                        is Result.Success -> {
+                            _uiEvent.send(
+                                DefneInChargeUiAction.EmitToast(
+                                    UiText.StringResource(R.string.department_in_charge_updated)
+                                )
+                            )
+                        }
+                    }.let {
+                        state = state.copy(
+                            isMakingApiCall = false,
+                            isDefiningHead = false
+                        )
+                    }
+                }
             }
         }
     }

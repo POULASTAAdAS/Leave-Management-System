@@ -8,6 +8,6 @@ import org.jetbrains.exposed.dao.id.EntityID
 class DepartmentHead(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<DepartmentHead>(DepartmentHeadTable)
 
-    val teacherId by DepartmentHeadTable.teacherId
+    var teacherId by DepartmentHeadTable.teacherId
     val departmentId by DepartmentHeadTable.departmentId
 }
