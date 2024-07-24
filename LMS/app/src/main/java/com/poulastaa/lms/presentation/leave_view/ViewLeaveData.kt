@@ -3,7 +3,7 @@ package com.poulastaa.lms.presentation.leave_view
 data class ViewLeaveSingleData(
     val isExpanded: Boolean = true,
     val department: String,
-    val listOfLeave:List<ViewLeaveInfo>,
+    val listOfLeave: List<ViewLeaveInfo>,
 )
 
 
@@ -15,5 +15,5 @@ data class ViewLeaveInfo(
     val toDate: String,
     val totalDays: String,
     val status: String,
-    val cause: String
+    val cause: String,
 )

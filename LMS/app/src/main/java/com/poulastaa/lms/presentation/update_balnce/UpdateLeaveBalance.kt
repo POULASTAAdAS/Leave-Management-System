@@ -12,7 +12,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -160,57 +163,70 @@ private fun UpdateLeaveBalance(
             Spacer(modifier = Modifier.height(MaterialTheme.dimens.large1))
 
             if (state.isRequestingTeacher) {
-                Column {
-                    Row(
-                        modifier = Modifier.fillMaxWidth()
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.onBackground
+                    ),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = 10.dp
+                    ),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(MaterialTheme.dimens.medium1)
                     ) {
-                        Text(
-                            text = stringResource(id = R.string.leave_type),
-                            modifier = Modifier
-                                .fillMaxWidth(.5f),
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.background,
-                            textDecoration = TextDecoration.Underline,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = MaterialTheme.typography.titleMedium.fontSize
-                        )
-
-                        Text(
-                            text = stringResource(id = R.string.leave_balance),
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.background,
-                            textDecoration = TextDecoration.Underline,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = MaterialTheme.typography.titleMedium.fontSize
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(MaterialTheme.dimens.small3))
-
-                    state.mapOfLeave.forEach {
                         Row(
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
                         ) {
                             Text(
-                                text = it.key,
+                                text = stringResource(id = R.string.leave_type),
                                 modifier = Modifier
                                     .fillMaxWidth(.5f),
                                 textAlign = TextAlign.Center,
                                 color = MaterialTheme.colorScheme.background,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = MaterialTheme.typography.titleMedium.fontSize
                             )
 
                             Text(
-                                text = it.value,
+                                text = stringResource(id = R.string.leave_balance),
                                 modifier = Modifier
                                     .fillMaxWidth(),
                                 textAlign = TextAlign.Center,
                                 color = MaterialTheme.colorScheme.background,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = MaterialTheme.typography.titleMedium.fontSize
                             )
                         }
 
-                        Spacer(modifier = Modifier.height(MaterialTheme.dimens.small3))
+                        HorizontalDivider(
+                            modifier = Modifier.padding(bottom = MaterialTheme.dimens.medium1)
+                        )
+
+                        state.mapOfLeave.forEach {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = MaterialTheme.dimens.large2)
+                            ) {
+                                Text(
+                                    text = it.key,
+                                    modifier = Modifier.fillMaxWidth(.78f),
+                                    textAlign = TextAlign.Start,
+                                    color = MaterialTheme.colorScheme.background,
+                                )
+
+                                Text(
+                                    text = it.value,
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                    textAlign = TextAlign.Start,
+                                    color = MaterialTheme.colorScheme.background,
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(MaterialTheme.dimens.small3))
+                        }
                     }
                 }
 
@@ -245,8 +261,7 @@ private fun UpdateLeaveBalance(
                             modifier = Modifier
                                 .wrapContentWidth()
                                 .align(Alignment.CenterVertically),
-                            fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                            fontWeight = FontWeight.Medium,
+                            fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.background,
                             textDecoration = TextDecoration.Underline,
                             textAlign = TextAlign.Center
@@ -293,7 +308,7 @@ private fun UpdateLeaveBalance(
                             )
 
                             Text(
-                                text = stringResource(id = R.string.continue_text),
+                                text = stringResource(id = R.string.update_balance),
                                 modifier = Modifier
                                     .align(Alignment.Center)
                                     .alpha(if (state.isMakingApiCall) 0f else 1f),
@@ -302,6 +317,8 @@ private fun UpdateLeaveBalance(
                             )
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(MaterialTheme.dimens.large2))
                 }
             }
         }

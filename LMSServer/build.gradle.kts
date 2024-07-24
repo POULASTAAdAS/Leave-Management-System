@@ -60,4 +60,7 @@ dependencies {
 
     // Google Client API Library
     implementation("com.google.api-client:google-api-client:2.2.0")
+
+    // pdf
+    implementation("org.apache.pdfbox:pdfbox:2.0.26")
 }

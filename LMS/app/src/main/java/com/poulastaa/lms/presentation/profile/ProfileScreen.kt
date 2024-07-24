@@ -293,6 +293,12 @@ private fun PrincipalProfile(
                 )
             }
         }
+
+        Spacer(modifier = Modifier.height(MaterialTheme.dimens.medium1))
+
+        LogOut {
+            onEvent(ProfileUiEvent.LogOut)
+        }
     }
 }
 

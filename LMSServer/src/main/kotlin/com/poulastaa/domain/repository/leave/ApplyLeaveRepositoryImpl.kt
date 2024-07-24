@@ -48,7 +48,7 @@ class ApplyLeaveRepositoryImpl(
 
         return when (teacherType) {
             TeacherType.SACT -> {
-                val type = LeaveType.ScatType.valueOf(req.leaveType.uppercase().replace(' ', '_'))
+                val type = LeaveType.ScatType.valueOf(req.leaveType.trim().uppercase().replace(' ', '_'))
 
                 when (type) {
                     LeaveType.ScatType.CASUAL_LEAVE -> {
@@ -369,7 +369,7 @@ class ApplyLeaveRepositoryImpl(
 
     // sac teacher
     private suspend fun applyCasualLeaveForSACTeacher(req: LeaveEntry) = coroutineScope {
-        if (req.totalDays > 4.0) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+        if (req.totalDays > 4.0) return@coroutineScope ApplyLeaveStatus.REJECTED.name // greater than 4 days
 
         val leaveBalanceDef = async {
             leaveUtils.getLeaveBalance(
@@ -389,10 +389,14 @@ class ApplyLeaveRepositoryImpl(
         }
 
         val leaveBalance = leaveBalanceDef.await()?.toDouble() ?: return@coroutineScope ApplyLeaveStatus.REJECTED.name
-        if (leaveBalance < req.totalDays) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+        if (leaveBalance < req.totalDays) return@coroutineScope ApplyLeaveStatus.REJECTED.name // if balance less than total request days
 
         val isEmpty = isEmptyDef.await()
         if (!isEmpty) return@coroutineScope ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS.name
+
+
+
+
 
         handleNewLeaveEntry(req, false)
 
@@ -790,7 +794,7 @@ class ApplyLeaveRepositoryImpl(
         isPermanent: Boolean,
     ) = coroutineScope {
         val newEntry = query {
-            LeaveReq.new {
+            LeaveReq.new { // create leave entry
                 this.teacherId = req.teacherId
                 this.leaveTypeId = req.leaveTypeId
                 this.reqDate = req.reqData
@@ -916,7 +920,34 @@ class ApplyLeaveRepositoryImpl(
 
         if (actionType == LeaveAction.TYPE.REJECT) {
             CoroutineScope(Dispatchers.IO).launch {
-                // todo return balance
+                val leaveReq = query {
+                    LeaveReq.find {
+                        LeaveReqTable.id eq req.leaveId
+                    }.single()
+                }
+
+                val totalDays = (ChronoUnit.DAYS.between(
+                    leaveReq.fromDate,
+                    leaveReq.toDate
+                ) + 1).toInt()
+
+                val currentBalance = query {
+                    LeaveBalanceTable.select {
+                        LeaveBalanceTable.teacherId eq teacherId and (LeaveBalanceTable.leaveTypeId eq leaveReq.leaveTypeId)
+                    }.first().let {
+                        it[LeaveBalanceTable.leaveBalance]
+                    }
+                }
+
+                query {
+                    LeaveBalanceTable.update(
+                        where = {
+                            LeaveBalanceTable.teacherId eq teacherId and (LeaveBalanceTable.leaveTypeId eq leaveReq.leaveTypeId)
+                        }
+                    ) {
+                        it[this.leaveBalance] = currentBalance + totalDays
+                    }
+                }
             }
         }
 

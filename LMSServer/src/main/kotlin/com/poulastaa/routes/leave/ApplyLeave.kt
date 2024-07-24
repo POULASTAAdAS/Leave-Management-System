@@ -60,7 +60,6 @@ fun Route.applyLeave(service: ServiceRepository) {
                     part.dispose()
                 }
 
-
                 val response = req?.let {
                     service.handleLeaveReq(
                         req = it,

@@ -95,6 +95,10 @@ val AddIcon: ImageVector
     @Composable
     get() = ImageVector.vectorResource(id = R.drawable.ic_add)
 
+val RemoveIcon: ImageVector
+    @Composable
+    get() = ImageVector.vectorResource(id = R.drawable.ic_remove)
+
 val EditIcon: ImageVector
     @Composable
     get() = Icons.Rounded.Edit

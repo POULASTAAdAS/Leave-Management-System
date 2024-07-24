@@ -128,6 +128,28 @@ private fun StoreDetailsScreen(
 
         Spacer(modifier = Modifier.height(MaterialTheme.dimens.small1))
 
+        StoreDetailsListSelector(
+            modifier = Modifier.fillMaxWidth(.4f),
+            label = stringResource(id = R.string.salucation),
+            text = state.prefix.selected,
+            isOpen = state.prefix.isDialogOpen,
+            list = state.prefix.all,
+            color = textFieldColors,
+            onToggle = {
+
+            },
+            onCancel = {
+                if (state.prefix.isDialogOpen) {
+
+                }
+            },
+            onSelected = {
+
+            }
+        )
+
+        Spacer(modifier = Modifier.height(MaterialTheme.dimens.small1))
+
         StoreDetailsTextFiled(
             modifier = Modifier.fillMaxWidth(),
             text = state.userName.data,

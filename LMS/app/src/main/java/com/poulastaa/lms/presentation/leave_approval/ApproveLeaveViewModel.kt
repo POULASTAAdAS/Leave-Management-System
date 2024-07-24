@@ -42,7 +42,7 @@ class ApproveLeaveViewModel @Inject constructor(
     private val cookieManager: CookieManager,
     private val gson: Gson,
     private val client: OkHttpClient,
-    private val pagingSource: LeaveApprovePagingSource
+    private val pagingSource: LeaveApprovePagingSource,
 ) : ViewModel() {
     var state by mutableStateOf(ApproveLeaveUiState())
         private set
@@ -128,12 +128,17 @@ class ApproveLeaveViewModel @Inject constructor(
 
             is ApproveLeaveUiEvent.OnActionSelect -> {
                 _leave.value = _leave.value.map { item ->
-                    if (item.id == event.id) item.copy(
-                        actions = item.actions.copy(
-                            isDialogOpen = item.actions.isDialogOpen.not(),
-                            selected = item.actions.all[event.index]
+                    if (item.id == event.id) {
+                        val action = item.actions.all[event.index]
+
+                        item.copy(
+                            actions = item.actions.copy(
+                                isDialogOpen = item.actions.isDialogOpen.not(),
+                                selected = action
+                            ),
+                            isRejected = action == "Reject"
                         )
-                    ) else item
+                    } else item
                 }
             }
 
@@ -219,7 +224,7 @@ class ApproveLeaveViewModel @Inject constructor(
     private suspend fun isErr(item: LeaveApproveCardInfo): Boolean {
         var err = false
 
-        if (item.cause.data.trim().isEmpty()) err = true
+        if (item.isRejected && item.cause.data.trim().isEmpty()) err = true
         if (item.actions.selected.isEmpty()) err = true
 
         if (err) _uiEvent.send(

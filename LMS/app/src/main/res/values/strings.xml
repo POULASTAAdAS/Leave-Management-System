@@ -62,7 +62,7 @@
     <string name="department_in_charge">Department In-charge</string>
     <string name="principle">Principle</string>
     <string name="define_department_incharge">Define Department In-Charge</string>
-    <string name="add">Add</string>
+    <string name="add_new_employee">Add New Employee</string>
     <string name="details">Details</string>
     <string name="personal_details">Personal Details</string>
     <string name="other_details">Other Details</string>
@@ -119,6 +119,14 @@
     <string name="select_teacher">Select Teacher</string>
     <string name="teacher">Teacher</string>
     <string name="select_leave">Select Leave Type</string>
+    <string name="home_headline">Welcome To Leave management System</string>
+    <string name="add_profile">Click here to add profile photo</string>
+    <string name="returting_to_home">Returting to Home withIn...</string>
+    <string name="remove_employee">Remove Employee</string>
+    <string name="application_date">Application Date</string>
+    <string name="download_report">Download Report</string>
+    <string name="preview">Report Preview</string>
+    <string name="salucation">Salutation</string>
 
     <array name="com_google_android_gms_fonts_certs">
         <item>@array/com_google_android_gms_fonts_certs_dev</item>

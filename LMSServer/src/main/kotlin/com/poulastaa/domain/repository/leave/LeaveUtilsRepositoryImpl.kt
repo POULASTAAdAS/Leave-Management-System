@@ -6,6 +6,7 @@ import com.poulastaa.data.model.table.department.DepartmentHeadTable
 import com.poulastaa.data.model.table.department.DepartmentTable
 import com.poulastaa.data.model.table.leave.*
 import com.poulastaa.data.model.table.teacher.TeacherTable
+import com.poulastaa.data.model.table.utils.PathTable
 import com.poulastaa.data.model.table.utils.PendingEndTable
 import com.poulastaa.data.model.table.utils.StatusTable
 import com.poulastaa.data.repository.leave.LeaveUtilsRepository

@@ -40,7 +40,7 @@ fun HomePermanentRootScreen(
     user: LocalUser,
     cookie: String,
     viewModel: HomePermanentViewModel = hiltViewModel(),
-    navigate: (Screens) -> Unit
+    navigate: (Screens) -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -70,15 +70,15 @@ fun HomePermanentRootScreen(
 private fun HomePermanentScreen(
     time: String,
     user: LocalUser,
-    cookie:String,
-    onEvent: (HomePermanentUiEvent) -> Unit
+    cookie: String,
+    onEvent: (HomePermanentUiEvent) -> Unit,
 ) {
     val hapticFeedback = LocalHapticFeedback.current
 
     HomeWrapperWithAppBar(
         time = time,
         user = user,
-        cookie= cookie,
+        cookie = cookie,
         onEvent = {
             hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
             onEvent(HomePermanentUiEvent.OnProfilePicClick)
@@ -134,7 +134,7 @@ private fun HomePermanentScreen(
 
         Spacer(modifier = Modifier.height(MaterialTheme.dimens.large1))
 
-        Row(
+        if (user.isDepartmentInCharge) Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.spacedBy(MaterialTheme.dimens.large1)

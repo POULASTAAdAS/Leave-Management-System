@@ -2,19 +2,17 @@ package com.poulastaa.lms.presentation.leave_view.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,22 +20,37 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.poulastaa.lms.R
+import com.poulastaa.lms.presentation.leave_view.ViewLeaveInfo
 import com.poulastaa.lms.presentation.leave_view.ViewLeaveSingleData
 import com.poulastaa.lms.ui.theme.ArrowDropDownIcon
 import com.poulastaa.lms.ui.theme.TestThem
 import com.poulastaa.lms.ui.theme.dimens
 
 
+val headingList = listOf(
+    "Application Date",
+    "Name",
+    "Leave Type",
+    "From Date",
+    "To Date",
+    "Total Days",
+    "Leave Type",
+    "Status",
+    "Cause"
+)
+
+
 @Composable
 fun LeaveViewCard(
     modifier: Modifier = Modifier,
-    headingList: List<String>,
-    leaveViewCard: ViewLeaveSingleData
+    leaveViewCard: ViewLeaveSingleData,
 ) {
     Card(
         modifier = modifier,
@@ -89,61 +102,13 @@ fun LeaveViewCard(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(
-                        start = MaterialTheme.dimens.medium1,
-                        end = MaterialTheme.dimens.small1
-                    )
-                    .padding(vertical = MaterialTheme.dimens.medium1)
-                    .horizontalScroll(rememberScrollState()),
+                    .padding(MaterialTheme.dimens.medium1)
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.dimens.medium2),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    repeat(headingList.size) {
-                        Text(
-                            modifier = Modifier
-                                .widthIn(min = 100.dp)
-                                .align(Alignment.CenterVertically),
-                            text = headingList[it],
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-                            textAlign = TextAlign.Center,
-                            textDecoration = TextDecoration.Underline
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(MaterialTheme.dimens.small3))
-
-
                 repeat(leaveViewCard.listOfLeave.size) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(MaterialTheme.dimens.small3),
-                        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.dimens.medium1),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        ItemText(text = leaveViewCard.listOfLeave[it].reqData)
-
-                        ItemText(text = leaveViewCard.listOfLeave[it].name)
-
-                        ItemText(text = leaveViewCard.listOfLeave[it].fromDate)
-
-                        ItemText(text = leaveViewCard.listOfLeave[it].toDate)
-
-                        ItemText(text = leaveViewCard.listOfLeave[it].totalDays)
-
-                        ItemText(text = leaveViewCard.listOfLeave[it].leaveType)
-
-                        ItemText(text = leaveViewCard.listOfLeave[it].status)
-
-                        Spacer(modifier = Modifier.height(1.dp))
-                        Spacer(modifier = Modifier.height(1.dp))
-
-                        ItemText(text = leaveViewCard.listOfLeave[it].cause)
-                    }
+                    OneItem(
+                        viewLeaveInfo = leaveViewCard.listOfLeave[it],
+                        isLast = it == leaveViewCard.listOfLeave.lastIndex
+                    )
                 }
             }
         }
@@ -151,18 +116,185 @@ fun LeaveViewCard(
 }
 
 @Composable
-private fun RowScope.ItemText(
+fun OneItem(
     modifier: Modifier = Modifier,
-    text: String
+    viewLeaveInfo: ViewLeaveInfo,
+    isLast: Boolean,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Heading(
+            text = stringResource(id = R.string.application_date),
+            modifier = Modifier.weight(1f)
+        )
+
+        Spacer(modifier = Modifier.width(MaterialTheme.dimens.medium1))
+
+        ItemText(
+            text = viewLeaveInfo.reqData,
+            modifier = Modifier.weight(1f)
+        )
+    }
+
+    Spacer(modifier = Modifier.height(MaterialTheme.dimens.small2))
+
+    Row(
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Heading(
+            text = stringResource(id = R.string.username),
+            modifier = Modifier.weight(1f)
+        )
+
+        Spacer(modifier = Modifier.width(MaterialTheme.dimens.medium1))
+
+        ItemText(
+            text = viewLeaveInfo.name,
+            modifier = Modifier.weight(1f)
+        )
+    }
+
+    Spacer(modifier = Modifier.height(MaterialTheme.dimens.small2))
+
+    Row(
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Heading(
+            text = stringResource(id = R.string.leave_type),
+            modifier = Modifier.weight(1f)
+        )
+
+        Spacer(modifier = Modifier.width(MaterialTheme.dimens.medium1))
+
+        ItemText(
+            text = viewLeaveInfo.leaveType,
+            modifier = Modifier.weight(1f)
+        )
+    }
+
+    Spacer(modifier = Modifier.height(MaterialTheme.dimens.small2))
+
+    Row(
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Heading(
+            text = stringResource(id = R.string.from_date),
+            modifier = Modifier.weight(1f)
+        )
+
+        Spacer(modifier = Modifier.width(MaterialTheme.dimens.medium1))
+
+        ItemText(
+            text = viewLeaveInfo.fromDate,
+            modifier = Modifier.weight(1f)
+        )
+    }
+
+    Spacer(modifier = Modifier.height(MaterialTheme.dimens.small2))
+
+    Row(
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Heading(
+            text = stringResource(id = R.string.to_date),
+            modifier = Modifier.weight(1f)
+        )
+
+        Spacer(modifier = Modifier.width(MaterialTheme.dimens.medium1))
+
+        ItemText(
+            text = viewLeaveInfo.toDate,
+            modifier = Modifier.weight(1f)
+        )
+    }
+
+    Spacer(modifier = Modifier.height(MaterialTheme.dimens.small2))
+
+    Row(
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Heading(
+            text = stringResource(id = R.string.total_days),
+            modifier = Modifier.weight(1f)
+        )
+
+        Spacer(modifier = Modifier.width(MaterialTheme.dimens.medium1))
+
+        ItemText(
+            text = viewLeaveInfo.totalDays,
+            modifier = Modifier.weight(1f)
+        )
+    }
+
+    Spacer(modifier = Modifier.height(MaterialTheme.dimens.small2))
+
+    Row(
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Heading(
+            text = stringResource(id = R.string.state),
+            modifier = Modifier.weight(1f)
+        )
+
+        Spacer(modifier = Modifier.width(MaterialTheme.dimens.medium1))
+
+        ItemText(
+            text = viewLeaveInfo.status,
+            modifier = Modifier.weight(1f)
+        )
+    }
+
+    Spacer(modifier = Modifier.height(MaterialTheme.dimens.small2))
+
+    Row(
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Heading(
+            text = stringResource(id = R.string.cause),
+            modifier = Modifier.weight(1f)
+        )
+
+        Spacer(modifier = Modifier.width(MaterialTheme.dimens.medium1))
+
+        ItemText(
+            text = viewLeaveInfo.cause,
+            modifier = Modifier.weight(1f)
+        )
+    }
+
+    if (!isLast) {
+        Spacer(modifier = Modifier.height(MaterialTheme.dimens.medium1))
+
+        HorizontalDivider()
+
+        Spacer(modifier = Modifier.height(MaterialTheme.dimens.medium1))
+    }
+}
+
+@Composable
+private fun Heading(
+    modifier: Modifier = Modifier,
+    text: String,
 ) {
     Text(
-        modifier = modifier
-            .widthIn(min = 90.dp)
-            .align(Alignment.CenterVertically),
         text = text,
-        fontWeight = FontWeight.Medium,
-        fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-        textAlign = TextAlign.Center
+        fontWeight = FontWeight.SemiBold,
+        textAlign = TextAlign.Start,
+        modifier = modifier
+    )
+}
+
+@Composable
+private fun ItemText(
+    modifier: Modifier = Modifier,
+    text: String,
+) {
+    Text(
+        modifier = modifier,
+        text = text,
+        textAlign = TextAlign.Start,
+        maxLines = 2
     )
 }
 
@@ -177,20 +309,21 @@ private fun Preview() {
                 .padding(MaterialTheme.dimens.medium1),
         ) {
             LeaveViewCard(
-                headingList = listOf(
-                    "Request Date",
-                    "Name",
-                    "From Date",
-                    "To Date",
-                    "Total Days",
-                    "Leave Type",
-                    "Status",
-                    "Cause"
-                ),
                 leaveViewCard = ViewLeaveSingleData(
                     department = "Computer Science",
                     isExpanded = true,
-                    listOfLeave = listOf()
+                    listOfLeave = listOf(
+                        ViewLeaveInfo(
+                            reqData = "2024-10-10",
+                            name = "Poulastaa Das",
+                            leaveType = "leave type",
+                            fromDate = "2024-10-10",
+                            toDate = "2024-10-10",
+                            totalDays = "10",
+                            status = "Approved",
+                            cause = "cause"
+                        )
+                    )
                 )
             )
         }

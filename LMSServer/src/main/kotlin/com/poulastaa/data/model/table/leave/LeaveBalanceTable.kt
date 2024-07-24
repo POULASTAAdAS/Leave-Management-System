@@ -10,7 +10,7 @@ object LeaveBalanceTable : Table() {
     val teacherId = reference("teacherId", TeacherTable.id, onDelete = ReferenceOption.CASCADE)
     val teacherTypeId = reference("teacherTypeId", TeacherTypeTable.id, onDelete = ReferenceOption.CASCADE)
     val leaveTypeId = reference("leaveTypeId", LeaveTypeTable.id, onDelete = ReferenceOption.CASCADE)
-    val leaveBalance = double("leaveBalance")
+    var leaveBalance = double("leaveBalance")
     val year = integer("year").default(LocalDate.now().year)
 
     override val primaryKey = PrimaryKey(teacherId, teacherTypeId, leaveTypeId)

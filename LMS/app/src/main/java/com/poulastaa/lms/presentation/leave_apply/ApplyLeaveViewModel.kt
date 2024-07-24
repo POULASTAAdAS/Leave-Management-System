@@ -27,6 +27,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -41,7 +42,7 @@ class ApplyLeaveViewModel @Inject constructor(
     private val ds: DataStoreRepository,
     private val cookieManager: CookieManager,
     private val gson: Gson,
-    private val client: OkHttpClient
+    private val client: OkHttpClient,
 ) : ViewModel() {
     var state by mutableStateOf(ApplyLeaveUiState())
         private set
@@ -51,30 +52,35 @@ class ApplyLeaveViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            when (ds.readUser().first().userType) {
+            val user = ds.readUser().first()
+
+            when (user.userType) {
                 UserType.PERMANENT -> {
                     state = state.copy(
                         leaveType = state.leaveType.copy(
                             all = listOf(
-                                "Casual Leave",
-                                "Commuted Leave",
-                                "Compensatory Leave",
-                                "Earned Leave",
-                                "Extraordinary Leave",
-                                "Leave Not Due",
-                                "Maternity Leave",
-                                "Medical Leave",
-                                "On Duty Leave",
-                                "Quarintine Leave",
-                                "Special Disability Leave",
-                                "Special Study Leave",
-                                "Study Leave"
+                                "Casual Leave(CL)",
+                                "Commuted Leave(CL)",
+                                "Compensatory Leave(CL)",
+                                "Earned Leave(EL)",
+                                "Extraordinary Leave(EL)",
+                                "Leave Not Due(LND)",
+                                "Maternity Leave(ML)",
+                                "Medical Leave(ML)",
+                                "On Duty Leave(OD)",
+                                "Quarintine Leave(QL)",
+                                "Special Disability Leave(SDL)",
+                                "Special Study Leave(SSL)",
+                                "Study Leave(SL)"
                             )
                         ),
-                        path = state.path.copy(
+                        path = if (user.isDepartmentInCharge) state.path.copy(
                             all = listOf(
-                                "Principal",
-                                "Head Clark"
+                                "Principal"
+                            )
+                        ) else state.path.copy(
+                            all = listOf(
+                                "Departmental In-Charge"
                             )
                         )
                     )
@@ -84,18 +90,22 @@ class ApplyLeaveViewModel @Inject constructor(
                     state = state.copy(
                         leaveType = state.leaveType.copy(
                             all = listOf(
-                                "Casual Leave",
-                                "Medical Leave",
-                                "Study Leave"
+                                "Casual Leave(CL)",
+                                "Medical Leave(ML)",
+                                "Study Leave(SL)",
+                                "On Duty Leave(OD)"
                             )
                         ),
                         path = state.path.copy(
                             all = listOf(
-                                "Department Head",
-                                "Head Clark"
+                                "Departmental In-Charge"
                             )
                         )
                     )
+                }
+
+                UserType.NON -> {
+
                 }
 
                 else -> Unit
@@ -115,12 +125,13 @@ class ApplyLeaveViewModel @Inject constructor(
                     )
                 )
 
-                state = if (state.leaveType.selected != "Casual Leave") state.copy(
-                    isDocNeeded = true
-                )
-                else state.copy(
-                    isDocNeeded = false
-                )
+                state =
+                    if (state.leaveType.selected != "Casual Leave(CL)" && state.leaveType.selected != "On Duty Leave(OD)") state.copy(
+                        isDocNeeded = true
+                    )
+                    else state.copy(
+                        isDocNeeded = false
+                    )
 
                 viewModelScope.launch {
                     getLeaveBalance?.cancel()
@@ -488,7 +499,7 @@ class ApplyLeaveViewModel @Inject constructor(
         val response = client.get<GetBalanceRes>(
             route = EndPoints.GetLeaveBalance.route,
             params = listOf(
-                "type" to state.leaveType.selected
+                "type" to state.leaveType.selected.split('(')[0]
             ),
             gson = gson,
             cookie = cookie,
@@ -527,7 +538,7 @@ class ApplyLeaveViewModel @Inject constructor(
     }
 
     private fun applyLeave(
-        context: Context
+        context: Context,
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             val cookie = ds.readCookie().first()
@@ -535,13 +546,13 @@ class ApplyLeaveViewModel @Inject constructor(
 
             val body = ApplyLeaveReq(
                 email = user.email,
-                leaveType = state.leaveType.selected.trim(),
+                leaveType = state.leaveType.selected.trim().split('(')[0],
                 fromDate = state.fromDate.data.trim(),
                 toDate = state.toDate.data.trim(),
                 totalDays = state.totalDays.trim(),
                 reason = state.leaveReason.data.trim(),
                 addressDuringLeave = state.addressDuringLeave.selected.trim(),
-                path = state.path.selected.trim(),
+                path = if (state.path.selected == "Departmental In-Charge") "Department Head" else state.path.selected,
             )
 
             val file = state.docUrl?.let {
@@ -596,6 +607,16 @@ class ApplyLeaveViewModel @Inject constructor(
                                     UiText.StringResource(R.string.leave_req_accepted)
                                 )
                             )
+
+                            for (i in state.returnCounter downTo 0) {
+                                delay(1000)
+
+                                state = state.copy(
+                                    returnCounter = i
+                                )
+                            }
+
+                            _uiEvent.send(ApplyLeaveUiAction.NavigateBack)
                         }
 
                         ApplyLeaveStatus.REJECTED -> {

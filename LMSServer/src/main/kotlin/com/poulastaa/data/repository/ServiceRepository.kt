@@ -15,6 +15,7 @@ import com.poulastaa.data.model.leave.*
 import com.poulastaa.data.model.other.GetDepartmentTeacher
 import com.poulastaa.data.model.other.TeacherLeaveBalance
 import com.poulastaa.data.model.other.UpdateLeaveBalanceReq
+import com.poulastaa.data.report.ReportResponse
 import java.io.File
 
 
@@ -93,4 +94,9 @@ interface ServiceRepository {
     suspend fun getTeacherLeaveBalance(teacherId: Int): List<TeacherLeaveBalance>
 
     suspend fun updateLeaveBalance(req: UpdateLeaveBalanceReq): Boolean
+
+    suspend fun getReport(
+        department: String,
+        type: String,
+    ): List<ReportResponse>
 }

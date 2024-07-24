@@ -13,7 +13,7 @@ data class AuthRes(
 data class User(
     val name: String = "",
     val email: String = "",
-    val profilePicUrl: String? = null,
+    val profilePicUrl: String = "",
     val phone: String = "",
     val department: String = "",
     val designation: String = "",

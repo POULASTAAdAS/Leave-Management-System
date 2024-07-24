@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.stringResource
@@ -109,6 +110,16 @@ fun HomeWrapperWithAppBar(
                 )
             }
 
+            Text(
+                text = stringResource(id = R.string.add_profile),
+                fontSize = MaterialTheme.typography.bodySmall.fontSize,
+                color = MaterialTheme.colorScheme.background,
+                modifier = Modifier
+                    .align(Alignment.Start)
+                    .padding(start = MaterialTheme.dimens.small3)
+                    .alpha(.6f)
+            )
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -191,7 +202,8 @@ private fun Preview() {
                 name = "Poulastaa Das",
                 designation = "Assistant Professor",
                 department = "Computer Science",
-                isDepartmentInCharge = true
+                isDepartmentInCharge = true,
+                profilePicUrl = ""
             ),
             isPrincipal = false,
             cookie = "",

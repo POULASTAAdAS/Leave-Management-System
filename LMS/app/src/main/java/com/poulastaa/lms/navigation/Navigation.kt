@@ -11,6 +11,7 @@ import androidx.navigation.navArgument
 import com.poulastaa.lms.presentation.add_teacher.AddTeacherRootScreen
 import com.poulastaa.lms.presentation.auth.AuthRootScreen
 import com.poulastaa.lms.presentation.define_in_charge.DefneInChargeRootScreen
+import com.poulastaa.lms.presentation.download_report.DownloadReportRootScreen
 import com.poulastaa.lms.presentation.home.type.HomeRootScreenType
 import com.poulastaa.lms.presentation.leave_apply.ApplyLeaveRootScreen
 import com.poulastaa.lms.presentation.leave_approval.ApproveLeaveRootScreen
@@ -307,7 +308,9 @@ fun Navigation(
         }
 
         composable(route = Screens.ViewReport.route) {
-
+            DownloadReportRootScreen {
+                navController.popBackStack()
+            }
         }
 
         composable(route = Screens.DefineDepartmentInCharge.route) {

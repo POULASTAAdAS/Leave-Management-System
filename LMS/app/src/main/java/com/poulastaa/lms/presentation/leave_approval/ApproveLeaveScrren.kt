@@ -116,7 +116,7 @@ private fun ApproveLeaveScreen(
                 Spacer(modifier = Modifier.width(MaterialTheme.dimens.medium1))
 
                 Text(
-                    text = stringResource(id = R.string.leave_history_heading),
+                    text = stringResource(id = R.string.approve_leave),
                     color = MaterialTheme.colorScheme.primaryContainer,
                     fontWeight = FontWeight.Bold,
                     fontSize = MaterialTheme.typography.headlineSmall.fontSize

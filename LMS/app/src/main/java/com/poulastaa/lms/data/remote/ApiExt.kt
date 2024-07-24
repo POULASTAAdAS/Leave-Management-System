@@ -23,6 +23,7 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import java.net.CookieManager
 import java.nio.channels.UnresolvedAddressException
@@ -110,6 +111,44 @@ suspend inline fun <reified Response : Any> OkHttpClient.authGet(
     }
 }
 
+suspend fun downloadReport(
+    client: OkHttpClient,
+    route: String,
+    params: List<Pair<String, String>>,
+    cookie: String,
+    savePath: String,
+): Result<Unit, DataError.Network> {
+    val urlBuilder = route.toHttpUrlOrNull()?.newBuilder()
+        ?: return Result.Error(DataError.Network.UNKNOWN)
+
+    params.forEach { (key, value) ->
+        urlBuilder.addQueryParameter(key, value)
+    }
+
+    val url = urlBuilder.build()
+    val request = Req.Builder()
+        .url(url)
+        .addHeader("Cookie", cookie)
+        .get()
+        .build()
+
+    return try {
+        suspendCoroutine {
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) Result.Error(DataError.Network.UNKNOWN)
+
+                val file = File(savePath)
+                FileOutputStream(file).use { fos ->
+                    fos.write(response.body?.bytes())
+                }
+
+                Result.Success(Unit)
+            }
+        }
+    } catch (e: Exception) {
+        handleOtherException(e)
+    }
+}
 
 suspend inline fun <reified Response : Any> OkHttpClient.get(
     route: String,

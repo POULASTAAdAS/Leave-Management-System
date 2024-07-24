@@ -7,6 +7,14 @@ import com.poulastaa.lms.ui.utils.UiText
 data class StoreDetailsUiState(
     val isInternet: Boolean = false,
 
+    val prefix: ListHolder = ListHolder(
+        all = listOf(
+            "Dr.",
+            "Mr.",
+            "Ms."
+        )
+    ),
+
     val userName: Holder = Holder(),
     val hrmsId: Holder = Holder(),
     val email: Holder = Holder(),
@@ -70,14 +78,13 @@ data class StoreDetailsUiState(
 
     val qualification: ListHolder = ListHolder(
         all = listOf(
-            "Dr.",
-            "M.Com",
+            "Ph.D",
             "M.Tech",
+            "M.Com",
             "MBA",
             "MCA",
-            "MLib",
             "MSC",
-            "Ph.D",
+            "MLib",
             "Other"
         )
     ),

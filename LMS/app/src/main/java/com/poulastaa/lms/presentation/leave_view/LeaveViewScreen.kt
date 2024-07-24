@@ -56,17 +56,6 @@ import com.poulastaa.lms.ui.theme.dimens
 import com.poulastaa.lms.ui.utils.ObserveAsEvent
 import kotlin.random.Random
 
-val headingList = listOf(
-    "Department",
-    "Request Date",
-    "Name",
-    "From Date",
-    "To Date",
-    "Total Days",
-    "Leave Type",
-    "Status",
-    "Cause"
-)
 
 @Composable
 fun LeaveViewRootScreen(
@@ -245,7 +234,6 @@ private fun LeaveViewScreen(
                                 modifier = Modifier.clickable {
                                     onEvent(LeaveViewUiEvent.OnLeaveToggle(item.department))
                                 },
-                                headingList = headingList,
                                 leaveViewCard = item
                             )
                         }

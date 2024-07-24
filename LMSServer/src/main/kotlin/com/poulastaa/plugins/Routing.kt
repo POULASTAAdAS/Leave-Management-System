@@ -8,6 +8,8 @@ import com.poulastaa.routes.department.getDepartmentInCharge
 import com.poulastaa.routes.details.*
 import com.poulastaa.routes.leave.*
 import com.poulastaa.routes.other.*
+import com.poulastaa.routes.report.downloadReport
+import com.poulastaa.routes.report.getReport
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
 import io.ktor.server.routing.*
@@ -56,6 +58,9 @@ fun Application.configureRouting() {
         getDepartmentTeacher(service)
         getTeacherLeaveBalance(service)
         updateTeacherLeaveBalance(service)
+
+        getReport(service)
+        downloadReport(service)
 
         unAuth()
 

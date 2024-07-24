@@ -13,7 +13,7 @@ data class ApplyLeaveUiState(
     val user: LocalUser = LocalUser(),
 
     val isSuccess: Boolean = false,
-
+    val returnCounter: Int = 4,
     val isDocNeeded: Boolean = false,
     val isDocErr: Boolean = false,
     val docUrl: Uri? = null,
@@ -41,5 +41,5 @@ data class ApplyLeaveUiState(
             "Out Station Address"
         )
     ),
-    val path: ListHolder = ListHolder()
+    val path: ListHolder = ListHolder(),
 )

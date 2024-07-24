@@ -15,12 +15,7 @@ import com.poulastaa.lms.R
 fun ColumnScope.HeadLine() {
     HeadlinePart(
         modifier = Modifier.align(Alignment.Start),
-        text = stringResource(id = R.string.home_headline_part_1)
-    )
-
-    HeadlinePart(
-        modifier = Modifier.align(Alignment.Start),
-        text = stringResource(id = R.string.home_headline_part_3)
+        text = stringResource(id = R.string.home_headline)
     )
 }
 

@@ -17,11 +17,16 @@ import com.poulastaa.data.model.other.UpdateLeaveBalanceReq
 import com.poulastaa.data.model.table.address.TeacherDetailsTable
 import com.poulastaa.data.model.table.department.DepartmentHeadTable
 import com.poulastaa.data.model.table.department.DepartmentTable
+import com.poulastaa.data.model.table.leave.LeaveReqTable
+import com.poulastaa.data.model.table.leave.LeaveStatusTable
 import com.poulastaa.data.model.table.leave.LeaveTypeTable
 import com.poulastaa.data.model.table.session.SessionStorageTable
 import com.poulastaa.data.model.table.teacher.TeacherTable
 import com.poulastaa.data.model.table.teacher.TeacherTypeTable
 import com.poulastaa.data.model.table.utils.PathTable
+import com.poulastaa.data.report.LeaveData
+import com.poulastaa.data.report.ReportResponse
+import com.poulastaa.data.report.ReportResult
 import com.poulastaa.data.repository.JWTRepository
 import com.poulastaa.data.repository.ServiceRepository
 import com.poulastaa.data.repository.TeacherRepository
@@ -29,6 +34,7 @@ import com.poulastaa.data.repository.leave.LeaveWrapper
 import com.poulastaa.domain.dao.department.Department
 import com.poulastaa.domain.dao.department.DepartmentHead
 import com.poulastaa.domain.dao.leave.LeaveAction
+import com.poulastaa.domain.dao.leave.LeaveReq
 import com.poulastaa.domain.dao.leave.LeaveType
 import com.poulastaa.domain.dao.session.SessionStorageDB
 import com.poulastaa.domain.dao.teacher.Teacher
@@ -43,13 +49,12 @@ import com.poulastaa.utils.Constants.SIGNUP_VERIFICATION_MAIL_TOKEN_CLAIM_KEY
 import com.poulastaa.utils.sendEmail
 import io.ktor.utils.io.charsets.*
 import kotlinx.coroutines.*
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.upperCase
+import org.jetbrains.exposed.sql.*
 import java.io.File
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
 class ServiceRepositoryImpl(
@@ -253,7 +258,6 @@ class ServiceRepositoryImpl(
             req = req,
             doc = filePath
         )
-
         // send mails
         if (response.status == ApplyLeaveStatus.ACCEPTED) CoroutineScope(Dispatchers.IO).launch {
             val sendMailToTeacher = async {
@@ -339,8 +343,7 @@ class ServiceRepositoryImpl(
     ): List<LeaveApproveRes> = coroutineScope {
         val teacher = teacher.getTeacher(email)
 
-        if (teacher != null) {
-            // get department id and check if department head
+        if (teacher != null) { // get department id and check if department head
             val head = query {
                 DepartmentHead.find {
                     DepartmentHeadTable.teacherId eq teacher.id
@@ -408,18 +411,19 @@ class ServiceRepositoryImpl(
             }.single()
         }
 
-        when (type) {
-            LeaveAction.TYPE.APPROVED -> leaveUpdateLetter(
-                to = details.email,
-                subject = "Leave Request Update.",
-                content = """
+        CoroutineScope(Dispatchers.IO).launch {
+            when (type) {
+                LeaveAction.TYPE.APPROVED -> leaveUpdateLetter(
+                    to = details.email,
+                    subject = "Leave Request Update.",
+                    content = """
                     Hello ${details.name}
                     Your ${leaveType.type} from ${leave.fromDate} to ${leave.toDate} of total ${
-                    ChronoUnit.DAYS.between(
-                        leave.fromDate,
-                        leave.toDate
-                    ) + 1L
-                } days,
+                        ChronoUnit.DAYS.between(
+                            leave.fromDate,
+                            leave.toDate
+                        ) + 1L
+                    } days,
                     has been GRANTED.
                     
                     This is an auto-generated mail. Please do not reply to this message.
@@ -427,19 +431,19 @@ class ServiceRepositoryImpl(
                     Regards,
                     ${System.getenv("college")}
                 """
-            )
+                )
 
-            LeaveAction.TYPE.FORWARD -> leaveUpdateLetter(
-                to = details.email,
-                subject = "Leave Request Update.",
-                content = """
+                LeaveAction.TYPE.FORWARD -> leaveUpdateLetter(
+                    to = details.email,
+                    subject = "Leave Request Update.",
+                    content = """
                     Hello ${details.name}
                     Your ${leaveType.type} from ${leave.fromDate} to ${leave.toDate} of total ${
-                    ChronoUnit.DAYS.between(
-                        leave.fromDate,
-                        leave.toDate
-                    ) + 1L
-                } days,
+                        ChronoUnit.DAYS.between(
+                            leave.fromDate,
+                            leave.toDate
+                        ) + 1L
+                    } days,
                     has been FORWARDED TO PRINCIPLE.
                     
                     This is an auto-generated mail. Please do not reply to this message.
@@ -447,19 +451,19 @@ class ServiceRepositoryImpl(
                     Regards,
                     ${System.getenv("college")}
                 """
-            )
+                )
 
-            LeaveAction.TYPE.REJECT -> leaveUpdateLetter(
-                to = details.email,
-                subject = "Leave Request Update.",
-                content = """
+                LeaveAction.TYPE.REJECT -> leaveUpdateLetter(
+                    to = details.email,
+                    subject = "Leave Request Update.",
+                    content = """
                     Hello ${details.name}
                     Your ${leaveType.type} from ${leave.fromDate} to ${leave.toDate} of total ${
-                    ChronoUnit.DAYS.between(
-                        leave.fromDate,
-                        leave.toDate
-                    ) + 1L
-                } days,
+                        ChronoUnit.DAYS.between(
+                            leave.fromDate,
+                            leave.toDate
+                        ) + 1L
+                    } days,
                     has been REJECTED BY ${if (isPrincipal) "PRINCIPLE" else "DEPARTMENT HEAD"}.
                     
                     
@@ -468,7 +472,8 @@ class ServiceRepositoryImpl(
                     Regards,
                     ${System.getenv("college")}
                 """
-            )
+                )
+            }
         }
 
         true
@@ -696,6 +701,180 @@ class ServiceRepositoryImpl(
         teacher.getTeacherLeaveBalance(teacherId)
 
     override suspend fun updateLeaveBalance(req: UpdateLeaveBalanceReq): Boolean = teacher.updateLeaveBalance(req)
+
+    override suspend fun getReport(
+        department: String,
+        type: String,
+    ): List<ReportResponse> {
+        return if (department.uppercase() == "ALL") getReportForAllDepartment(type)
+        else getReportForOneDepartment(department, type)
+    }
+
+    private suspend fun getReportForOneDepartment(
+        department: String,
+        type: String,
+    ) = coroutineScope {
+        val leaveTypeIdDef = async {
+            if (type.uppercase() == "ALL") {
+                null
+            } else query {
+                LeaveType.find {
+                    LeaveTypeTable.type eq type.split('(')[0]
+                }.single().id.value
+            }
+        }
+
+        val depDef = async {
+            query {
+                Department.find {
+                    DepartmentTable.name eq department
+                }.single()
+            }
+        }
+
+        val leaveTypeId = leaveTypeIdDef.await()
+        val dep = depDef.await()
+
+        val leaveIdList = query {
+            LeaveStatusTable.select {
+                LeaveStatusTable.departmentId eq dep.id
+            }.map {
+                it[LeaveStatusTable.leaveId].value
+            }
+        }
+
+        query {
+            val response = if (leaveTypeId != null) LeaveReq.find {
+                LeaveReqTable.id inList leaveIdList and (LeaveReqTable.leaveTypeId eq leaveTypeId)
+            } else LeaveReq.find {
+                LeaveReqTable.id inList leaveIdList
+            }
+
+            response.groupBy {
+                it.teacherId
+            }.map {
+                async {
+                    query {
+                        TeacherDetailsTable.select {
+                            TeacherDetailsTable.teacherId eq it.key
+                        }.single().let { resultRow ->
+                            resultRow[TeacherDetailsTable.name]
+                        }
+                    }
+                } to it.value.map { leaveReq ->
+                    LeaveData(
+                        id = leaveReq.id.value,
+                        applicationDate = leaveReq.reqDate.format(DateTimeFormatter.ofPattern("yyyy-dd-MM")),
+                        reqType = query {
+                            LeaveType.find {
+                                LeaveTypeTable.id eq leaveReq.leaveTypeId
+                            }.first().type
+                        },
+                        fromDate = leaveReq.fromDate.format(DateTimeFormatter.ofPattern("yyyy-dd-MM")),
+                        toDate = leaveReq.toDate.format(DateTimeFormatter.ofPattern("yyyy-dd-MM")),
+                        totalDays = (ChronoUnit.DAYS.between(
+                            leaveReq.fromDate,
+                            leaveReq.toDate
+                        ) + 1).toString()
+                    )
+                }
+            }.map {
+                ReportResponse(
+                    department = department,
+                    name = it.first.await(),
+                    listOfLeave = it.second
+                )
+            }
+        }
+    }
+
+    private suspend fun getReportForAllDepartment(
+        type: String,
+    ) = query {
+        val join = LeaveReqTable
+            .join(
+                otherTable = LeaveStatusTable,
+                joinType = JoinType.INNER,
+                additionalConstraint = {
+                    LeaveStatusTable.leaveId eq LeaveReqTable.id
+                }
+            )
+            .join(
+                otherTable = DepartmentTable,
+                joinType = JoinType.INNER,
+                additionalConstraint = {
+                    DepartmentTable.id eq LeaveStatusTable.departmentId
+                }
+            )
+            .join(
+                otherTable = LeaveTypeTable,
+                joinType = JoinType.INNER,
+                additionalConstraint = {
+                    LeaveTypeTable.id eq LeaveReqTable.leaveTypeId
+                }
+            )
+            .join(
+                otherTable = TeacherDetailsTable,
+                joinType = JoinType.INNER,
+                additionalConstraint = {
+                    TeacherDetailsTable.teacherId eq LeaveReqTable.teacherId
+                }
+            )
+            .slice(
+                LeaveReqTable.id,
+                LeaveTypeTable.type,
+                DepartmentTable.name,
+                TeacherDetailsTable.name,
+                LeaveReqTable.reqDate,
+                LeaveReqTable.fromDate,
+                LeaveReqTable.toDate,
+                LeaveReqTable.reason
+            )
+
+        (if (type.uppercase() == "ALL") join.selectAll()
+        else {
+            val leaveId = LeaveType.find {
+                LeaveTypeTable.type eq type.split('(')[0]
+            }.first().id.value
+
+            join.select {
+                LeaveTypeTable.id eq leaveId
+            }
+        }).orderBy(DepartmentTable.name)
+            .orderBy(TeacherDetailsTable.name)
+            .map {
+                ReportResult(
+                    leaveId = it[LeaveReqTable.id].value,
+                    departmentName = it[DepartmentTable.name],
+                    teacherName = it[TeacherDetailsTable.name],
+                    leaveType = it[LeaveTypeTable.type],
+                    reqDate = it[LeaveReqTable.reqDate].format(DateTimeFormatter.ofPattern("yyyy-dd-MM")),
+                    fromDate = it[LeaveReqTable.fromDate].format(DateTimeFormatter.ofPattern("yyyy-dd-MM")),
+                    toDate = it[LeaveReqTable.toDate].format(DateTimeFormatter.ofPattern("yyyy-dd-MM")),
+                    totalDays = (ChronoUnit.DAYS.between(
+                        it[LeaveReqTable.fromDate],
+                        it[LeaveReqTable.toDate]
+                    ) + 1).toInt(),
+                    reason = it[LeaveReqTable.reason]
+                )
+            }.groupBy { it.teacherName }
+            .map {
+                ReportResponse(
+                    department = it.value.first().departmentName,
+                    name = it.key,
+                    listOfLeave = it.value.map { leave ->
+                        LeaveData(
+                            id = leave.leaveId,
+                            reqType = leave.leaveType,
+                            applicationDate = leave.reqDate,
+                            fromDate = leave.fromDate,
+                            toDate = leave.toDate,
+                            totalDays = leave.totalDays.toString()
+                        )
+                    }
+                )
+            }
+    }
 
     private suspend fun deleteCookie(oldEmail: String) = query {
         val entrys = SessionStorageDB.find {

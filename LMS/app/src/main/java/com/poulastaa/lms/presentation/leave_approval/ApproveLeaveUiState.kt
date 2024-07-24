@@ -7,7 +7,7 @@ import com.poulastaa.lms.presentation.store_details.ListHolder
 
 data class ApproveLeaveUiState(
     val isMakingApiCall: Boolean = false,
-    val userType: UserType = UserType.LOAD
+    val userType: UserType = UserType.LOAD,
 )
 
 @Stable
@@ -26,6 +26,7 @@ data class LeaveApproveCardInfo(
             "Reject"
         )
     ),
+    val isRejected: Boolean = false,
     val cause: Holder = Holder(),
     val isSendingDataToServer: Boolean = false,
 )

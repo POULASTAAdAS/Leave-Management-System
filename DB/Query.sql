@@ -17,69 +17,18 @@ join status on status.id = leavestatus.statusId
 join department on department.id = leavestatus.departmentId
 where leavestatus.pendingEndId = 3 and department.id = 6 order by department.id;
 
-select * from pendingend;
 
 
-select * from teacher;
-
-update teacher set emailVerified = 0 where id = 2;
-
-select * from teachertype;
-
-select * from designation;
-select* from department;
-
-select * from headclark;
+select leavereq.id , department.name , teacherdetails.name, leavetype.type ,  leavereq.reqDate, leavereq.fromDate , leavereq.toDate , leavereq.reason  from leavereq
+join leavestatus on leavestatus.leaveId = leavereq.id
+join department on department.id = leavestatus.departmentId
+join leavetype on leavetype.id = leavereq.leaveTypeId
+join teacherdetails on teacherdetails.teacherId = leavereq.teacherId
+order by department.name , teacherdetails.name;
 
 
-delete from teacherdetails where teacherId = 2;
-
-select * from teacherdetails;
-select * from leavebalance;
 select * from leavereq;
 select * from leavestatus;
-
-select * from DesignationTeacherTypeRelation;
-
-select * from designation;
-select * from leavetype;
-select * from departmenthead;
-
-select * From teacher;
-
-select * from principal;
-
-select * from teacher;
-
-
-select * from departmenthead;
-select * from sessionstorage;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

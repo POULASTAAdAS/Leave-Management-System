@@ -38,6 +38,7 @@ import com.poulastaa.lms.ui.theme.dimens
 @Composable
 fun StoreDetailsListSelector(
     modifier: Modifier = Modifier,
+    textModifier: Modifier = Modifier.fillMaxWidth(),
     label: String,
     text: String,
     isOpen: Boolean,
@@ -56,8 +57,7 @@ fun StoreDetailsListSelector(
             ),
     ) {
         OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = textModifier,
             value = text,
             onValueChange = {},
             label = {

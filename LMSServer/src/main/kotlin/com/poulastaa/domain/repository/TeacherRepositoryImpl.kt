@@ -165,7 +165,7 @@ class TeacherRepositoryImpl : TeacherRepository {
                 User(
                     name = it[TeacherDetailsTable.name],
                     email = email,
-                    profilePicUrl = it[TeacherDetailsTable.profilePic],
+                    profilePicUrl = it[TeacherDetailsTable.profilePic] ?: "",
                     department = department,
                     designation = designation.type,
                     isDepartmentInCharge = isDepartmentHead

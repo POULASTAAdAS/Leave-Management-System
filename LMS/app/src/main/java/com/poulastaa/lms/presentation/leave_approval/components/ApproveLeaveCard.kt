@@ -168,28 +168,32 @@ fun ApproveLeaveCard(
                     Spacer(modifier = Modifier.height(MaterialTheme.dimens.small3 + MaterialTheme.dimens.small1))
 
 
-                    StoreDetailsTextFiled(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = leaveApproveCardInfo.cause.data,
-                        label = stringResource(id = R.string.cause),
-                        onValueChange = {
-                            if (!leaveApproveCardInfo.isSendingDataToServer) onEvent(
-                                ApproveLeaveUiEvent.OnCauseChange(
-                                    value = it,
-                                    id = leaveApproveCardInfo.id
-                                )
+                    AnimatedVisibility(visible = leaveApproveCardInfo.isRejected) {
+                        Column {
+                            StoreDetailsTextFiled(
+                                modifier = Modifier.fillMaxWidth(),
+                                text = leaveApproveCardInfo.cause.data,
+                                label = stringResource(id = R.string.cause),
+                                onValueChange = {
+                                    if (!leaveApproveCardInfo.isSendingDataToServer) onEvent(
+                                        ApproveLeaveUiEvent.OnCauseChange(
+                                            value = it,
+                                            id = leaveApproveCardInfo.id
+                                        )
+                                    )
+                                },
+                                keyboardType = KeyboardType.Text,
+                                isErr = leaveApproveCardInfo.cause.isErr,
+                                singleLine = false,
+                                errText = leaveApproveCardInfo.cause.errText.asString(),
+                                onDone = {
+                                    focusManager.clearFocus()
+                                }
                             )
-                        },
-                        keyboardType = KeyboardType.Text,
-                        isErr = leaveApproveCardInfo.cause.isErr,
-                        singleLine = false,
-                        errText = leaveApproveCardInfo.cause.errText.asString(),
-                        onDone = {
-                            focusManager.clearFocus()
-                        }
-                    )
 
-                    Spacer(modifier = Modifier.height(MaterialTheme.dimens.small3))
+                            Spacer(modifier = Modifier.height(MaterialTheme.dimens.small3))
+                        }
+                    }
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -249,7 +253,7 @@ private fun SingleColumn(
     headerOne: String,
     headerTwo: String,
     nameOne: String,
-    nameTwo: String
+    nameTwo: String,
 ) {
     Column(
         modifier = modifier,
@@ -272,7 +276,7 @@ private fun SingleColumn(
 private fun TextCard(
     modifier: Modifier = Modifier,
     header: String,
-    name: String
+    name: String,
 ) {
     Column(
         modifier = modifier,
