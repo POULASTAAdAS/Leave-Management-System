@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -212,6 +213,85 @@ private fun LeaveViewScreen(
                 }
             }
 
+
+            Spacer(modifier = Modifier.height(MaterialTheme.dimens.medium1))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "${stringResource(id = R.string.select_teacher)}: ",
+                    color = MaterialTheme.colorScheme.background,
+                    fontSize = MaterialTheme.typography.titleMedium.fontSize
+                )
+
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        modifier = Modifier.clickable(
+                            onClick = {
+                                onEvent(LeaveViewUiEvent.OnTeacherToggle)
+                            },
+                            interactionSource = remember {
+                                MutableInteractionSource()
+                            },
+                            indication = null
+                        ),
+                        value = state.teacher.selected,
+                        onValueChange = {},
+                        enabled = false,
+                        colors = TextFieldDefaults.colors(
+                            disabledContainerColor = Color.Transparent,
+                            disabledTextColor = MaterialTheme.colorScheme.background,
+                            disabledIndicatorColor = MaterialTheme.colorScheme.background,
+                            disabledTrailingIconColor = MaterialTheme.colorScheme.background,
+                            disabledLabelColor = MaterialTheme.colorScheme.background
+                        ),
+                        shape = MaterialTheme.shapes.medium,
+                        maxLines = 1,
+                        trailingIcon = {
+                            Icon(
+                                imageVector = ArrowDropDownIcon,
+                                contentDescription = null,
+                                modifier = Modifier.rotate(
+                                    if (state.teacher.isDialogOpen) 180f else 0f
+                                )
+                            )
+                        }
+                    )
+
+                    DropdownMenu(
+                        expanded = state.teacher.isDialogOpen,
+                        onDismissRequest = {
+                            onEvent(LeaveViewUiEvent.OnTeacherToggle)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth(.55f)
+                            .heightIn(
+                                max = 300.dp
+                            )
+                            .background(
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                    ) {
+                        state.teacher.all.forEachIndexed { index, s ->
+                            DropdownMenuItem(
+                                modifier = Modifier.background(
+                                    color = MaterialTheme.colorScheme.onBackground
+                                ),
+                                text = {
+                                    Text(
+                                        text = s,
+                                        color = MaterialTheme.colorScheme.background
+                                    )
+                                },
+                                onClick = {
+                                    onEvent(LeaveViewUiEvent.OnTeacherChange(index))
+                                }
+                            )
+                        }
+                    }
+                }
+            }
 
             Column(
                 modifier = Modifier

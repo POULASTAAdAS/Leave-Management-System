@@ -70,7 +70,7 @@ data class StoreDetailsUiState(
             "Sociology",
             "Urdu",
             "Zoology",
-            "Other"
+            "NTS"
         )
     ),
 

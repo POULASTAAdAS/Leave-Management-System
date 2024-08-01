@@ -13,15 +13,16 @@ sealed class Screens(val route: String) {
     data object LeaveHistory : Screens("/leaveHistory")
     data object LeaveStatus : Screens("/leaveStatus")
 
-    // hod
+    // head
     data object ApproveLeave : Screens("/approveLeave")
     data object ViewLeave : Screens("/viewLeave")
-    data object ViewReport : Screens("/viewReport")
+    data object DownloadReport : Screens("/downloadReport")
 
     // principle
     data object DefineDepartmentInCharge : Screens("/defineDepartmentInCharge")
     data object Add : Screens("/add")
     data object UpdateLeaveBalance : Screens("/updateLeaveBalance")
+    data object RemoveEmployee : Screens("/removeEmployee")
 
     data object EditHeadDetails : Screens("/profile/editHeadDetails")
 

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Card
@@ -33,7 +34,7 @@ import java.time.LocalDate
 @Composable
 fun LeaveHistoryItemCard(
     modifier: Modifier = Modifier,
-    leaveInfo: LeaveHistoryInfo
+    leaveInfo: LeaveHistoryInfo,
 ) {
     Card(
         modifier = Modifier
@@ -59,13 +60,26 @@ fun LeaveHistoryItemCard(
 
             ItemText(text = leaveInfo.leaveType)
 
+            if (leaveInfo.approveDate.isEmpty()) Spacer(modifier = Modifier.width(MaterialTheme.dimens.medium1))
+            else Spacer(modifier = Modifier.width(MaterialTheme.dimens.small3))
+
+            ItemText(text = leaveInfo.approveDate.ifEmpty { "----" })
+
+            if (leaveInfo.approveDate.isEmpty()) Spacer(modifier = Modifier.width(MaterialTheme.dimens.small3))
+            else Spacer(modifier = Modifier.width(MaterialTheme.dimens.small3))
+
             ItemText(text = leaveInfo.status)
+
+            Spacer(modifier = Modifier.width(MaterialTheme.dimens.small3))
 
             ItemText(text = leaveInfo.pendingEnd)
 
             ItemText(text = leaveInfo.totalDays)
 
+            Spacer(modifier = Modifier.width(MaterialTheme.dimens.small1))
+
             ItemText(text = leaveInfo.fromDate)
+
 
             ItemText(text = leaveInfo.toDate)
         }
@@ -75,7 +89,7 @@ fun LeaveHistoryItemCard(
 @Composable
 private fun ItemText(
     modifier: Modifier = Modifier,
-    text: String
+    text: String,
 ) {
     Text(
         text = text,
@@ -97,6 +111,7 @@ private fun Preview() {
             fromDate = LocalDate.now().toString(),
             toDate = LocalDate.now().toString(),
             status = "Pending",
+            approveDate = LocalDate.now().toString(),
             leaveType = "Casual Leave",
             pendingEnd = "Department In-Change",
             totalDays = "2"
@@ -105,6 +120,7 @@ private fun Preview() {
             reqDate = LocalDate.now().toString(),
             fromDate = LocalDate.now().toString(),
             toDate = LocalDate.now().toString(),
+            approveDate = LocalDate.now().toString(),
             status = "Pending",
             leaveType = "Casual Leave",
             pendingEnd = "Department In-Change",
@@ -115,6 +131,7 @@ private fun Preview() {
             fromDate = LocalDate.now().toString(),
             toDate = LocalDate.now().toString(),
             status = "Pending",
+            approveDate = LocalDate.now().toString(),
             leaveType = "Casual Leave",
             pendingEnd = "Department In-Change",
             totalDays = "2"
@@ -123,6 +140,17 @@ private fun Preview() {
             reqDate = LocalDate.now().toString(),
             fromDate = LocalDate.now().toString(),
             toDate = LocalDate.now().toString(),
+            approveDate = LocalDate.now().toString(),
+            status = "Pending",
+            leaveType = "Casual Leave",
+            pendingEnd = "Department In-Change",
+            totalDays = "2"
+        ),
+        LeaveHistoryInfo(
+            reqDate = LocalDate.now().toString(),
+            fromDate = LocalDate.now().toString(),
+            toDate = LocalDate.now().toString(),
+            approveDate = LocalDate.now().toString(),
             status = "Pending",
             leaveType = "Casual Leave",
             pendingEnd = "Department In-Change",
@@ -133,15 +161,7 @@ private fun Preview() {
             fromDate = LocalDate.now().toString(),
             toDate = LocalDate.now().toString(),
             status = "Pending",
-            leaveType = "Casual Leave",
-            pendingEnd = "Department In-Change",
-            totalDays = "2"
-        ),
-        LeaveHistoryInfo(
-            reqDate = LocalDate.now().toString(),
-            fromDate = LocalDate.now().toString(),
-            toDate = LocalDate.now().toString(),
-            status = "Pending",
+            approveDate = LocalDate.now().toString(),
             leaveType = "Casual Leave",
             pendingEnd = "Department In-Change",
             totalDays = "2"
@@ -167,6 +187,7 @@ private fun Preview() {
                 header = listOf(
                     "Request Date",
                     "Leave Type",
+                    "Approved/Rejected\nDate",
                     "Status",
                     "Pending End",
                     "Total Days",

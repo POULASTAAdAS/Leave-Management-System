@@ -95,7 +95,9 @@ fun ProfileRootScreen(
     }
 
     when (viewModel.state.userType) {
-        UserType.PRINCIPLE -> {
+        UserType.PRINCIPLE,
+        UserType.HEAD_CLARK,
+        -> {
             PrincipalProfile(
                 state = viewModel.state,
                 onEvent = viewModel::onEvent,

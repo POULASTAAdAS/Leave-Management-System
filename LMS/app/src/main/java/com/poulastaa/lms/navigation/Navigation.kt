@@ -26,6 +26,7 @@ import com.poulastaa.lms.presentation.profile.edit.details_edit.DetailsEditUiEve
 import com.poulastaa.lms.presentation.profile.edit.details_edit.DetailsEditViewModel
 import com.poulastaa.lms.presentation.profile.edit.details_edit.DetailsRootScreen
 import com.poulastaa.lms.presentation.profile.edit.details_edit.head.HeadDetailsEditRootScreen
+import com.poulastaa.lms.presentation.remove_employee.RemoveEmployeeRootScreen
 import com.poulastaa.lms.presentation.store_details.StoreDetailsRootScreen
 import com.poulastaa.lms.presentation.update_balnce.UpdateLeaveBalanceRoot
 
@@ -307,7 +308,7 @@ fun Navigation(
             }
         }
 
-        composable(route = Screens.ViewReport.route) {
+        composable(route = Screens.DownloadReport.route) {
             DownloadReportRootScreen {
                 navController.popBackStack()
             }
@@ -321,6 +322,12 @@ fun Navigation(
 
         composable(route = Screens.Add.route) {
             AddTeacherRootScreen {
+                navController.popBackStack()
+            }
+        }
+
+        composable(route = Screens.RemoveEmployee.route) {
+            RemoveEmployeeRootScreen {
                 navController.popBackStack()
             }
         }

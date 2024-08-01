@@ -85,7 +85,6 @@ class AuthViewModel @Inject constructor(
 
             AuthUiEvent.OnContinueClick -> {
                 if (!state.isInternet) {
-
                     viewModelScope.launch(Dispatchers.IO) {
                         _uiEvent.send(
                             AuthUiAction.SendToast(

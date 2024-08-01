@@ -78,7 +78,13 @@ class ApplyLeaveViewModel @Inject constructor(
                             all = listOf(
                                 "Principal"
                             )
-                        ) else state.path.copy(
+                        ) else if (user.department == "NST"){
+                            state.path.copy(
+                                all = listOf(
+                                    "Head Clark"
+                                )
+                            )
+                        }else state.path.copy(
                             all = listOf(
                                 "Departmental In-Charge"
                             )
@@ -102,10 +108,6 @@ class ApplyLeaveViewModel @Inject constructor(
                             )
                         )
                     )
-                }
-
-                UserType.NON -> {
-
                 }
 
                 else -> Unit

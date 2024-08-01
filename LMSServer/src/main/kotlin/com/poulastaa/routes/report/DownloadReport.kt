@@ -26,7 +26,14 @@ fun Route.downloadReport(service: ServiceRepository) {
                 val leaveType =
                     call.parameters["leaveType"] ?: return@get call.respondRedirect(EndPoints.UnAuthorised.route)
 
-                val result = service.getReport(department, leaveType)
+                val teacher =
+                    call.parameters["teacher"] ?: return@get call.respondRedirect(EndPoints.UnAuthorised.route)
+
+                val result = service.getReport(
+                    department = department,
+                    type = leaveType,
+                    teacher = teacher
+                )
 
                 call.respondBytes(
                     bytes = generatePdf(result),
@@ -38,7 +45,7 @@ fun Route.downloadReport(service: ServiceRepository) {
     }
 }
 
-fun addNewPage(document: PDDocument, contentStream: PDPageContentStream): PDPageContentStream {
+private fun addNewPage(document: PDDocument, contentStream: PDPageContentStream): PDPageContentStream {
     contentStream.endText()
     contentStream.close()
 
@@ -52,7 +59,7 @@ fun addNewPage(document: PDDocument, contentStream: PDPageContentStream): PDPage
     return newContentStream
 }
 
-fun generatePdf(reports: List<ReportResponse>): ByteArray {
+private fun generatePdf(reports: List<ReportResponse>): ByteArray {
     val outputStream = ByteArrayOutputStream()
 
     PDDocument().use { document ->
@@ -86,7 +93,7 @@ fun generatePdf(reports: List<ReportResponse>): ByteArray {
 
             // Write Leave Data header
             contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10f)
-            contentStream.showText("ID      Application Date    Request Type      From Date       To Date            Total Days")
+            contentStream.showText("  Application Date    Request Type      From Date       To Date            Total Days")
             contentStream.newLine()
             currentYPosition -= lineHeight
             contentStream.setFont(PDType1Font.HELVETICA, 10f)
@@ -98,14 +105,13 @@ fun generatePdf(reports: List<ReportResponse>): ByteArray {
                     currentYPosition = 750f
                 }
 
-                val id = leave.id.toString().padEnd(12)
                 val applicationDate = leave.applicationDate.padEnd(20)
                 val reqType = leave.reqType.padEnd(18)
                 val fromDate = leave.fromDate.padEnd(18)
                 val toDate = leave.toDate.padEnd(18)
                 val totalDays = leave.totalDays.padEnd(14)
 
-                val leaveText = "$id$applicationDate$reqType$fromDate$toDate$totalDays"
+                val leaveText = "$applicationDate$reqType$fromDate$toDate$totalDays"
                 contentStream.showText(leaveText)
                 contentStream.newLine()
                 currentYPosition -= lineHeight

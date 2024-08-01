@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 data class DownloadReportUiState(
     val isMakingApiCall: Boolean = false,
 
-    val isDepartmentHead: Boolean = false,
+    val showDepartmentDropDown: Boolean = false,
     val userTpe: UserType = UserType.LOAD,
     val department: ListHolder = ListHolder(
         all = listOf(
@@ -37,7 +37,7 @@ data class DownloadReportUiState(
             "Sociology",
             "Urdu",
             "Zoology",
-            "Other"
+            "NTS"
         )
     ),
     val leaveType: ListHolder = ListHolder(
@@ -58,6 +58,10 @@ data class DownloadReportUiState(
             "Study Leave(SL)"
         )
     ),
+    val teacher: ListHolder = ListHolder(
+        all = listOf("All"),
+        selected = "All"
+    ),
 
     val prevResponse: List<ReportUiState> = emptyList(),
 )
@@ -71,7 +75,6 @@ data class ReportUiState(
 
 @Serializable
 data class LeaveData(
-    val id: Pair<String, String>,
     val applicationDate: Pair<String, String>,
     val reqType: Pair<String, String>,
     val fromDate: Pair<String, String>,

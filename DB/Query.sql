@@ -31,40 +31,38 @@ select * from leavereq;
 select * from leavestatus;
 
 
+select * from principal;
+select * from headclark;
+
+select * from teacher;
 
 
+select * from department;
+select * from designation;
+select * from qualification;
+
+update department set name = "NTS" where id = 26;
+
+select * from teacherdetails where teacherId = 11;
+
+select * from designationteachertyperelation;
+select * from teachertype;
+
+select * from leavereq where teacherId = 11;
+select * from leavereq;
+select * from leavestatus;
+
+select * from leavestatus where leaveId in (47 , 48 , 49);
+
+select * from status;
+select * from path;
+select * from pendingend;
 
 
+select * from leavetype;
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+update leavestatus set approveDate = now();
 
 
 

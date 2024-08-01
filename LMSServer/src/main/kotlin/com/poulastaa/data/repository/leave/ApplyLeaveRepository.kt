@@ -3,6 +3,7 @@ package com.poulastaa.data.repository.leave
 import com.poulastaa.data.model.leave.ApplyLeaveReq
 import com.poulastaa.data.model.leave.ApplyLeaveRes
 import com.poulastaa.data.model.leave.HandleLeaveReq
+import com.poulastaa.data.model.other.HeadType
 import com.poulastaa.domain.dao.leave.LeaveAction
 
 interface ApplyLeaveRepository {
@@ -13,6 +14,6 @@ interface ApplyLeaveRepository {
 
     suspend fun handleLeave(
         req: HandleLeaveReq,
-        isPrincipal: Boolean,
+        headType: HeadType
     ): Pair<LeaveAction.TYPE, Int>
 }

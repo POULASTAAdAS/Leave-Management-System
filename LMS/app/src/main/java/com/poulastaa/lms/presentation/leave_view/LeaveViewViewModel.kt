@@ -1,6 +1,5 @@
 package com.poulastaa.lms.presentation.leave_view
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -11,9 +10,15 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
+import com.google.gson.Gson
+import com.poulastaa.lms.data.model.auth.EndPoints
+import com.poulastaa.lms.data.model.home.UserType
+import com.poulastaa.lms.data.model.leave.GetDepartmentTeacher
 import com.poulastaa.lms.data.model.leave.ViewLeaveSingleRes
 import com.poulastaa.lms.data.remote.ViewLeavePagingSource
+import com.poulastaa.lms.data.remote.get
 import com.poulastaa.lms.domain.repository.utils.DataStoreRepository
+import com.poulastaa.lms.domain.utils.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -24,12 +29,17 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
+import java.net.CookieManager
 import javax.inject.Inject
 
 @HiltViewModel
 class LeaveViewViewModel @Inject constructor(
     private val ds: DataStoreRepository,
     private val pagingSource: ViewLeavePagingSource,
+    private val client: OkHttpClient,
+    private val cookieManager: CookieManager,
+    private val gson: Gson,
 ) : ViewModel() {
     var state by mutableStateOf(LeaveViewUiState())
 
@@ -42,6 +52,7 @@ class LeaveViewViewModel @Inject constructor(
         private set
 
     private var loadLeaveJob: Job? = null
+    private var getTeacherJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -50,8 +61,18 @@ class LeaveViewViewModel @Inject constructor(
             val isHead = user.isDepartmentInCharge
             val department = user.department
 
-            if (!isHead) {
-                state = state.copy(
+            state = when {
+                isHead -> state.copy(
+                    isConstDepartment = true,
+                    teacherDepartment = department
+                )
+
+                user.userType == UserType.HEAD_CLARK -> state.copy(
+                    isConstDepartment = true,
+                    teacherDepartment = "NTS"
+                )
+
+                else -> state.copy(
                     department = state.department.copy(
                         all = state.department.all + listOf(
                             "ASP(Advertisement and Sales Promotion)",
@@ -79,13 +100,9 @@ class LeaveViewViewModel @Inject constructor(
                             "Sociology",
                             "Urdu",
                             "Zoology",
-                            "Other"
+                            "NTS"
                         )
                     )
-                )
-            } else {
-                state = state.copy(
-                    teacherDepartment = department
                 )
             }
 
@@ -97,8 +114,10 @@ class LeaveViewViewModel @Inject constructor(
     private fun loadLeave() = viewModelScope.launch {
         _leave.value = PagingData.empty()
         pagingSource.setDepartment(state.department.selected)
+        pagingSource.setTeacher(state.teacher.selected)
 
-        Log.d("called", "called")
+        getTeacherJob?.cancel()
+        getTeacherJob = getTeachers()
 
         Pager(
             config = PagingConfig(
@@ -153,6 +172,52 @@ class LeaveViewViewModel @Inject constructor(
                 loadLeaveJob?.cancel()
                 loadLeaveJob = loadLeave()
             }
+
+            LeaveViewUiEvent.OnTeacherToggle -> {
+                state = state.copy(
+                    teacher = state.teacher.copy(
+                        isDialogOpen = !state.teacher.isDialogOpen
+                    )
+                )
+            }
+
+            is LeaveViewUiEvent.OnTeacherChange -> {
+                val newTeacher = state.teacher.all[event.index]
+                val oldTeacher = state.teacher.selected
+
+                state = state.copy(
+                    teacher = state.teacher.copy(
+                        selected = newTeacher,
+                        isDialogOpen = false
+                    )
+                )
+
+                if (oldTeacher == newTeacher) return
+
+                loadLeaveJob?.cancel()
+                loadLeaveJob = loadLeave()
+            }
+        }
+    }
+
+    private fun getTeachers() = viewModelScope.launch {
+        val result = client.get<GetDepartmentTeacher>(
+            route = EndPoints.GetDepartmentTeachers.route,
+            gson = gson,
+            cookie = ds.readCookie().first(),
+            cookieManager = cookieManager,
+            ds = ds,
+            params = listOf(
+                "department" to if (state.isConstDepartment) state.teacherDepartment else state.department.selected
+            )
+        )
+
+        if (result is Result.Success) {
+            if (result.data.teacherName.isNotEmpty()) state = state.copy(
+                teacher = state.teacher.copy(
+                    all = result.data.teacherName.map { it.name }
+                )
+            )
         }
     }
 

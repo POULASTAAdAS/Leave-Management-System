@@ -104,7 +104,7 @@ class HomePermanentViewModel @Inject constructor(
 
             HomePermanentUiEvent.OnViewReportClick -> {
                 viewModelScope.launch {
-                    _uiEvent.send(HomeUiAction.OnNavigate(Screens.ViewReport))
+                    _uiEvent.send(HomeUiAction.OnNavigate(Screens.DownloadReport))
                 }
             }
         }

@@ -13,6 +13,7 @@ import com.poulastaa.data.model.details.UpdateDetailsReq
 import com.poulastaa.data.model.details.UpdateHeadDetailsReq
 import com.poulastaa.data.model.leave.*
 import com.poulastaa.data.model.other.GetDepartmentTeacher
+import com.poulastaa.data.model.other.ResponseTeacher
 import com.poulastaa.data.model.other.TeacherLeaveBalance
 import com.poulastaa.data.model.other.UpdateLeaveBalanceReq
 import com.poulastaa.data.report.ReportResponse
@@ -66,6 +67,7 @@ interface ServiceRepository {
 
     suspend fun viewLeave(
         department: String,
+        teacher: String,
         email: String,
         page: Int,
         pageSize: Int,
@@ -98,5 +100,8 @@ interface ServiceRepository {
     suspend fun getReport(
         department: String,
         type: String,
+        teacher: String,
     ): List<ReportResponse>
+
+    suspend fun getTeacherToDelete(department: String): List<ResponseTeacher>
 }

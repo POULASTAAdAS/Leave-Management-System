@@ -59,6 +59,10 @@ class TeacherRepositoryImpl : TeacherRepository {
         Principal.all().first()
     }
 
+    private suspend fun getHeadClark() = query {
+        HeadClark.all().first()
+    }
+
     private suspend fun findPrinciple(email: String) = query {
         Principal.find {
             PrincipalTable.email eq email
@@ -334,7 +338,6 @@ class TeacherRepositoryImpl : TeacherRepository {
 
         val detailsDef = async { getTeacherDetailsOnTeacherId(teacher.id.value, email) }
 
-
         val details = detailsDef.await() ?: return@coroutineScope false
         emailDef.await()
 
@@ -371,18 +374,25 @@ class TeacherRepositoryImpl : TeacherRepository {
     }
 
     override suspend fun updateHeadDetails(email: String, req: UpdateHeadDetailsReq): Boolean = coroutineScope {
-        val principal = getPrincipal()
+        val principalDef = async { getPrincipal() }
+        val headClarkDef = async { getHeadClark() }
 
-        if (principal.email == email) {
-            query {
+        val principal = principalDef.await()
+        val headClark = headClarkDef.await()
+
+
+        when{
+            principal.email == email -> query {
                 principal.name = req.name
                 principal.email = req.email
+            }.let { true }
 
-            }
+            headClark.email == email -> query {
+                headClark.name = req.name
+                headClark.email = req.email
+            }.let { true }
 
-            true
-        } else {
-            false
+            else -> false
         }
     }
 

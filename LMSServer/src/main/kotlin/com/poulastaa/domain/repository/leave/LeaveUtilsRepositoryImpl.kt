@@ -1,17 +1,19 @@
 package com.poulastaa.domain.repository.leave
 
 import com.poulastaa.data.model.leave.*
+import com.poulastaa.data.model.other.HeadType
 import com.poulastaa.data.model.table.address.TeacherDetailsTable
 import com.poulastaa.data.model.table.department.DepartmentHeadTable
 import com.poulastaa.data.model.table.department.DepartmentTable
-import com.poulastaa.data.model.table.leave.*
+import com.poulastaa.data.model.table.leave.LeaveBalanceTable
+import com.poulastaa.data.model.table.leave.LeaveReqTable
+import com.poulastaa.data.model.table.leave.LeaveStatusTable
+import com.poulastaa.data.model.table.leave.LeaveTypeTable
 import com.poulastaa.data.model.table.teacher.TeacherTable
-import com.poulastaa.data.model.table.utils.PathTable
 import com.poulastaa.data.model.table.utils.PendingEndTable
 import com.poulastaa.data.model.table.utils.StatusTable
 import com.poulastaa.data.repository.leave.LeaveUtilsRepository
 import com.poulastaa.domain.dao.department.DepartmentHead
-import com.poulastaa.domain.dao.leave.LeaveAction
 import com.poulastaa.domain.dao.leave.LeaveReq
 import com.poulastaa.domain.dao.leave.LeaveType
 import com.poulastaa.domain.dao.teacher.Teacher
@@ -51,38 +53,52 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
         page: Int,
         pageSize: Int,
     ): List<LeaveHistoryRes> = coroutineScope {
+        data class StatusPayload(
+            val leaveStatusId: Int,
+            val pendingEndId: Int,
+            val approveDate: String,
+        )
+
         query {
             LeaveReq.find {
                 LeaveReqTable.teacherId eq teacherId
             }.orderBy(LeaveReqTable.reqDate to SortOrder.DESC)
                 .drop(if (page == 1) 0 else page * pageSize)
                 .take(pageSize)
-                .map {
+                .map { req ->
                     async {
                         val leaveType = async {
                             query {
                                 LeaveType.find {
-                                    LeaveTypeTable.id eq it.leaveTypeId
+                                    LeaveTypeTable.id eq req.leaveTypeId
                                 }.single().type
                             }
                         }
 
-                        val (leaveStatusId, pendingEndId) = query {
+                        val payload = query {
                             LeaveStatusTable.slice(
                                 LeaveStatusTable.statusId,
+                                LeaveStatusTable.approveDate,
                                 LeaveStatusTable.pendingEndId
                             ).select {
-                                LeaveStatusTable.leaveId eq it.id
+                                LeaveStatusTable.leaveId eq req.id
                             }.single().let { leaStatusRes ->
-                                leaStatusRes[LeaveStatusTable.statusId].value to
-                                        leaStatusRes[LeaveStatusTable.pendingEndId].value
+                                StatusPayload(
+                                    leaveStatusId = leaStatusRes[LeaveStatusTable.statusId].value,
+                                    pendingEndId = leaStatusRes[LeaveStatusTable.pendingEndId].value,
+                                    approveDate = leaStatusRes[LeaveStatusTable.approveDate]?.format(
+                                        DateTimeFormatter.ofPattern(
+                                            "dd-MM-yyyy"
+                                        )
+                                    ) ?: ""
+                                )
                             }
                         }
 
                         val status = async {
                             query {
                                 Status.find {
-                                    StatusTable.id eq leaveStatusId
+                                    StatusTable.id eq payload.leaveStatusId
                                 }.single().type
                             }
                         }
@@ -90,19 +106,20 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
                         val pendingEnd = async {
                             query {
                                 PendingEnd.find {
-                                    PendingEndTable.id eq pendingEndId
+                                    PendingEndTable.id eq payload.pendingEndId
                                 }.single().type
                             }
                         }
 
                         LeaveHistoryRes(
-                            reqDate = it.reqDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
+                            reqDate = req.reqDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
+                            approveDate = payload.approveDate,
                             leaveType = leaveType.await(),
                             status = status.await(),
-                            fromDate = it.fromDate.toString(),
-                            toDate = it.toDate.toString(),
+                            fromDate = req.fromDate.toString(),
+                            toDate = req.toDate.toString(),
                             pendingEnd = pendingEnd.await(),
-                            totalDays = (ChronoUnit.DAYS.between(it.fromDate, it.toDate) + 1L).toString()
+                            totalDays = (ChronoUnit.DAYS.between(req.fromDate, req.toDate) + 1L).toString()
                         )
                     }
                 }.awaitAll()
@@ -130,11 +147,17 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
         pageSize: Int,
     ): List<LeaveApproveRes> =
         coroutineScope {
+            val departmentPendingEnd = query {
+                PendingEnd.find {
+                    PendingEndTable.type eq "Department Level"
+                }.first().id.value
+            }
+
             val leaveId = query {
                 LeaveStatusTable
                     .slice(LeaveStatusTable.leaveId)
                     .select {
-                        LeaveStatusTable.departmentId eq departmentId and (LeaveStatusTable.actionId eq null)
+                        LeaveStatusTable.departmentId eq departmentId and (LeaveStatusTable.pendingEndId eq departmentPendingEnd)
                     }.map {
                         it[LeaveStatusTable.leaveId].value
                     }
@@ -153,18 +176,22 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
             }
         }
 
-    override suspend fun getApproveLeaveAsHead(page: Int, pageSize: Int): List<LeaveApproveRes> = coroutineScope {
-        val forwardId = query {
-            LeaveAction.find {
-                LeaveActionTable.type eq LeaveAction.TYPE.FORWARD.value
-            }.single().id
+    override suspend fun getApproveLeaveAsHead(
+        page: Int,
+        pageSize: Int,
+        isPrincipal: Boolean,
+    ): List<LeaveApproveRes> = coroutineScope {
+        val pendingId = query {
+            PendingEnd.find {
+                PendingEndTable.type eq if (isPrincipal) "Principal Level" else "Head Clark Level"
+            }.single().id.value
         }
 
         val leaveId = query {
             LeaveStatusTable
                 .slice(LeaveStatusTable.leaveId)
                 .select {
-                    LeaveStatusTable.actionId eq forwardId or (LeaveStatusTable.actionId eq null)
+                    LeaveStatusTable.pendingEndId eq pendingId
                 }.map {
                     it[LeaveStatusTable.leaveId].value
                 }
@@ -226,10 +253,11 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
 
     override suspend fun viewLeave(
         dpId: Int,
+        teacherId: Int,
         email: String,
         page: Int,
         pageSize: Int,
-        isPrinciple: Boolean,
+        headType: HeadType,
     ): List<ViewLeaveSingleRes> = coroutineScope {
         val join = LeaveReqTable
             .join(
@@ -264,6 +292,7 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
                 }
             )
             .slice(
+                TeacherDetailsTable.teacherId,
                 TeacherDetailsTable.name,
                 LeaveTypeTable.type,
                 LeaveReqTable.reqDate,
@@ -274,28 +303,8 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
                 DepartmentTable.name
             )
 
-        when (isPrinciple) {
-            true -> {
-                val pendingEndId = query {
-                    PendingEnd.find {
-                        PendingEndTable.type eq PendingEnd.TYPE.NOT_PENDING.value
-                    }.single().id
-                }
-
-
-                if (dpId != -1) query {
-                    join.select {
-                        LeaveStatusTable.pendingEndId eq pendingEndId and (DepartmentTable.id eq dpId)
-                    }.orderBy(DepartmentTable.id, SortOrder.ASC)
-                }
-                else query {
-                    join.select {
-                        LeaveStatusTable.pendingEndId eq pendingEndId
-                    }.orderBy(DepartmentTable.id, SortOrder.ASC)
-                }
-            }
-
-            false -> {
+        when (headType) {
+            HeadType.HOD -> {
                 val teacher = query {
                     Teacher.find {
                         TeacherTable.email eq email
@@ -314,9 +323,47 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
                     }.single().id
 
 
-                    join.select {
+                    if (teacherId != -1) join.select {
+                        LeaveStatusTable.pendingEndId eq pendingEndId and (DepartmentTable.id eq departmentId) and (TeacherDetailsTable.teacherId eq teacherId)
+                    }.orderBy(DepartmentTable.id, SortOrder.ASC)
+                    else join.select {
                         LeaveStatusTable.pendingEndId eq pendingEndId and (DepartmentTable.id eq departmentId)
                     }.orderBy(DepartmentTable.id, SortOrder.ASC)
+                }
+            }
+
+            HeadType.PRINCIPAL,
+            HeadType.HEAD_CLARK,
+            -> {
+                val pendingEndId = query {
+                    PendingEnd.find {
+                        PendingEndTable.type eq PendingEnd.TYPE.NOT_PENDING.value
+                    }.single().id
+                }
+
+
+                if (dpId != -1) {
+                    if (teacherId != -1) query {
+                        join.select {
+                            LeaveStatusTable.pendingEndId eq pendingEndId and (DepartmentTable.id eq dpId) and (TeacherDetailsTable.teacherId eq teacherId)
+                        }.orderBy(DepartmentTable.id, SortOrder.ASC)
+                    }
+                    else query {
+                        join.select {
+                            LeaveStatusTable.pendingEndId eq pendingEndId and (DepartmentTable.id eq dpId)
+                        }.orderBy(DepartmentTable.id, SortOrder.ASC)
+                    }
+                } else {
+                    if (teacherId != -1) query {
+                        join.select {
+                            LeaveStatusTable.pendingEndId eq pendingEndId and (TeacherDetailsTable.teacherId eq teacherId)
+                        }.orderBy(DepartmentTable.id, SortOrder.ASC)
+                    }
+                    else query {
+                        join.select {
+                            LeaveStatusTable.pendingEndId eq pendingEndId
+                        }.orderBy(DepartmentTable.id, SortOrder.ASC)
+                    }
                 }
             }
         }.let {

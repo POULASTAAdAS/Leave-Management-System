@@ -59,6 +59,7 @@ class LeaveHistoryPagingSource @Inject constructor(
                         LeaveHistoryInfo(
                             reqDate = it.reqDate,
                             leaveType = it.leaveType,
+                            approveDate = it.approveDate,
                             status = it.status,
                             fromDate = it.fromDate,
                             toDate = it.toDate,

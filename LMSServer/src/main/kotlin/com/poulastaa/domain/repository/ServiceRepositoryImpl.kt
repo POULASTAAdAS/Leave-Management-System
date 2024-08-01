@@ -11,12 +11,11 @@ import com.poulastaa.data.model.details.UpdateAddressReq
 import com.poulastaa.data.model.details.UpdateDetailsReq
 import com.poulastaa.data.model.details.UpdateHeadDetailsReq
 import com.poulastaa.data.model.leave.*
-import com.poulastaa.data.model.other.GetDepartmentTeacher
-import com.poulastaa.data.model.other.TeacherLeaveBalance
-import com.poulastaa.data.model.other.UpdateLeaveBalanceReq
+import com.poulastaa.data.model.other.*
 import com.poulastaa.data.model.table.address.TeacherDetailsTable
 import com.poulastaa.data.model.table.department.DepartmentHeadTable
 import com.poulastaa.data.model.table.department.DepartmentTable
+import com.poulastaa.data.model.table.designation.DesignationTable
 import com.poulastaa.data.model.table.leave.LeaveReqTable
 import com.poulastaa.data.model.table.leave.LeaveStatusTable
 import com.poulastaa.data.model.table.leave.LeaveTypeTable
@@ -284,22 +283,24 @@ class ServiceRepositoryImpl(
                     }
                 } ?: return@async
 
-                val departmentHead = query {
-                    DepartmentHead.find {
-                        DepartmentHeadTable.departmentId eq teacherDetails.departmentId
-                    }.single()
-                }
-
                 val department = query {
                     Department.find {
-                        DepartmentTable.id eq departmentHead.departmentId
+                        DepartmentTable.id eq teacherDetails.departmentId
                     }.single()
                 }
 
                 val email = when {
                     path.type.startsWith("P") -> query { Principal.all().first().email }
                     path.type.startsWith("H") -> query { HeadClark.all().first().email }
-                    else -> query { teacher.getTeacherOnId(departmentHead.teacherId.value).email }
+                    else -> query {
+                        val departmentHead = query {
+                            DepartmentHead.find {
+                                DepartmentHeadTable.departmentId eq teacherDetails.departmentId
+                            }.single()
+                        }
+
+                        teacher.getTeacherOnId(departmentHead.teacherId.value).email
+                    }
                 }
 
                 leaveReqNotificationToHead(
@@ -357,39 +358,69 @@ class ServiceRepositoryImpl(
                 pageSize = pageSize
             )
         } else {
-            val principal = getPrinciple()
-            if (principal.email != email) return@coroutineScope emptyList()
+            val principalDef = async { getPrinciple() }
+            val headClarkDef = async { getHeadClark() }
 
-            leave.leaveUtils.getApproveLeaveAsHead(
-                page = page,
-                pageSize = pageSize
-            )
+            when {
+                principalDef.await().email == email -> leave.leaveUtils.getApproveLeaveAsHead(
+                    page = page,
+                    pageSize = pageSize,
+                    isPrincipal = true
+                )
+
+                headClarkDef.await().email == email -> leave.leaveUtils.getApproveLeaveAsHead(
+                    page = page,
+                    pageSize = pageSize,
+                    isPrincipal = false
+                )
+
+                else -> emptyList()
+            }
         }
     }
 
-    override suspend fun handleLeave(req: HandleLeaveReq, email: String): Boolean = coroutineScope {
-        val teacher = teacher.getTeacher(email)
-        val principal = getPrinciple()
+    override suspend fun handleLeave(
+        req: HandleLeaveReq,
+        email: String,
+    ): Boolean = coroutineScope {
+        val teacherDef = async { teacher.getTeacher(email) }
+        val principalDef = async { getPrinciple() }
+        val headClarkDef = async { getHeadClark() }
 
-        val isPrincipal = email == principal.email
+        val teacher = teacherDef.await()
+        val principal = principalDef.await()
+        val headClark = headClarkDef.await()
 
-        val (type, teacherId) = if (isPrincipal) {
-            leave.applyLeave.handleLeave(
+        val headType = when {
+            principal.email == email -> HeadType.PRINCIPAL
+            headClark.email == email -> HeadType.HEAD_CLARK
+            teacher != null -> {
+                query {
+                    DepartmentHead.find {
+                        DepartmentHeadTable.teacherId eq teacher.id
+                    }.singleOrNull()
+                } ?: return@coroutineScope false
+
+                HeadType.HOD
+            }
+
+            else -> return@coroutineScope false
+        }
+
+        val (type, teacherId) = when (headType) {
+            HeadType.PRINCIPAL -> leave.applyLeave.handleLeave(
                 req = req,
-                isPrincipal = true
+                headType = HeadType.PRINCIPAL
             )
-        } else {
-            if (teacher == null) return@coroutineScope false
 
-            query {
-                DepartmentHead.find {
-                    DepartmentHeadTable.teacherId eq teacher.id
-                }.singleOrNull()
-            } ?: return@coroutineScope false
-
-            leave.applyLeave.handleLeave(
+            HeadType.HEAD_CLARK -> leave.applyLeave.handleLeave(
                 req = req,
-                isPrincipal = false
+                headType = HeadType.HEAD_CLARK
+            )
+
+            HeadType.HOD -> leave.applyLeave.handleLeave(
+                req = req,
+                headType = HeadType.HOD
             )
         }
 
@@ -464,8 +495,13 @@ class ServiceRepositoryImpl(
                             leave.toDate
                         ) + 1L
                     } days,
-                    has been REJECTED BY ${if (isPrincipal) "PRINCIPLE" else "DEPARTMENT HEAD"}.
-                    
+                    has been REJECTED BY THE ${
+                        when (headType) {
+                            HeadType.HOD -> "HEAD OF THE DEPARTMENT"
+                            HeadType.PRINCIPAL -> "PRINCIPAL"
+                            HeadType.HEAD_CLARK -> "HEAD CLARK"
+                        }
+                    }.
                     
                     This is an auto-generated mail. Please do not reply to this message.
             
@@ -481,36 +517,72 @@ class ServiceRepositoryImpl(
 
     override suspend fun viewLeave(
         department: String,
+        teacher: String,
         email: String,
         page: Int,
         pageSize: Int,
     ): List<ViewLeaveSingleRes> = coroutineScope {
-        val principal = getPrinciple()
+        val principalDef = async { getPrinciple() }
+        val headClarkDef = async { getHeadClark() }
+        val teacherDef = async {
+            if (teacher == "All") null else query {
+                TeacherDetailsTable.select {
+                    TeacherDetailsTable.name eq teacher
+                }.singleOrNull()?.let { it[TeacherDetailsTable.teacherId].value }
+            }
+        }
 
-        if (principal.email == email) {
-            val id = if (department.uppercase() == "ALL") -1 else {
-                query {
-                    Department.find {
-                        DepartmentTable.name eq department
-                    }.singleOrNull()?.id?.value
-                } ?: return@coroutineScope emptyList()
+        val principal = principalDef.await()
+        val headClark = headClarkDef.await()
+        val teacherId = teacherDef.await() ?: -1
+
+        when {
+            principal.email == email -> {
+                val id = if (department.uppercase() == "ALL") -1 else {
+                    query {
+                        Department.find {
+                            DepartmentTable.name eq department
+                        }.singleOrNull()?.id?.value
+                    } ?: return@coroutineScope emptyList()
+                }
+
+                leave.leaveUtils.viewLeave(
+                    dpId = id,
+                    teacherId = teacherId,
+                    email = email,
+                    page = page,
+                    pageSize = pageSize,
+                    headType = HeadType.PRINCIPAL
+                )
             }
 
-            leave.leaveUtils.viewLeave(
-                dpId = id,
-                email = email,
-                page = page,
-                pageSize = pageSize,
-                isPrinciple = true
-            )
-        } else {
-            leave.leaveUtils.viewLeave(
-                dpId = -10,
-                email = email,
-                page = page,
-                pageSize = pageSize,
-                isPrinciple = false
-            )
+            headClark.email == email -> {
+                val dpId = query {
+                    Department.find {
+                        DepartmentTable.name eq "NTS"
+                    }.first().id.value
+                }
+
+                leave.leaveUtils.viewLeave(
+                    dpId = dpId,
+                    teacherId = teacherId,
+                    email = email,
+                    page = page,
+                    pageSize = pageSize,
+                    headType = HeadType.HEAD_CLARK
+                )
+            }
+
+            else -> {
+                leave.leaveUtils.viewLeave(
+                    dpId = -10,
+                    teacherId = teacherId,
+                    email = email,
+                    page = page,
+                    pageSize = pageSize,
+                    headType = HeadType.HOD
+                )
+            }
         }
     }
 
@@ -705,15 +777,70 @@ class ServiceRepositoryImpl(
     override suspend fun getReport(
         department: String,
         type: String,
+        teacher: String,
     ): List<ReportResponse> {
         return if (department.uppercase() == "ALL") getReportForAllDepartment(type)
-        else getReportForOneDepartment(department, type)
+        else getReportForOneDepartment(
+            department = department,
+            type = type,
+            teacher = teacher
+        )
+    }
+
+    override suspend fun getTeacherToDelete(department: String): List<ResponseTeacher> {
+        val dep = query {
+            Department.find {
+                DepartmentTable.name eq department
+            }.single().id.value
+        }
+
+        val depHeadId = query {
+            DepartmentHead.find {
+                DepartmentHeadTable.departmentId eq dep
+            }.singleOrNull()?.id?.value
+        }
+
+        return query {
+            TeacherDetailsTable
+                .join(
+                    otherTable = DesignationTable,
+                    joinType = JoinType.INNER,
+                    additionalConstraint = {
+                        TeacherDetailsTable.designationId as Column<*> eq DesignationTable.id
+                    }
+                ).slice(
+                    TeacherDetailsTable.teacherId,
+                    TeacherDetailsTable.name,
+                    TeacherDetailsTable.profilePic,
+                    DesignationTable.type,
+                )
+                .select {
+                    if (depHeadId != null) TeacherDetailsTable.departmentId eq dep and (TeacherDetailsTable.teacherId neq depHeadId)
+                    else TeacherDetailsTable.departmentId eq dep
+                }.map {
+                    ResponseTeacher(
+                        id = it[TeacherDetailsTable.teacherId].value,
+                        name = it[TeacherDetailsTable.name],
+                        designation = it[DesignationTable.type],
+                        profile = it[TeacherDetailsTable.profilePic] ?: ""
+                    )
+                }
+        }
     }
 
     private suspend fun getReportForOneDepartment(
         department: String,
         type: String,
+        teacher: String,
     ) = coroutineScope {
+        val teacherIdDef = async {
+            if (teacher == "All") null else query {
+                TeacherDetailsTable.select {
+                    TeacherDetailsTable.name eq teacher
+                }.singleOrNull()?.let { it[TeacherDetailsTable.teacherId].value }
+            }
+        }
+
         val leaveTypeIdDef = async {
             if (type.uppercase() == "ALL") {
                 null
@@ -732,6 +859,7 @@ class ServiceRepositoryImpl(
             }
         }
 
+        val teacherId = teacherIdDef.await()
         val leaveTypeId = leaveTypeIdDef.await()
         val dep = depDef.await()
 
@@ -744,10 +872,18 @@ class ServiceRepositoryImpl(
         }
 
         query {
-            val response = if (leaveTypeId != null) LeaveReq.find {
-                LeaveReqTable.id inList leaveIdList and (LeaveReqTable.leaveTypeId eq leaveTypeId)
-            } else LeaveReq.find {
-                LeaveReqTable.id inList leaveIdList
+            val response = if (leaveTypeId != null) {
+                if (teacherId != null) LeaveReq.find {
+                    LeaveReqTable.id inList leaveIdList and (LeaveReqTable.leaveTypeId eq leaveTypeId) and (LeaveReqTable.teacherId eq teacherId)
+                } else LeaveReq.find {
+                    LeaveReqTable.id inList leaveIdList and (LeaveReqTable.leaveTypeId eq leaveTypeId)
+                }
+            } else {
+                if (teacherId != null) LeaveReq.find {
+                    LeaveReqTable.id inList leaveIdList and (LeaveReqTable.teacherId eq teacherId)
+                } else LeaveReq.find {
+                    LeaveReqTable.id inList leaveIdList
+                }
             }
 
             response.groupBy {
@@ -763,7 +899,6 @@ class ServiceRepositoryImpl(
                     }
                 } to it.value.map { leaveReq ->
                     LeaveData(
-                        id = leaveReq.id.value,
                         applicationDate = leaveReq.reqDate.format(DateTimeFormatter.ofPattern("yyyy-dd-MM")),
                         reqType = query {
                             LeaveType.find {
@@ -864,7 +999,6 @@ class ServiceRepositoryImpl(
                     name = it.key,
                     listOfLeave = it.value.map { leave ->
                         LeaveData(
-                            id = leave.leaveId,
                             reqType = leave.leaveType,
                             applicationDate = leave.reqDate,
                             fromDate = leave.fromDate,
@@ -995,4 +1129,6 @@ class ServiceRepositoryImpl(
     private suspend fun getPrinciple() = query {
         Principal.all().single()
     }
+
+    private suspend fun getHeadClark() = query { HeadClark.all().first() }
 }

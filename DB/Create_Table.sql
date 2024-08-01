@@ -17,7 +17,8 @@ profilePic varchar(300) default(null)
 Create Table HeadClark(
 id Int primary key auto_increment,
 `name` text not null,
-email varchar(255) not null unique
+email varchar(255) not null unique,
+profilePic varchar(300) default(null)
 );
 
 Create Table TeacherType(
@@ -130,14 +131,13 @@ doc varchar(255) default(null)
 
 Create Table LeaveStatus(
 leaveId BigInt primary key references LeaveReq(id) on delete cascade,
+approveDate date  default null,
 statusId Int references `Status`(id) on delete cascade,
 pendingEndId Int references PendingEnd(id) on delete cascade,
 cause text not null default(""),
 actionId Int default(null) references LeaveAction(id) on delete cascade,
 departmentId int references Department(id) on delete cascade
 );
-
-
 
 Create Table LeaveBalance(
 teacherId Int references Teacher(id) on delete cascade,

@@ -6,6 +6,7 @@ import com.poulastaa.routes.auth.*
 import com.poulastaa.routes.department.checkIfDepartmentHead
 import com.poulastaa.routes.department.getDepartmentInCharge
 import com.poulastaa.routes.details.*
+import com.poulastaa.routes.getTeacherToDelete
 import com.poulastaa.routes.leave.*
 import com.poulastaa.routes.other.*
 import com.poulastaa.routes.report.downloadReport
@@ -61,6 +62,8 @@ fun Application.configureRouting() {
 
         getReport(service)
         downloadReport(service)
+
+        getTeacherToDelete(service)
 
         unAuth()
 

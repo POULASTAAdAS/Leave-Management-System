@@ -30,10 +30,6 @@ class HomePrincipleViewModel @Inject constructor(
     private val _uiEvent = Channel<HomeUiAction>()
     val uiEvent = _uiEvent.receiveAsFlow()
 
-    init {
-        isApproveLeave()
-    }
-
     fun onEvent(event: HomePrincipleUiEvent) {
         when (event) {
             HomePrincipleUiEvent.OnApplyLeaveClick -> {
@@ -96,15 +92,15 @@ class HomePrincipleViewModel @Inject constructor(
 
             HomePrincipleUiEvent.OnViewReportClick -> {
                 viewModelScope.launch {
-                    _uiEvent.send(HomeUiAction.OnNavigate(Screens.ViewReport))
+                    _uiEvent.send(HomeUiAction.OnNavigate(Screens.DownloadReport))
                 }
             }
-        }
-    }
 
-    private fun isApproveLeave() {
-        viewModelScope.launch {
-
+            HomePrincipleUiEvent.OnRemoveEmployeeClick -> {
+                viewModelScope.launch {
+                    _uiEvent.send(HomeUiAction.OnNavigate(Screens.RemoveEmployee))
+                }
+            }
         }
     }
 }

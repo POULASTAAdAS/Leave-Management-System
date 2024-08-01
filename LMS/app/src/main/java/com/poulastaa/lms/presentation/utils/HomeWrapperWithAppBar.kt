@@ -45,6 +45,7 @@ fun HomeWrapperWithAppBar(
     user: LocalUser,
     cookie: String,
     isPrincipal: Boolean = false,
+    isHeadClark: Boolean = false,
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
     floatingActionButton: @Composable () -> Unit = {},
@@ -149,38 +150,43 @@ fun HomeWrapperWithAppBar(
                         overflow = TextOverflow.Ellipsis
                     )
 
-                    if (isPrincipal) {
-                        Text(
-                            text = stringResource(id = R.string.principle),
-                            color = MaterialTheme.colorScheme.background,
-                            fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                            fontWeight = FontWeight.Medium,
-                            softWrap = true,
-                            overflow = TextOverflow.Ellipsis,
-                            maxLines = 1,
-                            letterSpacing = 1.sp
-                        )
-                    } else {
-                        if (user.isDepartmentInCharge) Text(
-                            text = stringResource(id = R.string.department_in_charge),
-                            color = MaterialTheme.colorScheme.background,
-                            fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                            fontWeight = FontWeight.Medium,
-                            softWrap = true,
-                            overflow = TextOverflow.Ellipsis,
-                            maxLines = 2
-                        )
+                    if (isPrincipal) Text(
+                        text = stringResource(id = R.string.principle),
+                        color = MaterialTheme.colorScheme.background,
+                        fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                        fontWeight = FontWeight.Medium,
+                        softWrap = true,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
+                        letterSpacing = 1.sp
+                    )
+                    else if (user.isDepartmentInCharge) Text(
+                        text = stringResource(id = R.string.department_in_charge),
+                        color = MaterialTheme.colorScheme.background,
+                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                        fontWeight = FontWeight.Medium,
+                        softWrap = true,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 2
+                    ) else if (isHeadClark) Text(
+                        text = stringResource(id = R.string.head_clark),
+                        color = MaterialTheme.colorScheme.background,
+                        fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+                        fontWeight = FontWeight.SemiBold,
+                        softWrap = true,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 3
+                    )
 
-                        Text(
-                            text = "${user.designation} (${user.department})",
-                            color = MaterialTheme.colorScheme.background,
-                            fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-                            fontWeight = FontWeight.SemiBold,
-                            softWrap = true,
-                            overflow = TextOverflow.Ellipsis,
-                            maxLines = 3
-                        )
-                    }
+                    if (!isHeadClark && !isPrincipal) Text(
+                        text = "${user.designation} (${user.department})",
+                        color = MaterialTheme.colorScheme.background,
+                        fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+                        fontWeight = FontWeight.SemiBold,
+                        softWrap = true,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 3
+                    )
                 }
             }
 

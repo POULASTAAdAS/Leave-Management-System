@@ -11,7 +11,6 @@ data class ReportDataResponse(
 
 @Serializable
 data class LeaveDataResponse(
-    val id: Long,
     val applicationDate: String,
     val reqType: String,
     val fromDate: String,

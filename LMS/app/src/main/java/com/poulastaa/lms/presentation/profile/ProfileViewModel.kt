@@ -93,16 +93,20 @@ class ProfileViewModel @Inject constructor(
     fun onEvent(event: ProfileUiEvent) {
         when (event) {
             ProfileUiEvent.DetailsEditClick -> {
-                if (state.userType == UserType.PRINCIPLE) viewModelScope.launch {
-                    viewModelScope.launch(Dispatchers.IO) {
-                        _uiEvent.send(
-                            ProfileUiAction.OnNavigate(
-                                screen = Screens.EditHeadDetails
+                when (state.userType) {
+                    UserType.PRINCIPLE,
+                    UserType.HEAD_CLARK,
+                    -> viewModelScope.launch {
+                        viewModelScope.launch(Dispatchers.IO) {
+                            _uiEvent.send(
+                                ProfileUiAction.OnNavigate(
+                                    screen = Screens.EditHeadDetails
+                                )
                             )
-                        )
+                        }
                     }
-                } else
-                    viewModelScope.launch(Dispatchers.IO) {
+
+                    else -> viewModelScope.launch(Dispatchers.IO) {
                         _uiEvent.send(
                             ProfileUiAction.OnNavigate(
                                 screen = Screens.EditDetails,
@@ -116,6 +120,7 @@ class ProfileViewModel @Inject constructor(
                             )
                         )
                     }
+                }
             }
 
             ProfileUiEvent.OnHomeAddressEditClick -> {

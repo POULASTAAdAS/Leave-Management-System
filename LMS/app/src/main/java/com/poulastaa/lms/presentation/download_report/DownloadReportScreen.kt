@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -113,7 +113,7 @@ private fun DownloadReportScreen(
             )
         }
 
-        if (!state.isDepartmentHead) {
+        if (!state.showDepartmentDropDown) {
             Spacer(modifier = Modifier.height(MaterialTheme.dimens.medium1))
 
             StoreDetailsListSelector(
@@ -134,6 +134,26 @@ private fun DownloadReportScreen(
                 }
             )
         }
+
+        Spacer(modifier = Modifier.height(MaterialTheme.dimens.medium1))
+
+        StoreDetailsListSelector(
+            modifier = Modifier.fillMaxWidth(.9f),
+            label = stringResource(id = R.string.teacher),
+            text = state.teacher.selected,
+            isOpen = state.teacher.isDialogOpen,
+            list = state.teacher.all,
+            color = textFieldColors,
+            onToggle = {
+                onEvent(DownloadReportUiEvent.OnTeacherToggle)
+            },
+            onCancel = {
+                onEvent(DownloadReportUiEvent.OnTeacherToggle)
+            },
+            onSelected = {
+                onEvent(DownloadReportUiEvent.OnTeacherChange(it))
+            }
+        )
 
         Spacer(modifier = Modifier.height(MaterialTheme.dimens.medium1))
 
@@ -211,8 +231,8 @@ private fun DownloadReportScreen(
                 .horizontalScroll(rememberScrollState()),
             contentPadding = PaddingValues(MaterialTheme.dimens.medium1)
         ) {
-            itemsIndexed(state.prevResponse) { index, data ->
-                if (index == 0 && data.department != null) {
+            items(state.prevResponse) { data ->
+                if (data.department != null) {
                     Text(
                         text = data.department,
                         fontSize = MaterialTheme.typography.titleLarge.fontSize,
@@ -235,8 +255,6 @@ private fun DownloadReportScreen(
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.dimens.medium1)
                     ) {
-                        ColumnItem(pair = it.id)
-
                         ColumnItem(pair = it.applicationDate)
 
                         ColumnItem(pair = it.reqType)
@@ -255,7 +273,7 @@ private fun DownloadReportScreen(
 
         Spacer(modifier = Modifier.height(MaterialTheme.dimens.medium1))
 
-        val context= LocalContext.current
+        val context = LocalContext.current
 
         Button(
             modifier = Modifier.fillMaxWidth(.7f),
@@ -327,7 +345,6 @@ private fun Preview() {
                         name = "Name $it",
                         listOfLeave = (1..8).map {
                             LeaveData(
-                                id = Pair("", it.toString()),
                                 applicationDate = Pair(
                                     first = "Application Date",
                                     second = "2024-10-10"

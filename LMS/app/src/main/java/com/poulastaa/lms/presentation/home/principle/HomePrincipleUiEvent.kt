@@ -10,6 +10,7 @@ sealed interface HomePrincipleUiEvent {
     data object OnDefineDepartmentInChargeClick : HomePrincipleUiEvent
     data object OnApproveLeaveClick : HomePrincipleUiEvent
     data object OnAddClick : HomePrincipleUiEvent
+    data object OnRemoveEmployeeClick : HomePrincipleUiEvent
 
     data object OnViewLeaveClick : HomePrincipleUiEvent
     data object OnUpdateLeaveBalanceClick : HomePrincipleUiEvent

@@ -3,7 +3,6 @@ package com.poulastaa.lms.presentation.download_report
 import android.app.DownloadManager
 import android.net.Uri
 import android.os.Environment
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -13,12 +12,14 @@ import com.google.gson.Gson
 import com.poulastaa.lms.BuildConfig
 import com.poulastaa.lms.data.model.auth.EndPoints
 import com.poulastaa.lms.data.model.home.UserType
+import com.poulastaa.lms.data.model.leave.GetDepartmentTeacher
 import com.poulastaa.lms.data.model.report.ReportDataResponse
 import com.poulastaa.lms.data.remote.get
 import com.poulastaa.lms.domain.repository.utils.DataStoreRepository
 import com.poulastaa.lms.domain.utils.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
@@ -35,6 +36,7 @@ class DownloadReportViewModel @Inject constructor(
     var state by mutableStateOf(DownloadReportUiState())
         private set
 
+    private var getTeacherJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -42,10 +44,25 @@ class DownloadReportViewModel @Inject constructor(
 
             state = when (user.userType) {
                 UserType.PERMANENT -> {
+                    getTeacherJob?.cancel()
+                    getTeacherJob = getTeacher(user.department)
+
                     state.copy(
-                        isDepartmentHead = user.isDepartmentInCharge,
+                        showDepartmentDropDown = user.isDepartmentInCharge,
                         department = state.department.copy(
                             selected = user.department
+                        )
+                    )
+                }
+
+                UserType.HEAD_CLARK -> {
+                    getTeacherJob?.cancel()
+                    getTeacherJob = getTeacher("NTS")
+
+                    state.copy(
+                        showDepartmentDropDown = true,
+                        department = state.department.copy(
+                            selected = "NTS"
                         )
                     )
                 }
@@ -74,6 +91,26 @@ class DownloadReportViewModel @Inject constructor(
                         isDialogOpen = false
                     )
                 )
+
+                getTeacherJob?.cancel()
+                getTeacherJob = getTeacher(state.department.selected)
+            }
+
+            DownloadReportUiEvent.OnTeacherToggle -> {
+                state = state.copy(
+                    teacher = state.teacher.copy(
+                        isDialogOpen = !state.teacher.isDialogOpen
+                    )
+                )
+            }
+
+            is DownloadReportUiEvent.OnTeacherChange -> {
+                state = state.copy(
+                    teacher = state.teacher.copy(
+                        selected = state.teacher.all[event.index],
+                        isDialogOpen = false
+                    )
+                )
             }
 
             DownloadReportUiEvent.OnLeaveTypeToggle -> {
@@ -94,15 +131,15 @@ class DownloadReportViewModel @Inject constructor(
             }
 
             DownloadReportUiEvent.OnViewReportClick -> {
-                if (state.leaveType.selected.isBlank() && state.department.selected.isBlank()) return
-
+                if (state.leaveType.selected.isBlank() || state.department.selected.isBlank()) return
 
                 viewModelScope.launch(Dispatchers.IO) {
                     val response = client.get<List<ReportDataResponse>>(
                         route = EndPoints.GetReport.route,
                         params = listOf(
                             "leaveType" to state.leaveType.selected,
-                            "department" to state.department.selected
+                            "department" to state.department.selected,
+                            "teacher" to state.teacher.selected,
                         ),
                         cookieManager = cookieManager,
                         gson = gson,
@@ -123,7 +160,6 @@ class DownloadReportViewModel @Inject constructor(
                                     name = it.name,
                                     listOfLeave = it.listOfLeave.map { leave ->
                                         LeaveData(
-                                            id = "ID" to leave.id.toString(),
                                             applicationDate = "Application Date" to leave.applicationDate,
                                             reqType = "Leave Type" to leave.reqType,
                                             fromDate = "From Date" to leave.fromDate,
@@ -152,11 +188,12 @@ class DownloadReportViewModel @Inject constructor(
                     val baseUrl = BuildConfig.BASE_URL + EndPoints.DownloadReport.route
                     val leaveType = state.leaveType.selected
                     val department = state.department.selected
-                    val urlString = "$baseUrl?leaveType=$leaveType&department=$department"
+                    val teacher = state.teacher.selected
+
+                    val urlString =
+                        "$baseUrl?leaveType=$leaveType&department=$department&teacher=$teacher"
 
                     val url = Uri.parse(urlString)
-
-                    Log.d("DownloadManager", "Download URL: $url")
 
                     val req = DownloadManager.Request(url)
                         .addRequestHeader("Cookie", ds.readCookie().first())
@@ -168,11 +205,34 @@ class DownloadReportViewModel @Inject constructor(
                             "Report.pdf"
                         )
 
+                    downloadManager.enqueue(req)
+
                     state = state.copy(
                         isMakingApiCall = false
                     )
                 }
             }
+        }
+    }
+
+    private fun getTeacher(department: String) = viewModelScope.launch {
+        val result = client.get<GetDepartmentTeacher>(
+            route = EndPoints.GetDepartmentTeachers.route,
+            gson = gson,
+            cookie = ds.readCookie().first(),
+            cookieManager = cookieManager,
+            ds = ds,
+            params = listOf(
+                "department" to department
+            )
+        )
+
+        if (result is Result.Success) {
+            if (result.data.teacherName.isNotEmpty()) state = state.copy(
+                teacher = state.teacher.copy(
+                    all = result.data.teacherName.map { it.name }.plus("All")
+                )
+            )
         }
     }
 }

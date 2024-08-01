@@ -5,9 +5,11 @@ import com.poulastaa.data.model.table.utils.PendingEndTable
 import com.poulastaa.data.model.table.utils.StatusTable
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.javatime.date
 
 object LeaveStatusTable : Table() {
     val leaveId = reference("leaveId", LeaveReqTable.id, onDelete = ReferenceOption.CASCADE)
+    val approveDate = date("approveDate").nullable().default(null)
     val statusId = reference("statusId", StatusTable.id, onDelete = ReferenceOption.CASCADE)
     val pendingEndId = reference("pendingEndId", PendingEndTable.id, onDelete = ReferenceOption.CASCADE)
     val departmentId = reference("departmentId", DepartmentTable.id, onDelete = ReferenceOption.CASCADE)

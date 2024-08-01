@@ -20,9 +20,13 @@ fun Route.getReport(
                 val leaveType =
                     call.parameters["leaveType"] ?: return@get call.respondRedirect(EndPoints.UnAuthorised.route)
 
+                val teacher =
+                    call.parameters["teacher"] ?: return@get call.respondRedirect(EndPoints.UnAuthorised.route)
+
                 val result = service.getReport(
-                    department,
-                    leaveType
+                    department = department,
+                    type = leaveType,
+                    teacher = teacher
                 )
 
                 call.respond(result)

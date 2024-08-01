@@ -127,6 +127,7 @@
     <string name="download_report">Download Report</string>
     <string name="preview">Report Preview</string>
     <string name="salucation">Salutation</string>
+    <string name="head_clark">Head Clark</string>
 
     <array name="com_google_android_gms_fonts_certs">
         <item>@array/com_google_android_gms_fonts_certs_dev</item>

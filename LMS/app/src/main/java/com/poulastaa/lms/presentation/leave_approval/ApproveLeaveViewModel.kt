@@ -70,14 +70,16 @@ class ApproveLeaveViewModel @Inject constructor(
                 userType = user.userType
             )
 
-            val actionList = if (user.userType == UserType.PERMANENT) listOf(
-                "Accept And Forward",
-                "Reject"
-            )
-            else listOf(
-                "Approve",
-                "Reject"
-            )
+            val actionList =
+                if (user.userType == UserType.PERMANENT ||
+                    user.userType == UserType.HEAD_CLARK
+                ) listOf(
+                    "Accept And Forward",
+                    "Reject"
+                ) else listOf(
+                    "Approve",
+                    "Reject"
+                )
 
             Pager(
                 config = PagingConfig(

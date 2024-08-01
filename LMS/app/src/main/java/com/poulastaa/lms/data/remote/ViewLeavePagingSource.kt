@@ -20,9 +20,14 @@ class ViewLeavePagingSource @Inject constructor(
     private val ds: DataStoreRepository,
 ) : PagingSource<Int, ViewLeaveSingleRes>() {
     private var department: String = "All"
+    private var teacher: String = "All"
 
     fun setDepartment(department: String) {
         this.department = department
+    }
+
+    fun setTeacher(teacher: String){
+        this.teacher = teacher
     }
 
     override fun getRefreshKey(state: PagingState<Int, ViewLeaveSingleRes>): Int? =
@@ -37,6 +42,7 @@ class ViewLeavePagingSource @Inject constructor(
             route = EndPoints.GetViewLeaves.route,
             params = listOf(
                 "department" to department,
+                "teacher" to teacher,
                 "page" to page.toString(),
                 "pageSize" to pageSize.toString()
             ),

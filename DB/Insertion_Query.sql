@@ -69,7 +69,17 @@ insert ignore into DesignationTeacherTypeRelation values
 (3,1),
 (4,1),
 (5,2),
-(6,2);
+(6,2),
+
+(7,1),
+(8,1),
+(9,1),
+(10,1),
+(11,1),
+(12,1),
+(13,1),
+(14,1),
+(15,1);
 
 
 insert ignore into Qualification (`type`) values
@@ -122,6 +132,7 @@ insert ignore into Status (type) values
 insert ignore into PendingEnd (type) values
 ('Principal Level'),
 ('Department Level'),
+('Head Clark Level'),
 ('Not Pending');
 
 

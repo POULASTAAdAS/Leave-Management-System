@@ -2,6 +2,7 @@ package com.poulastaa.domain.repository.leave
 
 import com.poulastaa.data.model.constants.TeacherType
 import com.poulastaa.data.model.leave.*
+import com.poulastaa.data.model.other.HeadType
 import com.poulastaa.data.model.table.address.TeacherDetailsTable
 import com.poulastaa.data.model.table.leave.LeaveActionTable
 import com.poulastaa.data.model.table.leave.LeaveBalanceTable
@@ -46,6 +47,12 @@ class ApplyLeaveRepositoryImpl(
             }.singleOrNull()
         } ?: return ApplyLeaveRes()
 
+        val pendingEndId = query {
+            PendingEnd.find {
+                PendingEndTable.type.upperCase() like "${path.type.split(' ')[0].trim().uppercase()}%"
+            }.single().id.value
+        }
+
         return when (teacherType) {
             TeacherType.SACT -> {
                 val type = LeaveType.ScatType.valueOf(req.leaveType.trim().uppercase().replace(' ', '_'))
@@ -69,7 +76,8 @@ class ApplyLeaveRepositoryImpl(
                                 pathId = path.id,
                                 doc = doc,
                                 departmentId = teacherDetails.departmentId
-                            )
+                            ),
+                            pendingEndId = pendingEndId
                         )
                     }
 
@@ -93,7 +101,8 @@ class ApplyLeaveRepositoryImpl(
                                 pathId = path.id,
                                 doc = doc,
                                 departmentId = teacherDetails.departmentId
-                            )
+                            ),
+                            pendingEndId = pendingEndId
                         )
                     }
 
@@ -118,7 +127,7 @@ class ApplyLeaveRepositoryImpl(
                                 doc = doc,
                                 departmentId = teacherDetails.departmentId
                             ),
-                            isPermanent = false
+                            pendingEndId = pendingEndId
                         )
                     }
                 }
@@ -146,7 +155,8 @@ class ApplyLeaveRepositoryImpl(
                                 pathId = path.id,
                                 doc = doc,
                                 departmentId = teacherDetails.departmentId
-                            )
+                            ),
+                            pendingEndId = pendingEndId
                         )
                     }
 
@@ -175,7 +185,8 @@ class ApplyLeaveRepositoryImpl(
                                 pathId = path.id,
                                 doc = doc,
                                 departmentId = teacherDetails.departmentId
-                            )
+                            ),
+                            pendingEndId = pendingEndId
                         )
                     }
 
@@ -200,7 +211,7 @@ class ApplyLeaveRepositoryImpl(
                                 doc = doc,
                                 departmentId = teacherDetails.departmentId
                             ),
-                            isPermanent = true
+                            pendingEndId = pendingEndId
                         )
                     }
 
@@ -224,7 +235,8 @@ class ApplyLeaveRepositoryImpl(
                                 pathId = path.id,
                                 doc = doc,
                                 departmentId = teacherDetails.departmentId
-                            )
+                            ),
+                            pendingEndId = pendingEndId
                         )
                     }
 
@@ -250,7 +262,8 @@ class ApplyLeaveRepositoryImpl(
                                 pathId = path.id,
                                 doc = doc,
                                 departmentId = teacherDetails.departmentId
-                            )
+                            ),
+                            pendingEndId = pendingEndId
                         )
                     }
 
@@ -274,7 +287,8 @@ class ApplyLeaveRepositoryImpl(
                                 pathId = path.id,
                                 doc = doc,
                                 departmentId = teacherDetails.departmentId
-                            )
+                            ),
+                            pendingEndId = pendingEndId
                         )
                     }
 
@@ -310,7 +324,8 @@ class ApplyLeaveRepositoryImpl(
                                 pathId = path.id,
                                 doc = doc,
                                 departmentId = teacherDetails.departmentId
-                            )
+                            ),
+                            pendingEndId = pendingEndId
                         )
                     }
 
@@ -334,7 +349,8 @@ class ApplyLeaveRepositoryImpl(
                                 pathId = path.id,
                                 doc = doc,
                                 departmentId = teacherDetails.departmentId
-                            )
+                            ),
+                            pendingEndId = pendingEndId
                         )
                     }
                 }
@@ -368,7 +384,10 @@ class ApplyLeaveRepositoryImpl(
 
 
     // sac teacher
-    private suspend fun applyCasualLeaveForSACTeacher(req: LeaveEntry) = coroutineScope {
+    private suspend fun applyCasualLeaveForSACTeacher(
+        req: LeaveEntry,
+        pendingEndId: Int,
+    ) = coroutineScope {
         if (req.totalDays > 4.0) return@coroutineScope ApplyLeaveStatus.REJECTED.name // greater than 4 days
 
         val leaveBalanceDef = async {
@@ -394,16 +413,12 @@ class ApplyLeaveRepositoryImpl(
         val isEmpty = isEmptyDef.await()
         if (!isEmpty) return@coroutineScope ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS.name
 
-
-
-
-
-        handleNewLeaveEntry(req, false)
+        handleNewLeaveEntry(req, pendingEndId)
 
         (leaveBalance - req.totalDays).toString()
     }
 
-    private suspend fun applyMedicalLeaveForSACTeacher(req: LeaveEntry) = coroutineScope {
+    private suspend fun applyMedicalLeaveForSACTeacher(req: LeaveEntry, pendingEndId: Int) = coroutineScope {
         if (req.totalDays > 20) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
         val leaveBalanceDef = async {
@@ -435,14 +450,14 @@ class ApplyLeaveRepositoryImpl(
             if (req.fromDate <= it) return@coroutineScope ApplyLeaveStatus.REJECTED.name
         }
 
-        handleNewLeaveEntry(req, false)
+        handleNewLeaveEntry(req, pendingEndId)
 
         (leaveBalance - req.totalDays).toString()
     }
 
     private suspend fun applyStudyLeave(
         req: LeaveEntry,
-        isPermanent: Boolean,
+        pendingEndId: Int,
     ) = coroutineScope {
         if (req.totalDays > 360.0) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
@@ -490,7 +505,7 @@ class ApplyLeaveRepositoryImpl(
         val oldStudyLeaveEntry = oldStudyLeaveEntryDef.await()
 
 
-        if (oldStudyLeaveEntry.isEmpty()) handleNewLeaveEntry(req, true)
+        if (oldStudyLeaveEntry.isEmpty()) handleNewLeaveEntry(req, pendingEndId)
         else {
             oldStudyLeaveEntry.forEach { // check for conflict
                 if (req.fromDate <= it.toDate) return@coroutineScope ApplyLeaveStatus.REJECTED.name
@@ -514,7 +529,7 @@ class ApplyLeaveRepositoryImpl(
                 ) < 3
             ) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
-            handleNewLeaveEntry(req, isPermanent)
+            handleNewLeaveEntry(req, pendingEndId)
         }
 
         (leaveBalance - req.totalDays).toString()
@@ -522,7 +537,10 @@ class ApplyLeaveRepositoryImpl(
 
 
     // permanent teacher
-    private suspend fun applyCasualLeave(req: LeaveEntry) = coroutineScope {
+    private suspend fun applyCasualLeave(
+        req: LeaveEntry,
+        pendingEndId: Int,
+    ) = coroutineScope {
         if (req.totalDays > 7.0) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
         val leaveBalanceDef = async {
@@ -549,12 +567,11 @@ class ApplyLeaveRepositoryImpl(
         if (isEntry) return@coroutineScope ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS.name
 
 
-
-        handleNewLeaveEntry(req, true)
+        handleNewLeaveEntry(req, pendingEndId)
         (leaveBalance - req.totalDays).toString()
     }
 
-    private suspend fun applyMedicalLeave(req: LeaveEntry) = coroutineScope {
+    private suspend fun applyMedicalLeave(req: LeaveEntry, pendingEndId: Int) = coroutineScope {
         val leaveBalanceDef = async {
             leaveUtils.getLeaveBalance(
                 teacherId = req.teacherId.value,
@@ -593,11 +610,11 @@ class ApplyLeaveRepositoryImpl(
             if (req.fromDate <= it) return@coroutineScope ApplyLeaveStatus.REJECTED.name
         }
 
-        handleNewLeaveEntry(req, true)
+        handleNewLeaveEntry(req, pendingEndId)
         (leaveBalance - req.totalDays).toString()
     }
 
-    private suspend fun applySpecialStudyLeave(req: LeaveEntry) = coroutineScope {
+    private suspend fun applySpecialStudyLeave(req: LeaveEntry, pendingEndId: Int) = coroutineScope {
         if (req.totalDays > 360.0) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
         val leaveBalanceDef = async {
@@ -635,12 +652,12 @@ class ApplyLeaveRepositoryImpl(
 
         if (monthDiffInApplyDateToFromDate < 3) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
-        handleNewLeaveEntry(req, true)
+        handleNewLeaveEntry(req, pendingEndId)
 
         (leaveBalance - req.totalDays).toString()
     }
 
-    private suspend fun applyMaternityLeave(req: LeaveEntry) = coroutineScope {
+    private suspend fun applyMaternityLeave(req: LeaveEntry, pendingEndId: Int) = coroutineScope {
         if (req.totalDays > 135.0) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
         val leaveBalanceDef = async {
@@ -664,11 +681,11 @@ class ApplyLeaveRepositoryImpl(
             if (req.fromDate <= it) return@coroutineScope ApplyLeaveStatus.REJECTED.name
         }
 
-        handleNewLeaveEntry(req, true)
+        handleNewLeaveEntry(req, pendingEndId)
         (leaveBalance - req.totalDays).toString()
     }
 
-    private suspend fun applyQuarantineLeave(req: LeaveEntry) = coroutineScope {
+    private suspend fun applyQuarantineLeave(req: LeaveEntry, pendingEndId: Int) = coroutineScope {
         if (req.totalDays > 21) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
         val leaveBalanceDef = async {
@@ -690,11 +707,11 @@ class ApplyLeaveRepositoryImpl(
         val conflictWithCasualLeave = conflictWithCasualLeaveDef.await()
         if (conflictWithCasualLeave) return@coroutineScope ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS.name
 
-        handleNewLeaveEntry(req, true)
+        handleNewLeaveEntry(req, pendingEndId)
         (leaveBalance - req.totalDays).toString()
     }
 
-    private suspend fun applyLeaveNotDueLeave(req: LeaveEntry) = coroutineScope {
+    private suspend fun applyLeaveNotDueLeave(req: LeaveEntry, pendingEndId: Int) = coroutineScope {
         if (req.totalDays > 90) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
         val leaveBalanceDef = async {
@@ -728,11 +745,11 @@ class ApplyLeaveRepositoryImpl(
             if (req.fromDate <= it) return@coroutineScope ApplyLeaveStatus.REJECTED.name
         }
 
-        handleNewLeaveEntry(req, true)
+        handleNewLeaveEntry(req, pendingEndId)
         (leaveBalance - req.totalDays).toString()
     }
 
-    private suspend fun applySpecialDisabilityLeave(req: LeaveEntry) = coroutineScope {
+    private suspend fun applySpecialDisabilityLeave(req: LeaveEntry, pendingEndId: Int) = coroutineScope {
         if (req.totalDays > 720) return@coroutineScope ApplyLeaveStatus.REJECTED.name
 
         val leaveBalanceDef = async {
@@ -765,7 +782,7 @@ class ApplyLeaveRepositoryImpl(
             if (req.fromDate <= it) return@coroutineScope ApplyLeaveStatus.A_REQ_HAS_ALREADY_EXISTS.name
         }
 
-        handleNewLeaveEntry(req, true)
+        handleNewLeaveEntry(req, pendingEndId)
         (leaveBalance - req.totalDays).toString()
     }
 
@@ -791,7 +808,7 @@ class ApplyLeaveRepositoryImpl(
 
     private suspend fun handleNewLeaveEntry(
         req: LeaveEntry,
-        isPermanent: Boolean,
+        pendingEndId: Int,
     ) = coroutineScope {
         val newEntry = query {
             LeaveReq.new { // create leave entry
@@ -808,11 +825,8 @@ class ApplyLeaveRepositoryImpl(
         }
 
         val statusIdDef = async { leaveUtils.getPendingStatusId() }
-        val pendingEndIdDef = async { leaveUtils.getPendingEndId(isPermanent) }
 
         val statusId = statusIdDef.await()
-        val pendingEndId = pendingEndIdDef.await()
-
         query {
             LeaveStatusTable.insert {
                 it[this.leaveId] = newEntry.id.value
@@ -848,7 +862,7 @@ class ApplyLeaveRepositoryImpl(
 
     override suspend fun handleLeave(
         req: HandleLeaveReq,
-        isPrincipal: Boolean,
+        headType: HeadType,
     ): Pair<LeaveAction.TYPE, Int> = coroutineScope {
         val actionType = when {
             req.action.startsWith("Accept") -> LeaveAction.TYPE.FORWARD
@@ -879,7 +893,7 @@ class ApplyLeaveRepositoryImpl(
         }
 
         val pendingType = when (actionType) {
-            LeaveAction.TYPE.APPROVED -> if (isPrincipal) PendingEnd.TYPE.NOT_PENDING else PendingEnd.TYPE.PRINCIPLE_LEVEL
+            LeaveAction.TYPE.APPROVED -> if (headType == HeadType.PRINCIPAL) PendingEnd.TYPE.NOT_PENDING else PendingEnd.TYPE.PRINCIPLE_LEVEL
             LeaveAction.TYPE.FORWARD -> PendingEnd.TYPE.PRINCIPLE_LEVEL
             LeaveAction.TYPE.REJECT -> PendingEnd.TYPE.NOT_PENDING
         }
@@ -912,6 +926,7 @@ class ApplyLeaveRepositoryImpl(
                 }
             ) {
                 it[this.statusId] = status.id
+                if (headType == HeadType.PRINCIPAL) it[this.approveDate] = LocalDate.now()
                 it[this.pendingEndId] = pendingEnd.id
                 it[this.cause] = req.cause
                 it[this.actionId] = action.id

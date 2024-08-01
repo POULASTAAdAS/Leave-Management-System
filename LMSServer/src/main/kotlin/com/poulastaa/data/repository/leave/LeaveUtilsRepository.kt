@@ -3,6 +3,7 @@ package com.poulastaa.data.repository.leave
 import com.poulastaa.data.model.leave.LeaveApproveRes
 import com.poulastaa.data.model.leave.LeaveHistoryRes
 import com.poulastaa.data.model.leave.ViewLeaveSingleRes
+import com.poulastaa.data.model.other.HeadType
 import com.poulastaa.domain.dao.leave.LeaveReq
 import com.poulastaa.domain.dao.leave.LeaveType
 import org.jetbrains.exposed.dao.id.EntityID
@@ -33,15 +34,17 @@ interface LeaveUtilsRepository {
     suspend fun getApproveLeaveAsHead(
         page: Int,
         pageSize: Int,
+        isPrincipal: Boolean
     ): List<LeaveApproveRes>
 
     suspend fun getLeaveOnId(leaveId: Long): LeaveReq
 
     suspend fun viewLeave(
         dpId: Int,
+        teacherId: Int,
         email: String,
         page: Int,
         pageSize: Int,
-        isPrinciple: Boolean,
+        headType: HeadType
     ): List<ViewLeaveSingleRes>
 }
