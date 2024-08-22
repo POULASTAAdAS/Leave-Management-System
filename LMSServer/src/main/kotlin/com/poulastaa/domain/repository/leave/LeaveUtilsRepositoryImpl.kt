@@ -1,5 +1,6 @@
 package com.poulastaa.domain.repository.leave
 
+import com.poulastaa.data.model.EndPoints
 import com.poulastaa.data.model.leave.*
 import com.poulastaa.data.model.other.HeadType
 import com.poulastaa.data.model.table.address.TeacherDetailsTable
@@ -245,7 +246,8 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
                     leaveType = leaveType.await(),
                     fromDate = it.fromDate.toString(),
                     toDate = it.toDate.toString(),
-                    totalDays = (ChronoUnit.DAYS.between(it.fromDate, it.toDate) + 1L).toString()
+                    totalDays = (ChronoUnit.DAYS.between(it.fromDate, it.toDate) + 1L).toString(),
+                    docUrl = it.doc?.let { "${System.getenv("BASE_URL")}/${EndPoints.GetDoc.route}?image=$it" }
                 )
             }
         }

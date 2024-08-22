@@ -15,7 +15,7 @@ class LeaveType(id: EntityID<Int>) : IntEntity(id) {
         MEDICAL_LEAVE("Medical Leave"),
         ON_DUTY_LEAVE("On Duty Leave"),
         MATERNITY_LEAVE("Maternity Leave"),
-        QUARANTINE_LEAVE("Quarintine Leave")
+        QUARINTINE_LEAVE("Quarintine Leave")
     }
 
     enum class PermanentType(val value: String) {
@@ -26,7 +26,7 @@ class LeaveType(id: EntityID<Int>) : IntEntity(id) {
         EARNED_LEAVE("Earned Leave"),
         SPECIAL_STUDY_LEAVE("Special Study Leave"),
         MATERNITY_LEAVE("Maternity Leave"),
-        QUARANTINE_LEAVE("Quarintine Leave"),
+        QUARINTINE_LEAVE("Quarintine Leave"),
         COMMUTED_LEAVE("Commuted Leave"),
         EXTRAORDINARY_LEAVE("Extraordinary Leave"),
         COMPENSATORY_LEAVE("Compensatory Leave"),

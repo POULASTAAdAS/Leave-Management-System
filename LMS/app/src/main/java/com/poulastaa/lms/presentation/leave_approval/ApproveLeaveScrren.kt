@@ -72,6 +72,7 @@ fun ApproveLeaveRootScreen(
     ApproveLeaveScreen(
         onEvent = viewModel::onEvent,
         leave = leave,
+        header = viewModel.state.header,
         navigateBack = navigateBack
     )
 }
@@ -79,6 +80,7 @@ fun ApproveLeaveRootScreen(
 @Composable
 private fun ApproveLeaveScreen(
     leave: LazyPagingItems<LeaveApproveCardInfo>,
+    header:String,
     onEvent: (ApproveLeaveUiEvent) -> Unit,
     navigateBack: () -> Unit
 ) {
@@ -136,6 +138,7 @@ private fun ApproveLeaveScreen(
                                     onEvent(ApproveLeaveUiEvent.OnItemToggle(item.id))
                                 },
                                 leaveApproveCardInfo = item,
+                                header = header,
                                 onEvent = onEvent,
                             )
                         }
@@ -173,7 +176,7 @@ private fun Preview() {
                 fromDate = "2024-10-10",
                 toDate = "2024-10-10",
                 totalDays = "10",
-                isExpanded = Random.nextBoolean().or(false),
+                isActionExpanded = Random.nextBoolean().or(false),
                 leaveType = "Casual Leave"
             )
         }
@@ -199,6 +202,7 @@ private fun Preview() {
         ApproveLeaveScreen(
             leave = lazyPagingItems,
             onEvent = {},
+            header = ""
         ) {
 
         }

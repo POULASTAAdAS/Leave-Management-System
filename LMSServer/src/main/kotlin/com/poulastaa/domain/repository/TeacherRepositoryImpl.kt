@@ -175,7 +175,8 @@ class TeacherRepositoryImpl : TeacherRepository {
                     profilePicUrl = it[TeacherDetailsTable.profilePic] ?: "",
                     department = department,
                     designation = designation.type,
-                    isDepartmentInCharge = isDepartmentHead
+                    isDepartmentInCharge = isDepartmentHead,
+                    sex = it[TeacherDetailsTable.gender]
                 )
             }
         } ?: User()
@@ -712,7 +713,7 @@ class TeacherRepositoryImpl : TeacherRepository {
                                         )
                                     } ?: Unit
 
-                                    LeaveType.ScatType.QUARANTINE_LEAVE -> insertLeaveBalance(
+                                    LeaveType.ScatType.QUARINTINE_LEAVE -> insertLeaveBalance(
                                         teacherId = teacherId,
                                         teacherTypeId = it.id.value,
                                         leaveTypeId = leaveTypeId,
@@ -786,7 +787,7 @@ class TeacherRepositoryImpl : TeacherRepository {
                                     } ?: Unit
 
 
-                                    LeaveType.PermanentType.QUARANTINE_LEAVE -> insertLeaveBalance(
+                                    LeaveType.PermanentType.QUARINTINE_LEAVE -> insertLeaveBalance(
                                         teacherId = teacherId,
                                         teacherTypeId = it.id.value,
                                         leaveTypeId = leaveTypeId,
@@ -969,7 +970,7 @@ class TeacherRepositoryImpl : TeacherRepository {
                 LeaveType.ScatType.MEDICAL_LEAVE.value -> LeaveType.ScatType.MEDICAL_LEAVE to it.id.value
                 LeaveType.ScatType.ON_DUTY_LEAVE.value -> LeaveType.ScatType.ON_DUTY_LEAVE to it.id.value
                 LeaveType.ScatType.MATERNITY_LEAVE.value -> LeaveType.ScatType.MATERNITY_LEAVE to it.id.value
-                else -> LeaveType.ScatType.QUARANTINE_LEAVE to it.id.value
+                else -> LeaveType.ScatType.QUARINTINE_LEAVE to it.id.value
             }
         }
     }
@@ -1145,7 +1146,7 @@ class TeacherRepositoryImpl : TeacherRepository {
                 LeaveType.PermanentType.EARNED_LEAVE.value -> LeaveType.PermanentType.EARNED_LEAVE to it.id.value
                 LeaveType.PermanentType.SPECIAL_STUDY_LEAVE.value -> LeaveType.PermanentType.SPECIAL_STUDY_LEAVE to it.id.value
                 LeaveType.PermanentType.MATERNITY_LEAVE.value -> LeaveType.PermanentType.MATERNITY_LEAVE to it.id.value
-                LeaveType.PermanentType.QUARANTINE_LEAVE.value -> LeaveType.PermanentType.QUARANTINE_LEAVE to it.id.value
+                LeaveType.PermanentType.QUARINTINE_LEAVE.value -> LeaveType.PermanentType.QUARINTINE_LEAVE to it.id.value
                 LeaveType.PermanentType.COMMUTED_LEAVE.value -> LeaveType.PermanentType.COMMUTED_LEAVE to it.id.value
                 LeaveType.PermanentType.EXTRAORDINARY_LEAVE.value -> LeaveType.PermanentType.EXTRAORDINARY_LEAVE to it.id.value
                 LeaveType.PermanentType.COMPENSATORY_LEAVE.value -> LeaveType.PermanentType.COMPENSATORY_LEAVE to it.id.value

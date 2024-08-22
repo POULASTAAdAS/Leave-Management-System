@@ -55,6 +55,10 @@ class ApproveLeaveViewModel @Inject constructor(
     var leave = _leave.asStateFlow()
         private set
 
+    init {
+        loadHeader()
+    }
+
     fun loadData() {
         pagingSource.init(
             client = client,
@@ -99,6 +103,7 @@ class ApproveLeaveViewModel @Inject constructor(
                         toDate = res.toDate,
                         leaveType = res.leaveType,
                         totalDays = res.totalDays,
+                        docUrl = res.docUrl,
                         actions = ListHolder(
                             all = actionList
                         )
@@ -113,7 +118,24 @@ class ApproveLeaveViewModel @Inject constructor(
             is ApproveLeaveUiEvent.OnItemToggle -> {
                 _leave.value = _leave.value.map { item ->
                     if (item.id == event.id) item.copy(
-                        isExpanded = !item.isExpanded
+                        isActionExpanded = !item.isActionExpanded
+                    ) else item
+                }
+            }
+
+            is ApproveLeaveUiEvent.OnExpandDocToggle -> {
+                _leave.value = _leave.value.map { item ->
+                    if (item.id == event.id) item.copy(
+                        isImageExpanded = !item.isImageExpanded
+                    ) else item
+                }
+            }
+
+            is ApproveLeaveUiEvent.OnImageFocusToggle -> {
+                _leave.value = _leave.value.map { item ->
+                    if (item.id == event.id) item.copy(
+                        focusId = event.id,
+                        isImageFocused = !item.isImageFocused
                     ) else item
                 }
             }
@@ -236,5 +258,15 @@ class ApproveLeaveViewModel @Inject constructor(
         )
 
         return err
+    }
+
+    private fun loadHeader() {
+        viewModelScope.launch {
+            ds.readCookie().collectLatest {
+                state = state.copy(
+                    header = it
+                )
+            }
+        }
     }
 }

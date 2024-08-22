@@ -11,5 +11,6 @@ data class ResponseUser(
     val phone: String = "",
     val department: String = "",
     val designation: String = "",
-    val isDepartmentInCharge: Boolean = false
+    val isDepartmentInCharge: Boolean = false,
+    val sex: String = ""
 )

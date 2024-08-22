@@ -10,5 +10,6 @@ data class LeaveApproveInfoRes(
     val leaveType: String,
     val fromDate: String,
     val toDate: String,
-    val totalDays: String
+    val totalDays: String,
+    val docUrl: String? = null,
 )

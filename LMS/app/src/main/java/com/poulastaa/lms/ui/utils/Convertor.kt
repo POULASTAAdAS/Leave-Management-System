@@ -50,6 +50,7 @@ fun ResponseUser.toLocalUser() = LocalUser(
     profilePicUrl = this.profilePicUrl,
     designation = this.designation,
     department = this.department,
+    sex = this.sex,
     isDepartmentInCharge = this.isDepartmentInCharge,
     userType = if (this.designation.startsWith("S")) UserType.SACT
     else UserType.PERMANENT

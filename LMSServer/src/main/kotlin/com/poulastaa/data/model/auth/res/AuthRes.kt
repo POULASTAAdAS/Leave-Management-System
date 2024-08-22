@@ -18,4 +18,5 @@ data class User(
     val department: String = "",
     val designation: String = "",
     val isDepartmentInCharge: Boolean = false,
+    val sex: String = "",
 )

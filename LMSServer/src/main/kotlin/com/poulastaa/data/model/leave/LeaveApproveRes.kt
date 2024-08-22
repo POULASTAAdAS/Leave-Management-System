@@ -11,4 +11,5 @@ data class LeaveApproveRes(
     val fromDate: String,
     val toDate: String,
     val totalDays: String,
+    val docUrl: String?,
 )

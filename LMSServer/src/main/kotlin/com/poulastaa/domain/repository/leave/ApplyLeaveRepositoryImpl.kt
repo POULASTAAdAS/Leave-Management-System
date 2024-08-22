@@ -168,16 +168,16 @@ class ApplyLeaveRepositoryImpl(
                         leaveType to (leaveBalanceDef - req.totalDays.toDouble()).toString()
                     }
 
-                    LeaveType.ScatType.QUARANTINE_LEAVE -> {
+                    LeaveType.ScatType.QUARINTINE_LEAVE -> {
                         if (doc == null) return ApplyLeaveRes()
 
                         val leaveType = leaveUtils.getLeaveType(
-                            type = LeaveType.ScatType.QUARANTINE_LEAVE.value
+                            type = LeaveType.ScatType.QUARINTINE_LEAVE.value
                         )
 
                         val leaveBalanceDef = leaveUtils.getLeaveBalance(
                             teacherId = teacher.id.value,
-                            type = LeaveType.ScatType.QUARANTINE_LEAVE.value
+                            type = LeaveType.ScatType.QUARINTINE_LEAVE.value
                         )?.toDouble() ?: return ApplyLeaveRes()
 
                         handleNewLeaveEntry(
@@ -340,11 +340,11 @@ class ApplyLeaveRepositoryImpl(
                         )
                     }
 
-                    LeaveType.PermanentType.QUARANTINE_LEAVE -> {
+                    LeaveType.PermanentType.QUARINTINE_LEAVE -> {
                         if (doc == null) return ApplyLeaveRes()
 
                         val leaveType = leaveUtils.getLeaveType(
-                            type = LeaveType.PermanentType.QUARANTINE_LEAVE.value
+                            type = LeaveType.PermanentType.QUARINTINE_LEAVE.value
                         )
 
                         leaveType to applyQuarantineLeave(
@@ -684,7 +684,7 @@ class ApplyLeaveRepositoryImpl(
 
         val isConflictWithQuarantineLeaveDef = checkConflictCheckWithOtherLeave(
             teacherId = req.teacherId.value,
-            leaveType = LeaveType.PermanentType.QUARANTINE_LEAVE.value,
+            leaveType = LeaveType.PermanentType.QUARINTINE_LEAVE.value,
             fromDate = req.fromDate
         )
 
@@ -794,7 +794,7 @@ class ApplyLeaveRepositoryImpl(
         val leaveBalanceDef = async {
             leaveUtils.getLeaveBalance(
                 teacherId = req.teacherId.value,
-                type = LeaveType.PermanentType.QUARANTINE_LEAVE.value
+                type = LeaveType.PermanentType.QUARINTINE_LEAVE.value
             )
         }
 
