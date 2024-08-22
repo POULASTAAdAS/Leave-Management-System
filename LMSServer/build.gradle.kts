@@ -63,4 +63,8 @@ dependencies {
 
     // pdf
     implementation("org.apache.pdfbox:pdfbox:2.0.26")
+
+    // pdf
+    implementation("com.itextpdf:itext7-core:8.0.5")
+    implementation("com.itextpdf:html2pdf:5.0.5")
 }

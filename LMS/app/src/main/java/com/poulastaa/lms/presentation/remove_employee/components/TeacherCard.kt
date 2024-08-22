@@ -41,6 +41,7 @@ fun TeacherCard(
     modifier: Modifier = Modifier,
     cookie: String,
     teacher: UiTeacher,
+    onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -63,6 +64,7 @@ fun TeacherCard(
                 model = ImageRequest.Builder(LocalContext.current)
                     .addHeader("Cookie", cookie)
                     .data(teacher.profile)
+                    .crossfade(true)
                     .build(),
                 contentDescription = null,
                 modifier = Modifier
@@ -121,7 +123,7 @@ fun TeacherCard(
 
 
             IconButton(
-                onClick = {},
+                onClick = onClick,
                 colors = IconButtonDefaults.iconButtonColors(
                     containerColor = MaterialTheme.colorScheme.errorContainer.copy(.67f),
                 )
@@ -147,7 +149,7 @@ private fun Preview() {
             TeacherCard(
                 cookie = "",
                 teacher = UiTeacher(1, "Teacher", "designation", "")
-            )
+            ){}
         }
     }
 }

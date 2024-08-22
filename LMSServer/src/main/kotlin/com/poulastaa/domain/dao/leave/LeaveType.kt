@@ -13,13 +13,16 @@ class LeaveType(id: EntityID<Int>) : IntEntity(id) {
     enum class ScatType(val value: String) {
         CASUAL_LEAVE("Casual Leave"),
         MEDICAL_LEAVE("Medical Leave"),
-        STUDY_LEAVE("Study Leave")
+        ON_DUTY_LEAVE("On Duty Leave"),
+        MATERNITY_LEAVE("Maternity Leave"),
+        QUARANTINE_LEAVE("Quarintine Leave")
     }
 
     enum class PermanentType(val value: String) {
         CASUAL_LEAVE("Casual Leave"),
         MEDICAL_LEAVE("Medical Leave"),
         STUDY_LEAVE("Study Leave"),
+        ON_DUTY_LEAVE("On Duty Leave"),
         EARNED_LEAVE("Earned Leave"),
         SPECIAL_STUDY_LEAVE("Special Study Leave"),
         MATERNITY_LEAVE("Maternity Leave"),

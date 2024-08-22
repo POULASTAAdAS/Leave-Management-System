@@ -60,31 +60,23 @@ class ApplyLeaveViewModel @Inject constructor(
                         leaveType = state.leaveType.copy(
                             all = listOf(
                                 "Casual Leave(CL)",
-                                "Commuted Leave(CL)",
-                                "Compensatory Leave(CL)",
                                 "Earned Leave(EL)",
-                                "Extraordinary Leave(EL)",
-                                "Leave Not Due(LND)",
-                                "Maternity Leave(ML)",
                                 "Medical Leave(ML)",
                                 "On Duty Leave(OD)",
-                                "Quarintine Leave(QL)",
-                                "Special Disability Leave(SDL)",
-                                "Special Study Leave(SSL)",
-                                "Study Leave(SL)"
+                                "Quarintine Leave(QURL)"
                             )
                         ),
                         path = if (user.isDepartmentInCharge) state.path.copy(
                             all = listOf(
                                 "Principal"
                             )
-                        ) else if (user.department == "NST"){
+                        ) else if (user.department == "NST" || user.department == "NTS") {
                             state.path.copy(
                                 all = listOf(
                                     "Head Clark"
                                 )
                             )
-                        }else state.path.copy(
+                        } else state.path.copy(
                             all = listOf(
                                 "Departmental In-Charge"
                             )
@@ -98,8 +90,8 @@ class ApplyLeaveViewModel @Inject constructor(
                             all = listOf(
                                 "Casual Leave(CL)",
                                 "Medical Leave(ML)",
-                                "Study Leave(SL)",
-                                "On Duty Leave(OD)"
+                                "On Duty Leave(OD)",
+                                "Quarintine Leave(QURL)"
                             )
                         ),
                         path = state.path.copy(
@@ -111,6 +103,14 @@ class ApplyLeaveViewModel @Inject constructor(
                 }
 
                 else -> Unit
+            }
+
+            if (user.sex == "F") {
+                state = state.copy(
+                    leaveType = state.leaveType.copy(
+                        all = state.leaveType.all + listOf("Maternity Leave(ML)")
+                    )
+                )
             }
         }
     }
@@ -127,13 +127,14 @@ class ApplyLeaveViewModel @Inject constructor(
                     )
                 )
 
-                state =
-                    if (state.leaveType.selected != "Casual Leave(CL)" && state.leaveType.selected != "On Duty Leave(OD)") state.copy(
-                        isDocNeeded = true
-                    )
-                    else state.copy(
-                        isDocNeeded = false
-                    )
+                state = if (state.leaveType.selected != "Casual Leave(CL)"
+                    && state.leaveType.selected != "On Duty Leave(OD)"
+                ) state.copy(
+                    isDocNeeded = true
+                )
+                else state.copy(
+                    isDocNeeded = false
+                )
 
                 viewModelScope.launch {
                     getLeaveBalance?.cancel()
@@ -173,7 +174,13 @@ class ApplyLeaveViewModel @Inject constructor(
 
                         if (fromDate > toDate) {
                             viewModelScope.launch {
-                                _uiEvent.send(ApplyLeaveUiAction.Err(UiText.StringResource(R.string.please_select_a_valid_date_range)))
+                                _uiEvent.send(
+                                    ApplyLeaveUiAction.Err(
+                                        UiText.StringResource(
+                                            R.string.please_select_a_valid_date_range
+                                        )
+                                    )
+                                )
                             }
 
                             return
@@ -539,9 +546,7 @@ class ApplyLeaveViewModel @Inject constructor(
         }
     }
 
-    private fun applyLeave(
-        context: Context,
-    ) {
+    private fun applyLeave(context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
             val cookie = ds.readCookie().first()
             val user = ds.readUser().first()
@@ -553,7 +558,8 @@ class ApplyLeaveViewModel @Inject constructor(
                 toDate = state.toDate.data.trim(),
                 totalDays = state.totalDays.trim(),
                 reason = state.leaveReason.data.trim(),
-                addressDuringLeave = state.addressDuringLeave.selected.trim(),
+                addressDuringLeave = if (state.addressDuringLeave.selected == "Out Station Address") state.addressDuringLeaveOutStation.data.trim()
+                else state.addressDuringLeave.selected,
                 path = if (state.path.selected == "Departmental In-Charge") "Department Head" else state.path.selected,
             )
 

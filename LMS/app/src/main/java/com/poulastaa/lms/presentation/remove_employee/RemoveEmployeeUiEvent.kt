@@ -6,4 +6,5 @@ sealed interface RemoveEmployeeUiEvent {
 
     data class OnTeacherSelected(val id: Int) : RemoveEmployeeUiEvent
     data class OnConformClick(val id: Int) : RemoveEmployeeUiEvent
+    data object OnCancelClick : RemoveEmployeeUiEvent
 }

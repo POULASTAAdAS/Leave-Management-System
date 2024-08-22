@@ -22,6 +22,7 @@ import com.poulastaa.data.model.table.department.DepartmentTable
 import com.poulastaa.data.model.table.designation.DesignationTable
 import com.poulastaa.data.model.table.designation.DesignationTeacherTypeRelation
 import com.poulastaa.data.model.table.leave.LeaveBalanceTable
+import com.poulastaa.data.model.table.leave.LeaveReqTable
 import com.poulastaa.data.model.table.leave.LeaveTypeTable
 import com.poulastaa.data.model.table.teacher.TeacherAddressTable
 import com.poulastaa.data.model.table.teacher.TeacherTable
@@ -33,6 +34,7 @@ import com.poulastaa.data.model.table.utils.QualificationTable
 import com.poulastaa.data.repository.TeacherRepository
 import com.poulastaa.domain.dao.department.Department
 import com.poulastaa.domain.dao.department.DepartmentHead
+import com.poulastaa.domain.dao.leave.LeaveReq
 import com.poulastaa.domain.dao.leave.LeaveType
 import com.poulastaa.domain.dao.teacher.Teacher
 import com.poulastaa.domain.dao.teacher.TeacherType
@@ -45,6 +47,7 @@ import com.poulastaa.utils.toTeacherDetails
 import kotlinx.coroutines.*
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.statements.UpdateStatement
 import java.time.LocalDate
 
@@ -381,7 +384,7 @@ class TeacherRepositoryImpl : TeacherRepository {
         val headClark = headClarkDef.await()
 
 
-        when{
+        when {
             principal.email == email -> query {
                 principal.name = req.name
                 principal.email = req.email
@@ -468,7 +471,10 @@ class TeacherRepositoryImpl : TeacherRepository {
                 it[TeacherDetailsTable.profilePic]
             }
         } else {
-            getPrincipal().profilePic
+            val principal = getPrincipal()
+
+            if (principal.email == email) principal.profilePic
+            else getHeadClark().profilePic
         }
     }
 
@@ -669,7 +675,8 @@ class TeacherRepositoryImpl : TeacherRepository {
                 com.poulastaa.data.model.constants.TeacherType.SACT -> {
                     val casualLeave = 14.0
                     val medicalLeave = 20.0
-                    val studyLeave = 360.0
+                    val maternityLeave = if (gender == 'F') 135.0 else null
+                    val quarantineLeave = 21.0
 
                     getSACTTeacherLeaveType().map { (leaveType, leaveTypeId) ->
                         async {
@@ -689,11 +696,27 @@ class TeacherRepositoryImpl : TeacherRepository {
                                         balance = medicalLeave
                                     )
 
-                                    LeaveType.ScatType.STUDY_LEAVE -> insertLeaveBalance(
+                                    LeaveType.ScatType.ON_DUTY_LEAVE -> insertLeaveBalance(
                                         teacherId = teacherId,
                                         teacherTypeId = it.id.value,
                                         leaveTypeId = leaveTypeId,
-                                        balance = studyLeave
+                                        balance = casualLeave
+                                    )
+
+                                    LeaveType.ScatType.MATERNITY_LEAVE -> maternityLeave?.let { balance ->
+                                        insertLeaveBalance(
+                                            teacherId = teacherId,
+                                            teacherTypeId = it.id.value,
+                                            leaveTypeId = leaveTypeId,
+                                            balance = balance
+                                        )
+                                    } ?: Unit
+
+                                    LeaveType.ScatType.QUARANTINE_LEAVE -> insertLeaveBalance(
+                                        teacherId = teacherId,
+                                        teacherTypeId = it.id.value,
+                                        leaveTypeId = leaveTypeId,
+                                        balance = quarantineLeave
                                     )
                                 }
                             }
@@ -803,6 +826,13 @@ class TeacherRepositoryImpl : TeacherRepository {
                                         teacherTypeId = it.id.value,
                                         leaveTypeId = leaveTypeId,
                                         balance = specialDisabilityLeave
+                                    )
+
+                                    LeaveType.PermanentType.ON_DUTY_LEAVE -> insertLeaveBalance(
+                                        teacherId = teacherId,
+                                        teacherTypeId = it.id.value,
+                                        leaveTypeId = leaveTypeId,
+                                        balance = casualLeave
                                     )
                                 }
                             }
@@ -937,7 +967,9 @@ class TeacherRepositoryImpl : TeacherRepository {
             when (it.type) {
                 LeaveType.ScatType.CASUAL_LEAVE.value -> LeaveType.ScatType.CASUAL_LEAVE to it.id.value
                 LeaveType.ScatType.MEDICAL_LEAVE.value -> LeaveType.ScatType.MEDICAL_LEAVE to it.id.value
-                else -> LeaveType.ScatType.STUDY_LEAVE to it.id.value
+                LeaveType.ScatType.ON_DUTY_LEAVE.value -> LeaveType.ScatType.ON_DUTY_LEAVE to it.id.value
+                LeaveType.ScatType.MATERNITY_LEAVE.value -> LeaveType.ScatType.MATERNITY_LEAVE to it.id.value
+                else -> LeaveType.ScatType.QUARANTINE_LEAVE to it.id.value
             }
         }
     }
@@ -997,7 +1029,9 @@ class TeacherRepositoryImpl : TeacherRepository {
         return coroutineScope {
             query {
                 LeaveBalanceTable.select {
-                    LeaveBalanceTable.teacherId eq teacherId and (LeaveBalanceTable.year eq LocalDate.now().year)
+                    LeaveBalanceTable.teacherId eq teacherId and
+                            (LeaveBalanceTable.year eq LocalDate.now().year) and
+                            (LeaveBalanceTable.leaveTypeId notInList listOf(6, 9, 10, 12, 13))
                 }.map {
                     it[LeaveBalanceTable.leaveTypeId] to it[LeaveBalanceTable.leaveBalance]
                 }.map {
@@ -1023,11 +1057,70 @@ class TeacherRepositoryImpl : TeacherRepository {
         query {
             LeaveBalanceTable.update(
                 where = {
-                    LeaveBalanceTable.leaveTypeId eq req.leaveId and (LeaveBalanceTable.teacherId eq req.teacherId) and (LeaveBalanceTable.year eq LocalDate.now().year)
+                    LeaveBalanceTable.leaveTypeId eq req.leaveId and
+                            (LeaveBalanceTable.teacherId eq req.teacherId) and
+                            (LeaveBalanceTable.year eq LocalDate.now().year)
                 }
             ) {
                 it[this.leaveBalance] = req.value.toDouble()
             }
+        }
+
+        return true
+    }
+
+    override suspend fun deleteTeacher(id: Int): Boolean {
+        coroutineScope {
+            val teacher = async {
+                query {
+                    val teacher = Teacher.find {
+                        TeacherTable.id eq id
+                    }.firstOrNull() ?: return@query false
+
+                    teacher.delete()
+                }
+            }
+
+            val details = async {
+                query {
+                    TeacherDetailsTable.deleteWhere {
+                        this.teacherId eq id
+                    }
+                }
+            }
+
+            val address = async {
+                query {
+                    TeacherAddressTable.deleteWhere {
+                        this.teacherId eq id
+                    }
+                }
+            }
+
+            val balance = async {
+                query {
+                    LeaveBalanceTable.deleteWhere {
+                        this.teacherId eq id
+                    }
+                }
+            }
+
+
+            val leave = async {
+                query {
+                    LeaveReq.find {
+                        LeaveReqTable.teacherId eq id
+                    }.map {
+                        it.delete()
+                    }
+                }
+            }
+
+            teacher.await()
+            details.await()
+            address.await()
+            balance.await()
+            leave.await()
         }
 
         return true

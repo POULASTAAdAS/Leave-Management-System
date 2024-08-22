@@ -45,19 +45,11 @@ class LeaveStatusViewModel @Inject constructor(
                     state = state.copy(
                         leaveTypes = state.leaveTypes.copy(
                             all = listOf(
-                                "Casual Leave",
-                                "Commuted Leave",
-                                "Compensatory Leave",
-                                "Earned Leave",
-                                "Extraordinary Leave",
-                                "Leave Not Due",
-                                "Maternity Leave",
-                                "Medical Leave",
-                                "On Duty Leave",
-                                "Quarintine Leave",
-                                "Special Disability Leave",
-                                "Special Study Leave",
-                                "Study Leave"
+                                "Casual Leave(CL)",
+                                "Earned Leave(EL)",
+                                "Medical Leave(ML)",
+                                "On Duty Leave(OD)",
+                                "Quarintine Leave(QURL)"
                             )
                         )
                     )
@@ -67,15 +59,24 @@ class LeaveStatusViewModel @Inject constructor(
                     state = state.copy(
                         leaveTypes = state.leaveTypes.copy(
                             all = listOf(
-                                "Casual Leave",
-                                "Medical Leave",
-                                "Study Leave"
+                                "Casual Leave(CL)",
+                                "Medical Leave(ML)",
+                                "On Duty Leave(OD)",
+                                "Quarintine Leave(QURL)"
                             )
                         )
                     )
                 }
 
                 else -> Unit
+            }
+
+            if (user.sex == "F") {
+                state = state.copy(
+                    leaveTypes = state.leaveTypes.copy(
+                        all = state.leaveTypes.all +  listOf("Maternity Leave(ML)")
+                    )
+                )
             }
         }
     }

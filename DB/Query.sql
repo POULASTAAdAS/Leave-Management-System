@@ -37,7 +37,7 @@ select * from headclark;
 select * from teacher;
 
 
-select * from department;
+select * from departmenthead;
 select * from designation;
 select * from qualification;
 
@@ -62,50 +62,54 @@ select * from pendingend;
 select * from leavetype;
 
 
-update leavestatus set approveDate = now();
+select * from principal;
+
+
+
+select * from teacherdetails;
+update teacherdetails set gender = 'F' where teacherid = 7;
 
 
 
 
+select * from teacher;
 
 
+select* from loginemail;
+delete from loginemail;
 
 
+select * from departmenthead;
+select * from principal;
 
 
+select * from leavetype;
+
+select * from teachertype;
+select * from leavebalance where teacherid = 7;
+select * from teacher;
+select * from teacherdetails;
+
+select * from leavebalance where teacherid = 7;
+
+select * from leavereq;
+select * from leavestatus;
+select * from pendingend;
+select * from principal;
+
+delete from teacherdetails where teacherId = 10;
+select * from leavebalance;
+select * from teacherdetails;
+
+select * from leavetype;
 
 
+select * from leavebalance;
 
+delete from teacher where id = 14;
+select * from teacher;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+insert into teacehr values (14, sacteacherone.gmail.com,1);
 
 
 

@@ -12,10 +12,7 @@ import com.poulastaa.data.model.details.UpdateAddressReq
 import com.poulastaa.data.model.details.UpdateDetailsReq
 import com.poulastaa.data.model.details.UpdateHeadDetailsReq
 import com.poulastaa.data.model.leave.*
-import com.poulastaa.data.model.other.GetDepartmentTeacher
-import com.poulastaa.data.model.other.ResponseTeacher
-import com.poulastaa.data.model.other.TeacherLeaveBalance
-import com.poulastaa.data.model.other.UpdateLeaveBalanceReq
+import com.poulastaa.data.model.other.*
 import com.poulastaa.data.report.ReportResponse
 import java.io.File
 
@@ -103,5 +100,13 @@ interface ServiceRepository {
         teacher: String,
     ): List<ReportResponse>
 
+    suspend fun generatePdfData(
+        department: String,
+        type: String,
+        teacher: String,
+    ): List<PdfData>
+
     suspend fun getTeacherToDelete(department: String): List<ResponseTeacher>
+
+    suspend fun deleteTeacher(req: DeleteTeacherReq): Boolean
 }

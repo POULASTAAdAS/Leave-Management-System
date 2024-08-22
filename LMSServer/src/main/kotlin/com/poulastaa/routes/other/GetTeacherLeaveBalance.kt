@@ -19,7 +19,7 @@ fun Route.getTeacherLeaveBalance(
                     call.parameters["teacherId"]?.toInt()
                         ?: return@get call.respondRedirect(EndPoints.UnAuthorised.route)
 
-                val result   = service.getTeacherLeaveBalance(teacherId)
+                val result = service.getTeacherLeaveBalance(teacherId)
 
 
                 call.respond(

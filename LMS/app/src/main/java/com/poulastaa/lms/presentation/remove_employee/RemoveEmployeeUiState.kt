@@ -37,6 +37,8 @@ data class RemoveEmployeeUiState(
     ),
 
     val teacher: List<UiTeacher> = emptyList(),
+
+    val deleteDialog: UiDeleteDialog = UiDeleteDialog()
 )
 
 data class UiTeacher(
@@ -44,4 +46,9 @@ data class UiTeacher(
     val name: String,
     val designation: String,
     val profile: String,
+)
+
+data class UiDeleteDialog(
+    val id: Int = -1,
+    val isOpen: Boolean = false
 )

@@ -81,3 +81,20 @@ fun Route.getProfilePic(service: ServiceRepository) {
         }
     }
 }
+
+fun Route.getImage() {
+    authenticate("session-auth") {
+        route(EndPoints.GetImage.route) {
+            get {
+                val query = call.parameters["profile"] ?: return@get
+                try {
+                    val file = File("${System.getenv("profileFolder")}$query")
+
+                    call.respondFile(file)
+                } catch (_: Exception) {
+                    call.respond("")
+                }
+            }
+        }
+    }
+}

@@ -1,6 +1,7 @@
 package com.poulastaa.lms.presentation.remove_employee
 
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -18,6 +19,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -38,8 +43,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.poulastaa.lms.R
 import com.poulastaa.lms.presentation.remove_employee.components.TeacherCard
@@ -216,10 +223,71 @@ private fun RemoveEmployeeScreen(
                     TeacherCard(
                         cookie = state.cookie,
                         teacher = teacher,
-                        modifier = Modifier.clickable {
+                    ) {
+                        onEvent(RemoveEmployeeUiEvent.OnTeacherSelected(teacher.id))
+                    }
+                }
+            }
 
-                        }
+            if (state.deleteDialog.isOpen) Dialog(onDismissRequest = { onEvent(RemoveEmployeeUiEvent.OnCancelClick) }) {
+                Card(
+                    shape = MaterialTheme.shapes.small,
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.onBackground
                     )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .padding(MaterialTheme.dimens.medium1)
+                            .fillMaxWidth(),
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.delete_employee_title),
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Spacer(modifier = Modifier.height(MaterialTheme.dimens.large1))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Button(
+                                onClick = { onEvent(RemoveEmployeeUiEvent.OnCancelClick) })
+                            {
+                                Text(
+                                    text = "NO",
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.weight(1f))
+
+                            Button(
+                                onClick = {
+                                    onEvent(
+                                        RemoveEmployeeUiEvent.OnConformClick(
+                                            state.deleteDialog.id
+                                        )
+                                    )
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Transparent,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary.copy(.7f)
+                                ),
+                                border = BorderStroke(
+                                    width = 2.dp,
+                                    color = MaterialTheme.colorScheme.onPrimary.copy(.7f)
+                                )
+                            ) {
+                                Text(
+                                    text = "YES",
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -240,6 +308,9 @@ private fun Preview() {
                     ""
                 )
             },
+            deleteDialog = UiDeleteDialog(
+                isOpen = true
+            )
         ), onEvent = {}) {
 
         }

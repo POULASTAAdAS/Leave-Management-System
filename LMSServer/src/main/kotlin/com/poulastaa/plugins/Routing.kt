@@ -3,10 +3,11 @@ package com.poulastaa.plugins
 import com.poulastaa.data.model.auth.UserSession
 import com.poulastaa.data.repository.ServiceRepository
 import com.poulastaa.routes.auth.*
+import com.poulastaa.routes.other.deleteTeacher
 import com.poulastaa.routes.department.checkIfDepartmentHead
 import com.poulastaa.routes.department.getDepartmentInCharge
 import com.poulastaa.routes.details.*
-import com.poulastaa.routes.getTeacherToDelete
+import com.poulastaa.routes.other.getTeacherToDelete
 import com.poulastaa.routes.leave.*
 import com.poulastaa.routes.other.*
 import com.poulastaa.routes.report.downloadReport
@@ -64,6 +65,10 @@ fun Application.configureRouting() {
         downloadReport(service)
 
         getTeacherToDelete(service)
+
+        getImage()
+
+        deleteTeacher(service)
 
         unAuth()
 

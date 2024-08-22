@@ -4,6 +4,7 @@ data class ReportResult(
     val leaveId: Long,
     val departmentName: String,
     val teacherName: String,
+    val teacherDesignation: String = "",
     val leaveType: String,
     val reqDate: String,
     val fromDate: String,

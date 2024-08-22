@@ -39,6 +39,7 @@ sealed class EndPoints(val route: String) {
     data object DownloadReport : EndPoints(route = "/api/auth/downloadReport")
 
     data object GetTeacherToDelete : EndPoints(route = "/api/auth/getTeacherToDelete")
+    data object DeleteTeacher : EndPoints(route = "/api/auth/deleteTeacher")
 
     data object GetViewLeaves : EndPoints(route = "/api/auth/viewLeaves")
 }

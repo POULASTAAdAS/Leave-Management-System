@@ -63,4 +63,6 @@ interface TeacherRepository {
     suspend fun getTeacherLeaveBalance(teacherId: Int): List<TeacherLeaveBalance>
 
     suspend fun updateLeaveBalance(req: UpdateLeaveBalanceReq): Boolean
+
+    suspend fun deleteTeacher(id: Int): Boolean
 }

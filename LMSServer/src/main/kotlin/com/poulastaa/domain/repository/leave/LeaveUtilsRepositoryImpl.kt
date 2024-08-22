@@ -31,7 +31,7 @@ import java.time.temporal.ChronoUnit
 class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
     override suspend fun getLeaveType(type: String) = query {
         LeaveType.find {
-            LeaveTypeTable.type.upperCase() eq type.uppercase()
+            LeaveTypeTable.type.upperCase() eq type.uppercase().replace(Regex("\\(.*\\)"), "").trim()
         }.single()
     }
 
@@ -334,7 +334,7 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
 
             HeadType.PRINCIPAL,
             HeadType.HEAD_CLARK,
-            -> {
+                -> {
                 val pendingEndId = query {
                     PendingEnd.find {
                         PendingEndTable.type eq PendingEnd.TYPE.NOT_PENDING.value

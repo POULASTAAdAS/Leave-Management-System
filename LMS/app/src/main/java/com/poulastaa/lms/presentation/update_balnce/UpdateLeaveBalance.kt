@@ -1,5 +1,6 @@
 package com.poulastaa.lms.presentation.update_balnce
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -44,12 +46,25 @@ import com.poulastaa.lms.presentation.utils.ScreenWrapper
 import com.poulastaa.lms.ui.theme.ArrowBackIcon
 import com.poulastaa.lms.ui.theme.TestThem
 import com.poulastaa.lms.ui.theme.dimens
+import com.poulastaa.lms.ui.utils.ObserveAsEvent
 
 @Composable
 fun UpdateLeaveBalanceRoot(
     viewModel: UpdateLeaveBalanceViewModel = hiltViewModel(),
     navigateBack: () -> Unit,
 ) {
+    val context = LocalContext.current
+
+    ObserveAsEvent(flow = viewModel.uiEvent) {
+        when(it){
+            is UpdateBalanceUiAction.EmitToast -> Toast.makeText(
+                context,
+                it.massage.asString(context),
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
     UpdateLeaveBalance(
         state = viewModel.state,
         onEvent = viewModel::onEvent,
@@ -211,7 +226,7 @@ private fun UpdateLeaveBalance(
                             ) {
                                 Text(
                                     text = it.key,
-                                    modifier = Modifier.fillMaxWidth(.78f),
+                                    modifier = Modifier.fillMaxWidth(.8f),
                                     textAlign = TextAlign.Start,
                                     color = MaterialTheme.colorScheme.background,
                                 )

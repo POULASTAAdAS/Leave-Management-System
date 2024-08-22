@@ -6,11 +6,16 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
+import com.poulastaa.lms.R
 import com.poulastaa.lms.data.model.auth.EndPoints
+import com.poulastaa.lms.data.model.remove_employee.DeleteTeacherReq
 import com.poulastaa.lms.data.model.remove_employee.ResponseTeacher
 import com.poulastaa.lms.data.remote.get
+import com.poulastaa.lms.data.remote.post
 import com.poulastaa.lms.domain.repository.utils.DataStoreRepository
+import com.poulastaa.lms.domain.utils.DataError
 import com.poulastaa.lms.domain.utils.Result
+import com.poulastaa.lms.ui.utils.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -71,11 +76,26 @@ class RemoveEmployeeViewModel @Inject constructor(
             }
 
             is RemoveEmployeeUiEvent.OnTeacherSelected -> {
-
+                state = state.copy(
+                    deleteDialog = UiDeleteDialog(
+                        isOpen = true,
+                        id = event.id
+                    )
+                )
             }
 
             is RemoveEmployeeUiEvent.OnConformClick -> {
+                state = state.copy(
+                    deleteDialog = UiDeleteDialog()
+                )
 
+                removeEmployee(event.id)
+            }
+
+            RemoveEmployeeUiEvent.OnCancelClick -> {
+                state = state.copy(
+                    deleteDialog = UiDeleteDialog()
+                )
             }
         }
     }
@@ -103,6 +123,53 @@ class RemoveEmployeeViewModel @Inject constructor(
                     )
                 }
             )
+        }
+    }
+
+    private fun removeEmployee(id: Int) {
+        viewModelScope.launch {
+            val result = client.post<DeleteTeacherReq, Unit>(
+                route = EndPoints.DeleteTeacher.route,
+                body = DeleteTeacherReq(id),
+                cookieManager = cookieManager,
+                gson = gson,
+                ds = ds,
+                cookie = state.cookie
+            )
+
+            when (result) {
+                is Result.Error -> {
+                    when (result.error) {
+                        DataError.Network.NO_INTERNET -> {
+                            _uiEvent.send(
+                                RemoveEmployeeUiAction.EmitToast(
+                                    UiText.StringResource(R.string.error_internet)
+                                )
+                            )
+                        }
+
+                        else -> {
+                            _uiEvent.send(
+                                RemoveEmployeeUiAction.EmitToast(
+                                    UiText.StringResource(R.string.error_something_went_wrong)
+                                )
+                            )
+                        }
+                    }
+                }
+
+                is Result.Success -> {
+                    state = state.copy(
+                        teacher = state.teacher.filterNot { it.id == id }
+                    )
+
+                    _uiEvent.send(
+                        RemoveEmployeeUiAction.EmitToast(
+                            UiText.StringResource(R.string.employee_removed)
+                        )
+                    )
+                }
+            }
         }
     }
 }

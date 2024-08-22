@@ -199,10 +199,10 @@ class DownloadReportViewModel @Inject constructor(
                         .addRequestHeader("Cookie", ds.readCookie().first())
                         .setMimeType("application/pdf")
                         .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                        .setTitle("Report.pdf")
+                        .setTitle("Leave Report.pdf")
                         .setDestinationInExternalPublicDir(
                             Environment.DIRECTORY_DOWNLOADS,
-                            "Report.pdf"
+                            "Leave Report.pdf"
                         )
 
                     downloadManager.enqueue(req)

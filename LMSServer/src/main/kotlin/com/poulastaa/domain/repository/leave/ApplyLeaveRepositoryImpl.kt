@@ -106,14 +106,17 @@ class ApplyLeaveRepositoryImpl(
                         )
                     }
 
-                    LeaveType.ScatType.STUDY_LEAVE -> {
-                        if (doc == null) return ApplyLeaveRes()
-
+                    LeaveType.ScatType.ON_DUTY_LEAVE -> {
                         val leaveType = leaveUtils.getLeaveType(
-                            type = LeaveType.ScatType.STUDY_LEAVE.value
+                            type = LeaveType.ScatType.ON_DUTY_LEAVE.value
                         )
 
-                        leaveType to applyStudyLeave(
+                        val leaveBalanceDef = leaveUtils.getLeaveBalance(
+                            teacherId = teacher.id.value,
+                            type = LeaveType.ScatType.ON_DUTY_LEAVE.value
+                        )?.toDouble() ?: return ApplyLeaveRes()
+
+                        handleNewLeaveEntry(
                             req = LeaveEntry(
                                 teacherId = teacher.id,
                                 leaveTypeId = leaveType.id,
@@ -129,6 +132,72 @@ class ApplyLeaveRepositoryImpl(
                             ),
                             pendingEndId = pendingEndId
                         )
+
+                        leaveType to (leaveBalanceDef - req.totalDays.toDouble()).toString()
+                    }
+
+                    LeaveType.ScatType.MATERNITY_LEAVE -> {
+                        if (doc == null) return ApplyLeaveRes()
+
+                        val leaveType = leaveUtils.getLeaveType(
+                            type = LeaveType.ScatType.MATERNITY_LEAVE.value
+                        )
+
+                        val leaveBalanceDef = leaveUtils.getLeaveBalance(
+                            teacherId = teacher.id.value,
+                            type = LeaveType.ScatType.MATERNITY_LEAVE.value
+                        )?.toDouble() ?: return ApplyLeaveRes()
+
+                        handleNewLeaveEntry(
+                            req = LeaveEntry(
+                                teacherId = teacher.id,
+                                leaveTypeId = leaveType.id,
+                                reqData = LocalDateTime.now(),
+                                toDate = LocalDate.parse(req.toDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                fromDate = LocalDate.parse(req.fromDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                totalDays = req.totalDays.toDouble(),
+                                reason = req.reason,
+                                addressDuringLeave = req.addressDuringLeave,
+                                pathId = path.id,
+                                doc = doc,
+                                departmentId = teacherDetails.departmentId
+                            ),
+                            pendingEndId = pendingEndId
+                        )
+
+                        leaveType to (leaveBalanceDef - req.totalDays.toDouble()).toString()
+                    }
+
+                    LeaveType.ScatType.QUARANTINE_LEAVE -> {
+                        if (doc == null) return ApplyLeaveRes()
+
+                        val leaveType = leaveUtils.getLeaveType(
+                            type = LeaveType.ScatType.QUARANTINE_LEAVE.value
+                        )
+
+                        val leaveBalanceDef = leaveUtils.getLeaveBalance(
+                            teacherId = teacher.id.value,
+                            type = LeaveType.ScatType.QUARANTINE_LEAVE.value
+                        )?.toDouble() ?: return ApplyLeaveRes()
+
+                        handleNewLeaveEntry(
+                            req = LeaveEntry(
+                                teacherId = teacher.id,
+                                leaveTypeId = leaveType.id,
+                                reqData = LocalDateTime.now(),
+                                toDate = LocalDate.parse(req.toDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                fromDate = LocalDate.parse(req.fromDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                totalDays = req.totalDays.toDouble(),
+                                reason = req.reason,
+                                addressDuringLeave = req.addressDuringLeave,
+                                pathId = path.id,
+                                doc = doc,
+                                departmentId = teacherDetails.departmentId
+                            ),
+                            pendingEndId = pendingEndId
+                        )
+
+                        leaveType to (leaveBalanceDef - req.totalDays.toDouble()).toString()
                     }
                 }
             }
@@ -161,8 +230,33 @@ class ApplyLeaveRepositoryImpl(
                     }
 
                     LeaveType.PermanentType.EARNED_LEAVE -> {
-                        // todo
-                        return ApplyLeaveRes()
+                        val leaveType = leaveUtils.getLeaveType(
+                            type = LeaveType.PermanentType.EARNED_LEAVE.value
+                        )
+
+                        val leaveBalanceDef = leaveUtils.getLeaveBalance(
+                            teacherId = teacher.id.value,
+                            type = LeaveType.PermanentType.EARNED_LEAVE.value
+                        )?.toDouble() ?: return ApplyLeaveRes()
+
+                        handleNewLeaveEntry(
+                            req = LeaveEntry(
+                                teacherId = teacher.id,
+                                leaveTypeId = leaveType.id,
+                                reqData = LocalDateTime.now(),
+                                toDate = LocalDate.parse(req.toDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                fromDate = LocalDate.parse(req.fromDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                totalDays = req.totalDays.toDouble(),
+                                reason = req.reason,
+                                addressDuringLeave = req.addressDuringLeave,
+                                pathId = path.id,
+                                doc = doc,
+                                departmentId = teacherDetails.departmentId
+                            ),
+                            pendingEndId = pendingEndId
+                        )
+
+                        leaveType to (leaveBalanceDef - req.totalDays.toDouble()).toString()
                     }
 
                     LeaveType.PermanentType.MEDICAL_LEAVE -> {
@@ -191,28 +285,7 @@ class ApplyLeaveRepositoryImpl(
                     }
 
                     LeaveType.PermanentType.STUDY_LEAVE -> {
-                        if (doc == null) return ApplyLeaveRes()
-
-                        val leaveType = leaveUtils.getLeaveType(
-                            type = LeaveType.PermanentType.STUDY_LEAVE.value
-                        )
-
-                        leaveType to applyStudyLeave(
-                            req = LeaveEntry(
-                                teacherId = teacher.id,
-                                leaveTypeId = leaveType.id,
-                                reqData = LocalDateTime.now(),
-                                toDate = LocalDate.parse(req.toDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                                fromDate = LocalDate.parse(req.fromDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                                totalDays = req.totalDays.toDouble(),
-                                reason = req.reason,
-                                addressDuringLeave = req.addressDuringLeave,
-                                pathId = path.id,
-                                doc = doc,
-                                departmentId = teacherDetails.departmentId
-                            ),
-                            pendingEndId = pendingEndId
-                        )
+                        return ApplyLeaveRes()
                     }
 
                     LeaveType.PermanentType.SPECIAL_STUDY_LEAVE -> {
@@ -293,15 +366,15 @@ class ApplyLeaveRepositoryImpl(
                     }
 
                     LeaveType.PermanentType.COMMUTED_LEAVE -> {
-                        TODO()
+                        return ApplyLeaveRes()
                     }
 
                     LeaveType.PermanentType.EXTRAORDINARY_LEAVE -> {
-                        TODO()
+                        return ApplyLeaveRes()
                     }
 
                     LeaveType.PermanentType.COMPENSATORY_LEAVE -> {
-                        TODO()
+                        return ApplyLeaveRes()
                     }
 
                     LeaveType.PermanentType.LEAVE_NOT_DUE -> {
@@ -352,6 +425,36 @@ class ApplyLeaveRepositoryImpl(
                             ),
                             pendingEndId = pendingEndId
                         )
+                    }
+
+                    LeaveType.PermanentType.ON_DUTY_LEAVE -> {
+                        val leaveType = leaveUtils.getLeaveType(
+                            type = LeaveType.PermanentType.ON_DUTY_LEAVE.value
+                        )
+
+                        val leaveBalanceDef = leaveUtils.getLeaveBalance(
+                            teacherId = teacher.id.value,
+                            type = LeaveType.ScatType.ON_DUTY_LEAVE.value
+                        )?.toDouble() ?: return ApplyLeaveRes()
+
+                        handleNewLeaveEntry(
+                            req = LeaveEntry(
+                                teacherId = teacher.id,
+                                leaveTypeId = leaveType.id,
+                                reqData = LocalDateTime.now(),
+                                toDate = LocalDate.parse(req.toDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                fromDate = LocalDate.parse(req.fromDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                totalDays = req.totalDays.toDouble(),
+                                reason = req.reason,
+                                addressDuringLeave = req.addressDuringLeave,
+                                pathId = path.id,
+                                doc = doc,
+                                departmentId = teacherDetails.departmentId
+                            ),
+                            pendingEndId = pendingEndId
+                        )
+
+                        leaveType to (leaveBalanceDef - req.totalDays.toDouble()).toString()
                     }
                 }
             }
@@ -455,85 +558,85 @@ class ApplyLeaveRepositoryImpl(
         (leaveBalance - req.totalDays).toString()
     }
 
-    private suspend fun applyStudyLeave(
-        req: LeaveEntry,
-        pendingEndId: Int,
-    ) = coroutineScope {
-        if (req.totalDays > 360.0) return@coroutineScope ApplyLeaveStatus.REJECTED.name
-
-        val leaveBalanceDef = async {
-            leaveUtils.getLeaveBalance(
-                teacherId = req.teacherId.value,
-                type = LeaveType.ScatType.STUDY_LEAVE.value
-            )
-        }
-
-        val serviceYearsDef = async {
-            query {
-                TeacherDetailsTable.select {
-                    TeacherDetailsTable.teacherId eq req.teacherId
-                }.single().toTeacherDetails("")
-                    .let {
-                        val joiningDate = LocalDate.parse(it.joiningDate)
-                        val reqDate = req.fromDate
-
-                        ChronoUnit.YEARS.between(joiningDate, reqDate)
-                    }
-            }
-        }
-
-        val oldStudyLeaveEntryDef = async {
-            query {
-                val studyLeaveType = leaveUtils.getLeaveType(
-                    type = LeaveType.ScatType.STUDY_LEAVE.value
-                )
-
-                LeaveReq.find {
-                    LeaveReqTable.teacherId eq req.teacherId and
-                            (LeaveReqTable.leaveTypeId eq studyLeaveType.id)
-                }.toList()
-            }
-        }
-
-
-        val leaveBalance = leaveBalanceDef.await()?.toDouble() ?: return@coroutineScope ApplyLeaveStatus.REJECTED.name
-        if (leaveBalance < req.totalDays) return@coroutineScope ApplyLeaveStatus.REJECTED.name
-
-        val serviceYears = serviceYearsDef.await()
-        if (serviceYears < 3L) return@coroutineScope ApplyLeaveStatus.REJECTED.name
-
-        val oldStudyLeaveEntry = oldStudyLeaveEntryDef.await()
-
-
-        if (oldStudyLeaveEntry.isEmpty()) handleNewLeaveEntry(req, pendingEndId)
-        else {
-            oldStudyLeaveEntry.forEach { // check for conflict
-                if (req.fromDate <= it.toDate) return@coroutineScope ApplyLeaveStatus.REJECTED.name
-            }
-
-            // check does not exceed 24 months on total
-            val totalDays = oldStudyLeaveEntry.sumOf {
-                ChronoUnit.DAYS.between(it.fromDate, it.toDate)
-            } + req.totalDays
-
-            if (totalDays > 720) return@coroutineScope ApplyLeaveStatus.REJECTED.name
-
-            // check there is 3 years diff in two req
-            val mostRecentReq = oldStudyLeaveEntry.maxBy {
-                it.toDate
-            }.toDate
-
-            if (ChronoUnit.YEARS.between(
-                    req.reqData.toLocalDate(),
-                    mostRecentReq
-                ) < 3
-            ) return@coroutineScope ApplyLeaveStatus.REJECTED.name
-
-            handleNewLeaveEntry(req, pendingEndId)
-        }
-
-        (leaveBalance - req.totalDays).toString()
-    }
+//    private suspend fun applyStudyLeave(
+//        req: LeaveEntry,
+//        pendingEndId: Int,
+//    ) = coroutineScope {
+//        if (req.totalDays > 360.0) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+//
+//        val leaveBalanceDef = async {
+//            leaveUtils.getLeaveBalance(
+//                teacherId = req.teacherId.value,
+//                type = LeaveType.ScatType.STUDY_LEAVE.value
+//            )
+//        }
+//
+//        val serviceYearsDef = async {
+//            query {
+//                TeacherDetailsTable.select {
+//                    TeacherDetailsTable.teacherId eq req.teacherId
+//                }.single().toTeacherDetails("")
+//                    .let {
+//                        val joiningDate = LocalDate.parse(it.joiningDate)
+//                        val reqDate = req.fromDate
+//
+//                        ChronoUnit.YEARS.between(joiningDate, reqDate)
+//                    }
+//            }
+//        }
+//
+//        val oldStudyLeaveEntryDef = async {
+//            query {
+//                val studyLeaveType = leaveUtils.getLeaveType(
+//                    type = LeaveType.ScatType.STUDY_LEAVE.value
+//                )
+//
+//                LeaveReq.find {
+//                    LeaveReqTable.teacherId eq req.teacherId and
+//                            (LeaveReqTable.leaveTypeId eq studyLeaveType.id)
+//                }.toList()
+//            }
+//        }
+//
+//
+//        val leaveBalance = leaveBalanceDef.await()?.toDouble() ?: return@coroutineScope ApplyLeaveStatus.REJECTED.name
+//        if (leaveBalance < req.totalDays) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+//
+//        val serviceYears = serviceYearsDef.await()
+//        if (serviceYears < 3L) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+//
+//        val oldStudyLeaveEntry = oldStudyLeaveEntryDef.await()
+//
+//
+//        if (oldStudyLeaveEntry.isEmpty()) handleNewLeaveEntry(req, pendingEndId)
+//        else {
+//            oldStudyLeaveEntry.forEach { // check for conflict
+//                if (req.fromDate <= it.toDate) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+//            }
+//
+//            // check does not exceed 24 months on total
+//            val totalDays = oldStudyLeaveEntry.sumOf {
+//                ChronoUnit.DAYS.between(it.fromDate, it.toDate)
+//            } + req.totalDays
+//
+//            if (totalDays > 720) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+//
+//            // check there is 3 years diff in two req
+//            val mostRecentReq = oldStudyLeaveEntry.maxBy {
+//                it.toDate
+//            }.toDate
+//
+//            if (ChronoUnit.YEARS.between(
+//                    req.reqData.toLocalDate(),
+//                    mostRecentReq
+//                ) < 3
+//            ) return@coroutineScope ApplyLeaveStatus.REJECTED.name
+//
+//            handleNewLeaveEntry(req, pendingEndId)
+//        }
+//
+//        (leaveBalance - req.totalDays).toString()
+//    }
 
 
     // permanent teacher

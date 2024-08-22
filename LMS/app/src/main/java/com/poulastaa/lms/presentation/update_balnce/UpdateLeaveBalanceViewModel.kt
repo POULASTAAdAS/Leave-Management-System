@@ -6,13 +6,18 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
+import com.poulastaa.lms.R
 import com.poulastaa.lms.data.model.auth.EndPoints
 import com.poulastaa.lms.data.model.leave.GetDepartmentTeacher
 import com.poulastaa.lms.data.model.leave.TeacherLeaveBalance
+import com.poulastaa.lms.data.model.leave.UpdateLeaveBalanceReq
 import com.poulastaa.lms.data.remote.get
+import com.poulastaa.lms.data.remote.post
 import com.poulastaa.lms.domain.repository.utils.DataStoreRepository
+import com.poulastaa.lms.domain.utils.DataError
 import com.poulastaa.lms.domain.utils.Result
 import com.poulastaa.lms.presentation.store_details.ListHolder
+import com.poulastaa.lms.ui.utils.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -119,13 +124,24 @@ class UpdateLeaveBalanceViewModel @Inject constructor(
             }
 
             UpdateBalanceUiEvent.OnContinueClick -> {
+                if (state.isMakingApiCall) return
+
+                val oldBalance = state.responseBalance.firstOrNull {
+                    it.name == state.listOfLeave.selected
+                } ?: return
+
+                if (state.leaveBalance == oldBalance.balance) {
+                    viewModelScope.launch {
+                        _uiEvent.send(UpdateBalanceUiAction.EmitToast(UiText.StringResource(R.string.nothing_to_update)))
+                    }
+
+                    return
+                }
+
                 state = state.copy(
                     isMakingApiCall = true
                 )
-
-                viewModelScope.launch(Dispatchers.IO) {
-
-                }
+                updateLeaveBalance()
             }
         }
     }
@@ -157,15 +173,15 @@ class UpdateLeaveBalanceViewModel @Inject constructor(
         }
     }
 
-    private suspend fun getLeaveBalance() = viewModelScope.launch(Dispatchers.IO) {
-        val teacherId = state.responseTeacher.teacherName.first {
+    private fun getLeaveBalance() = viewModelScope.launch(Dispatchers.IO) {
+        val teacher = state.responseTeacher.teacherName.first {
             it.name == state.teacher.selected
         }
 
         val result = client.get<List<TeacherLeaveBalance>>(
             route = EndPoints.GetTeacherLeaveBalance.route,
             params = listOf(
-                "teacherId" to teacherId.id.toString(),
+                "teacherId" to teacher.id.toString(),
             ),
             cookieManager = cookieManager,
             gson = gson,
@@ -186,6 +202,71 @@ class UpdateLeaveBalanceViewModel @Inject constructor(
                 ),
                 isRequestingTeacher = true
             )
+        }
+    }
+
+    private fun updateLeaveBalance() {
+        viewModelScope.launch {
+            val balance = state.responseBalance.first {
+                it.name == state.listOfLeave.selected
+            }
+
+            val teacher = state.responseTeacher.teacherName.first {
+                it.name == state.teacher.selected
+            }
+
+
+            val result = client.post<UpdateLeaveBalanceReq, Boolean>(
+                route = EndPoints.UpdateTeacherLeaveBalance.route,
+                body = UpdateLeaveBalanceReq(
+                    teacherId = teacher.id,
+                    leaveId = balance.id,
+                    value = state.leaveBalance
+                ),
+                gson = gson,
+                cookie = ds.readCookie().first(),
+                cookieManager = cookieManager,
+                ds = ds
+            )
+
+            when (result) {
+                is Result.Error -> {
+                    when (result.error) {
+                        DataError.Network.NO_INTERNET -> {
+                            _uiEvent.send(
+                                UpdateBalanceUiAction.EmitToast(
+                                    UiText.StringResource(R.string.error_internet)
+                                )
+                            )
+                        }
+
+                        else -> {
+                            _uiEvent.send(
+                                UpdateBalanceUiAction.EmitToast(
+                                    UiText.StringResource(R.string.error_something_went_wrong)
+                                )
+                            )
+                        }
+                    }
+                }
+
+                is Result.Success -> {
+                    state = state.copy(
+                        responseBalance = state.responseBalance.map {
+                            if (it.name == state.listOfLeave.selected) {
+                                it.copy(balance = state.leaveBalance)
+                            } else it
+                        },
+                        isMakingApiCall = false
+                    )
+
+                    _uiEvent.send(
+                        UpdateBalanceUiAction.EmitToast(
+                            UiText.StringResource(R.string.balance_updated)
+                        )
+                    )
+                }
+            }
         }
     }
 }

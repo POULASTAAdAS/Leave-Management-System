@@ -10,15 +10,12 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Route.updateTeacherLeaveBalance(
-    service: ServiceRepository,
-) {
+fun Route.updateTeacherLeaveBalance(service: ServiceRepository) {
     authenticate(SESSION_AUTH) {
         route(EndPoints.UpdateTeacherLeaveBalance.route) {
             post {
                 val req = call.receiveNullable<UpdateLeaveBalanceReq>()
                     ?: return@post call.respondRedirect(EndPoints.UnAuthorised.route)
-
 
                 val result = service.updateLeaveBalance(req)
 
