@@ -113,6 +113,10 @@ class RemoveEmployeeViewModel @Inject constructor(
         )
 
         if (result is Result.Success) {
+            state = state.copy(
+                teacher = emptyList()
+            )
+
             if (result.data.isNotEmpty()) state = state.copy(
                 teacher = result.data.map {
                     UiTeacher(

@@ -121,7 +121,7 @@ class LeaveViewViewModel @Inject constructor(
 
         Pager(
             config = PagingConfig(
-                pageSize = 20,
+                pageSize = 40,
                 enablePlaceholders = false
             ),
             initialKey = 1,

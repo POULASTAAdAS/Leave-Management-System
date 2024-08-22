@@ -41,6 +41,8 @@ select *  from leavereq;
 
 select * from principal;
 
+select * from teacherdetails;
+
 
 
 
