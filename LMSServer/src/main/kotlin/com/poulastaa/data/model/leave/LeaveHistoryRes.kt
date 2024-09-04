@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 data class LeaveHistoryRes(
     val reqDate: String,
     val leaveType: String,
-    val approveDate:String,
+    val approveDate: String,
     val status: String,
     val fromDate: String,
     val toDate: String,

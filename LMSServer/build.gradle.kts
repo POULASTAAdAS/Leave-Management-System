@@ -8,10 +8,17 @@ val koin_ktor: String by project
 val hikaricp_version: String by project
 
 
+tasks.withType<Jar> {
+    manifest {
+        attributes["Main-Module"] = application.mainModule
+    }
+}
+
 plugins {
     kotlin("jvm") version "1.9.24"
     id("io.ktor.plugin") version "2.3.10"
     id("org.jetbrains.kotlin.plugin.serialization") version "1.9.24"
+     id("com.github.johnrengelman.shadow") version "6.1.0"
 }
 
 group = "com.poulastaa"

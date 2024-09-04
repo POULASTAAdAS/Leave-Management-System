@@ -14,6 +14,6 @@ interface ApplyLeaveRepository {
 
     suspend fun handleLeave(
         req: HandleLeaveReq,
-        headType: HeadType
+        headType: HeadType,
     ): Pair<LeaveAction.TYPE, Int>
 }

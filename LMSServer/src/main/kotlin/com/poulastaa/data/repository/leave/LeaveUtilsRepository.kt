@@ -34,7 +34,7 @@ interface LeaveUtilsRepository {
     suspend fun getApproveLeaveAsHead(
         page: Int,
         pageSize: Int,
-        isPrincipal: Boolean
+        isPrincipal: Boolean,
     ): List<LeaveApproveRes>
 
     suspend fun getLeaveOnId(leaveId: Long): LeaveReq
@@ -45,6 +45,6 @@ interface LeaveUtilsRepository {
         email: String,
         page: Int,
         pageSize: Int,
-        headType: HeadType
+        headType: HeadType,
     ): List<ViewLeaveSingleRes>
 }

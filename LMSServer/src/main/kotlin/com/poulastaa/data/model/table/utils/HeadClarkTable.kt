@@ -1,6 +1,5 @@
 package com.poulastaa.data.model.table.utils
 
-import com.poulastaa.data.model.table.utils.PrincipalTable.nullable
 import org.jetbrains.exposed.dao.id.IntIdTable
 
 object HeadClarkTable : IntIdTable() {

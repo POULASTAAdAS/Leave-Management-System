@@ -44,6 +44,8 @@ class LeaveHistoryPagingSource @Inject constructor(
             is Result.Error -> {
                 when (response.error) {
                     DataError.Network.NO_INTERNET -> {
+//                       val a=  LoadResult.Error(Exception("No Internet"))
+
                         LoadResult.Error(Exception("No Internet"))
                     }
 
