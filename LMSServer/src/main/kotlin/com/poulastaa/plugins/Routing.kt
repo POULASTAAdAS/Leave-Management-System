@@ -6,6 +6,7 @@ import com.poulastaa.routes.auth.*
 import com.poulastaa.routes.department.checkIfDepartmentHead
 import com.poulastaa.routes.department.getDepartmentInCharge
 import com.poulastaa.routes.details.*
+import com.poulastaa.routes.home
 import com.poulastaa.routes.leave.*
 import com.poulastaa.routes.other.*
 import com.poulastaa.routes.report.downloadReport
@@ -17,11 +18,14 @@ import io.ktor.server.sessions.*
 import org.koin.ktor.ext.inject
 import java.io.File
 
+
+
 fun Application.configureRouting() {
     val service: ServiceRepository by inject()
 
     routing {
         interceptor()
+        home()
 
         authenUser(service)
 

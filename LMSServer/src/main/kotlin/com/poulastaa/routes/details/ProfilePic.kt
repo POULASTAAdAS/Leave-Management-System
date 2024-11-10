@@ -3,6 +3,7 @@ package com.poulastaa.routes.details
 import com.poulastaa.data.model.EndPoints
 import com.poulastaa.data.model.auth.UserSession
 import com.poulastaa.data.repository.ServiceRepository
+import com.poulastaa.utils.Constants.PROFILE_FOLDER_PATH
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
@@ -28,7 +29,7 @@ fun Route.updateProfile(service: ServiceRepository) {
                 fileData.forEachPart {
                     when (it) {
                         is PartData.FileItem -> {
-                            val dir = File(System.getenv("profileFolder").dropLast(1))
+                            val dir = File(PROFILE_FOLDER_PATH.dropLast(1))
 
                             dir.listFiles { _, name -> // delete old file
                                 name.startsWith("${payload.name}_${payload.email}")
@@ -37,7 +38,7 @@ fun Route.updateProfile(service: ServiceRepository) {
                             }
 
                             val fileName = "${payload.name}_${payload.email}_${it.originalFileName}"
-                            val path = Paths.get(System.getenv("profileFolder"), fileName).toString()
+                            val path = Paths.get(PROFILE_FOLDER_PATH, fileName).toString()
 
                             val fileBytes = it.streamProvider().readBytes()
                             File(path).writeBytes(fileBytes) // create new file
@@ -88,7 +89,7 @@ fun Route.getImage() {
             get {
                 val query = call.parameters["profile"] ?: return@get
                 try {
-                    val file = File("${System.getenv("profileFolder")}$query")
+                    val file = File("${PROFILE_FOLDER_PATH}$query")
 
                     call.respondFile(file)
                 } catch (_: Exception) {

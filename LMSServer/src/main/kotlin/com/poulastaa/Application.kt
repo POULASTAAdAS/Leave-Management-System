@@ -11,7 +11,6 @@ val invalidTokenList = ArrayList<String>()
 
 fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
-
     removeFirstTokenAfter10Minute()
 }
 

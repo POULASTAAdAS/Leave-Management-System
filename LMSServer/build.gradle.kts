@@ -7,18 +7,10 @@ val mysql_version: String by project
 val koin_ktor: String by project
 val hikaricp_version: String by project
 
-
-tasks.withType<Jar> {
-    manifest {
-        attributes["Main-Module"] = application.mainModule
-    }
-}
-
 plugins {
     kotlin("jvm") version "1.9.24"
     id("io.ktor.plugin") version "2.3.10"
     id("org.jetbrains.kotlin.plugin.serialization") version "1.9.24"
-     id("com.github.johnrengelman.shadow") version "6.1.0"
 }
 
 group = "com.poulastaa"
@@ -70,8 +62,6 @@ dependencies {
 
     // pdf
     implementation("org.apache.pdfbox:pdfbox:2.0.26")
-
-    // pdf
     implementation("com.itextpdf:itext7-core:8.0.5")
     implementation("com.itextpdf:html2pdf:5.0.5")
 }

@@ -45,6 +45,7 @@ import com.poulastaa.domain.dao.utils.Principal
 import com.poulastaa.invalidTokenList
 import com.poulastaa.plugins.query
 import com.poulastaa.utils.Constants.LOGIN_VERIFICATION_MAIL_TOKEN_CLAIM_KEY
+import com.poulastaa.utils.Constants.PROFILE_FOLDER_PATH
 import com.poulastaa.utils.Constants.SIGNUP_VERIFICATION_MAIL_TOKEN_CLAIM_KEY
 import com.poulastaa.utils.sendEmail
 import io.ktor.utils.io.charsets.*
@@ -207,7 +208,7 @@ class ServiceRepositoryImpl(
 
 
     override suspend fun getProfilePic(email: String): File? = try {
-        teacher.getProfilePic(email)?.let { File("${System.getenv("profileFolder")}$it") }
+        teacher.getProfilePic(email)?.let { File("${PROFILE_FOLDER_PATH}$it") }
     } catch (e: Exception) {
         null
     }

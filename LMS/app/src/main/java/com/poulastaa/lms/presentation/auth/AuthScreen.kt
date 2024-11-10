@@ -85,7 +85,7 @@ private fun AuthScreen(
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center,
                 text = stringResource(id = R.string.lm),
-                fontWeight = FontWeight.Medium,
+                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.background,
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize
             )
@@ -94,7 +94,7 @@ private fun AuthScreen(
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center,
                 text = stringResource(id = R.string.s),
-                fontWeight = FontWeight.Medium,
+                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.background,
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize
             )

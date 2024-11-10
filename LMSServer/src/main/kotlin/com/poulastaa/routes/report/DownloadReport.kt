@@ -97,8 +97,8 @@ private fun generateHtml(list: List<PdfData>) = """
         <body>
             <div>
                 <div class="header">
-                    <img src="D:\pdfTest\src\main\kotlin\college_logo.png" alt="College Logo">
-                    <h1>Bhirab Ganguly College</h1>
+                    <img src="./src/main/resources/college_logo.png" alt="College Logo">
+                    <h1>Bhairab Ganguly College</h1>
                     <h2 style="text-decoration: underline;">Leave Report</h2>
                     <h3>Generation Date - ${LocalDate.now().format(DateTimeFormatter.ofPattern("dd-MM-YYYY"))}</h3>
                 </div>
