@@ -34,7 +34,7 @@ out/
 
 ### VS Code ###
 .vscode/
-!/profile/
+profile/
 
 ### Docker ###
 docker/
