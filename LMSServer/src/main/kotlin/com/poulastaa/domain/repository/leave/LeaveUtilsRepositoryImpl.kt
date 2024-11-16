@@ -21,6 +21,7 @@ import com.poulastaa.domain.dao.teacher.Teacher
 import com.poulastaa.domain.dao.utils.PendingEnd
 import com.poulastaa.domain.dao.utils.Status
 import com.poulastaa.plugins.query
+import com.poulastaa.utils.Constants
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -247,7 +248,7 @@ class LeaveUtilsRepositoryImpl : LeaveUtilsRepository {
                     fromDate = it.fromDate.toString(),
                     toDate = it.toDate.toString(),
                     totalDays = (ChronoUnit.DAYS.between(it.fromDate, it.toDate) + 1L).toString(),
-                    docUrl = it.doc?.let { "${System.getenv("BASE_URL")}/${EndPoints.GetDoc.route}?image=$it" }
+                    docUrl = it.doc?.let { "${Constants.BASE_URL}/${EndPoints.GetDoc.route}?image=$it" }
                 )
             }
         }

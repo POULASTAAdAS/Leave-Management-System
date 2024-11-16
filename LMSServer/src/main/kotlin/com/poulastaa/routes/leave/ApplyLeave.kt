@@ -6,6 +6,7 @@ import com.poulastaa.data.model.leave.ApplyLeaveReq
 import com.poulastaa.data.model.leave.ApplyLeaveRes
 import com.poulastaa.data.model.leave.ApplyLeaveStatus
 import com.poulastaa.data.repository.ServiceRepository
+import com.poulastaa.utils.Constants
 import com.poulastaa.utils.Constants.SESSION_AUTH
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -46,7 +47,7 @@ fun Route.applyLeave(service: ServiceRepository) {
                                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy hh-mm"))
                             }_${part.originalFileName}"
 
-                            val path = Paths.get(System.getenv("medicalFolder"), fileName).toString()
+                            val path = Paths.get(Constants.MEDICAL_FOLDER_PATH, fileName).toString()
 
                             val fileBytes = part.streamProvider().readBytes()
                             File(path).writeBytes(fileBytes) // create new file

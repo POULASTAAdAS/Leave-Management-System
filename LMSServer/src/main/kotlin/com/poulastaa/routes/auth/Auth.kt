@@ -4,6 +4,7 @@ import com.poulastaa.data.model.EndPoints
 import com.poulastaa.data.model.auth.req.AuthReq
 import com.poulastaa.data.model.auth.res.AuthStatus
 import com.poulastaa.data.repository.ServiceRepository
+import com.poulastaa.routes.utils.setCookie
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -29,6 +30,8 @@ fun Route.authenUser(
                 }
 
                 else -> {
+                    setCookie(req.email, req.email.split("@")[0])
+
                     call.respond(
                         message = response,
                         status = HttpStatusCode.OK

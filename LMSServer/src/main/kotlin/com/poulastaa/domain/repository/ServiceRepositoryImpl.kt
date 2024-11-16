@@ -44,6 +44,7 @@ import com.poulastaa.domain.dao.utils.Path
 import com.poulastaa.domain.dao.utils.Principal
 import com.poulastaa.invalidTokenList
 import com.poulastaa.plugins.query
+import com.poulastaa.utils.Constants
 import com.poulastaa.utils.Constants.LOGIN_VERIFICATION_MAIL_TOKEN_CLAIM_KEY
 import com.poulastaa.utils.Constants.PROFILE_FOLDER_PATH
 import com.poulastaa.utils.Constants.SIGNUP_VERIFICATION_MAIL_TOKEN_CLAIM_KEY
@@ -57,6 +58,8 @@ import java.nio.charset.StandardCharsets
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+
+private const val PENDING_STATUS_CODE = 2
 
 class ServiceRepositoryImpl(
     private val jwtRepo: JWTRepository,
@@ -80,7 +83,7 @@ class ServiceRepositoryImpl(
                     user = User(
                         name = principle.name,
                         email = principle.email,
-                        profilePicUrl = System.getenv("BASE_URL") + EndPoints.GetProfilePic.route
+                        profilePicUrl = Constants.BASE_URL + EndPoints.GetProfilePic.route
                     )
                 )
             }
@@ -121,7 +124,7 @@ class ServiceRepositoryImpl(
                     user = User(
                         name = headClark.name,
                         email = headClark.email,
-                        profilePicUrl = System.getenv("BASE_URL") + EndPoints.GetProfilePic.route
+                        profilePicUrl = Constants.BASE_URL + EndPoints.GetProfilePic.route
                     )
                 )
             }
@@ -209,7 +212,7 @@ class ServiceRepositoryImpl(
 
     override suspend fun getProfilePic(email: String): File? = try {
         teacher.getProfilePic(email)?.let { File("${PROFILE_FOLDER_PATH}$it") }
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         null
     }
 
@@ -228,7 +231,7 @@ class ServiceRepositoryImpl(
                                         + "<body>"
                                         + "<h1>Email Authentication</h1>"
                                         + "<p>Click the following link to verify your email:</p>"
-                                        + "<a href=\"${System.getenv("BASE_URL") + route}?token=" + token
+                                        + "<a href=\"${Constants.BASE_URL + route}?token=" + token
                                 ) + "\">Authenticate</a>"
                                 + "</body>"
                                 + "</html>"
@@ -830,14 +833,16 @@ class ServiceRepositoryImpl(
                         LeaveReqTable.reason
                     ).let {
                         query {
-                            if (type.uppercase() == "ALL") it.selectAll()
+                            if (type.uppercase() == "ALL") it.select {
+                                LeaveStatusTable.statusId neq PENDING_STATUS_CODE
+                            }
                             else {
                                 val leaveId = LeaveType.find {
                                     LeaveTypeTable.type eq type.split('(')[0]
                                 }.first().id.value
 
                                 it.select {
-                                    LeaveTypeTable.id eq leaveId
+                                    LeaveTypeTable.id eq leaveId and (LeaveStatusTable.statusId neq PENDING_STATUS_CODE)
                                 }
                             }
                         }
@@ -916,7 +921,7 @@ class ServiceRepositoryImpl(
 
                 val leaveIdList = query {
                     LeaveStatusTable.select {
-                        LeaveStatusTable.departmentId eq dep.id
+                        LeaveStatusTable.departmentId eq dep.id and (LeaveStatusTable.statusId neq PENDING_STATUS_CODE)
                     }.map {
                         it[LeaveStatusTable.leaveId].value
                     }
@@ -1036,7 +1041,7 @@ class ServiceRepositoryImpl(
                         id = it[TeacherDetailsTable.teacherId].value,
                         name = it[TeacherDetailsTable.name],
                         designation = it[DesignationTable.type],
-                        profile = "${System.getenv("BASE_URL") + EndPoints.GetImage.route}?profile=${it[TeacherDetailsTable.profilePic]}"
+                        profile = "${Constants.BASE_URL + EndPoints.GetImage.route}?profile=${it[TeacherDetailsTable.profilePic]}"
                     )
                 }
         }
@@ -1058,9 +1063,8 @@ class ServiceRepositoryImpl(
         }
 
         val leaveTypeIdDef = async {
-            if (type.uppercase() == "ALL") {
-                null
-            } else query {
+            if (type.uppercase() == "ALL") null
+            else query {
                 LeaveType.find {
                     LeaveTypeTable.type eq type.split('(')[0]
                 }.single().id.value
@@ -1081,7 +1085,7 @@ class ServiceRepositoryImpl(
 
         val leaveIdList = query {
             LeaveStatusTable.select {
-                LeaveStatusTable.departmentId eq dep.id
+                LeaveStatusTable.departmentId eq dep.id and (LeaveStatusTable.statusId neq PENDING_STATUS_CODE)
             }.map {
                 it[LeaveStatusTable.leaveId].value
             }
@@ -1179,17 +1183,21 @@ class ServiceRepositoryImpl(
                 LeaveReqTable.reqDate,
                 LeaveReqTable.fromDate,
                 LeaveReqTable.toDate,
-                LeaveReqTable.reason
+                LeaveReqTable.reason,
+                LeaveStatusTable.statusId
             )
 
-        (if (type.uppercase() == "ALL") join.selectAll()
+
+        (if (type.uppercase() == "ALL") join.select {
+            LeaveStatusTable.statusId neq PENDING_STATUS_CODE
+        }
         else {
             val leaveId = LeaveType.find {
                 LeaveTypeTable.type eq type.split('(')[0]
             }.first().id.value
 
             join.select {
-                LeaveTypeTable.id eq leaveId
+                LeaveTypeTable.id eq leaveId and (LeaveStatusTable.statusId neq PENDING_STATUS_CODE)
             }
         }).orderBy(DepartmentTable.name)
             .orderBy(TeacherDetailsTable.name)

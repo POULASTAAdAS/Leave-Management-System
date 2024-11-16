@@ -2,6 +2,7 @@ package com.poulastaa.utils
 
 object Constants {
     const val PROFILE_FOLDER_PATH = "./profile/"
+    const val MEDICAL_FOLDER_PATH = "./medicalFolder/"
     const val SMS_EMAIL_GOOGLE_SMTP_HOST = "smtp.gmail.com"
     const val SMS_EMAIL_PORT = "587"
 
@@ -12,4 +13,6 @@ object Constants {
     const val VERIFICATION_MAIL_TOKEN_TIME = 240000L // 4 minute
 
     const val SESSION_AUTH = "session-auth"
+
+    const val BASE_URL = "http://lms.poulastaa.online:8080"
 }

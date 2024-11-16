@@ -53,6 +53,7 @@ class ApplyLeaveRepositoryImpl(
             }.single().id.value
         }
 
+
         return when (teacherType) {
             TeacherType.SACT -> {
                 val type = LeaveType.ScatType.valueOf(req.leaveType.trim().uppercase().replace(' ', '_'))
@@ -503,10 +504,18 @@ class ApplyLeaveRepositoryImpl(
         // checking if conflict with other leaves
         val isEmptyDef = async {
             query {
-                LeaveReq.find {
-                    LeaveReqTable.teacherId eq req.teacherId and
-                            (LeaveReqTable.toDate greaterEq req.fromDate)
-                }.empty()
+                LeaveStatusTable
+                    .join(
+                        otherTable = LeaveReqTable,
+                        joinType = JoinType.INNER,
+                        additionalConstraint = {
+                            LeaveReqTable.id eq LeaveStatusTable.leaveId
+                        }
+                    )
+                    .select {
+                        LeaveReqTable.teacherId eq req.teacherId and
+                                (LeaveReqTable.toDate greaterEq req.fromDate)
+                    }.empty()
             }
         }
 
@@ -1029,7 +1038,9 @@ class ApplyLeaveRepositoryImpl(
                 }
             ) {
                 it[this.statusId] = status.id
-                if (headType == HeadType.PRINCIPAL) it[this.approveDate] = LocalDate.now()
+                if (headType == HeadType.PRINCIPAL ||
+                    status.type == Status.TYPE.REJECTED.value
+                ) it[this.approveDate] = LocalDate.now()
                 it[this.pendingEndId] = pendingEnd.id
                 it[this.cause] = req.cause
                 it[this.actionId] = action.id

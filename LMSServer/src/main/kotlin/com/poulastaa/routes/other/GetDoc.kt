@@ -1,6 +1,7 @@
 package com.poulastaa.routes.other
 
 import com.poulastaa.data.model.EndPoints
+import com.poulastaa.utils.Constants
 import com.poulastaa.utils.Constants.SESSION_AUTH
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -15,7 +16,7 @@ fun Route.getDoc() {
                 val image = call.parameters["image"] ?: return@get call.respondRedirect(EndPoints.UnAuthorised.route)
 
                 try {
-                    call.respondFile(File("${System.getenv("medicalFolder")}/$image"))
+                    call.respondFile(File("${Constants.MEDICAL_FOLDER_PATH}/$image"))
                 } catch (_: Exception) {
                     call.respondRedirect(EndPoints.UnAuthorised.route)
                 }
