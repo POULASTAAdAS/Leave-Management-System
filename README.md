@@ -1,6 +1,14 @@
-# Leave Management Native Android Application
+# <h1 align='center'>Leave Management Native Android Application</h1>
 
 > LMS is a online native android application. It has 3 level of user.Permenent or SACT , Department Head , Principal or Headclark. Permenet or SACT teacher can apply for leave and view leave status and department head can also apply for leave and view his or her leave status also can approve or reject premenent or sact teacehr leave request also can download previous leave history or that department. As for Principal he or she can approve or reject all facaltys leave and update any facalty mem leave balance and add or remove facalty members. Also download a detailed leave report.
+
+## <h2  align='center'>Showcase</h2>
+
+<a  href="https://github.com/POULASTAAdAS/Leave-Management-System/blob/main/ss/showcase.svg ">
+
+<img  src="https://github.com/POULASTAAdAS/Leave-Management-System/blob/main/ss/showcase.svg "  alt="ShowCase">
+
+</a>
 
 ## Features
 
